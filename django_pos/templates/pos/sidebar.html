@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
@@ -17,7 +18,7 @@
     <li class="{% if "dashboard" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
         <a class="nav-link" href="{% url 'pos:index' %}">
             <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span></a>
+            <span>{% trans "Dashboard" %}</span></a>
     </li>
 
     <!-- Divider -->
@@ -28,12 +29,12 @@
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
             aria-expanded="true" aria-controls="collapseTwo">
             <i class="fas fa-fw fa-tag"></i>
-            <span>Products</span>
+            <span>{% trans "Products" %}</span>
         </a>
         <div id="collapseTwo" class="{% if "products" in active_icon %} collapse show {% else %} collapse {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="{% if "categories" in active_icon %} collapse-item active {% else %} collapse-item {% endif %}" href="{% url 'products:categories_list' %}">Categories</a>
-                <a class="{% if "products_products" in active_icon %} collapse-item active {% else %} collapse-item {% endif %}" href="{% url 'products:products_list' %}">Products</a>
+                <a class="{% if "categories" in active_icon %} collapse-item active {% else %} collapse-item {% endif %}" href="{% url 'products:categories_list' %}">{% trans "Categories" %}</a>
+                <a class="{% if "products_products" in active_icon %} collapse-item active {% else %} collapse-item {% endif %}" href="{% url 'products:products_list' %}">{% trans "Products" %}</a>
             </div>
         </div>
     </li>
@@ -45,7 +46,7 @@
     <li class="{% if "customers" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
         <a class="nav-link" href="{% url 'customers:customers_list' %}">
             <i class="fas fa-fw fa-users"></i>
-            <span>Customers</span></a>
+            <span>{% trans "Customers" %}</span></a>
     </li>
 
     <!-- Divider -->
@@ -55,7 +56,7 @@
     <li class="{% if "sales" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
         <a class="nav-link" href="{% url 'sales:sales_list' %}">
             <i class="fas fa-fw fa-cart-plus"></i>
-            <span>Sales</span></a>
+            <span>{% trans "Sales" %}</span></a>
     </li>
 
     <!-- Divider -->

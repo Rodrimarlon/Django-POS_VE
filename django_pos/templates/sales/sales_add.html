@@ -1,7 +1,8 @@
 {% extends "pos/base.html" %}
 {% load static %}
+{% load i18n %}
 <!-- Page title  -->
-{% block title %}Add sale{% endblock title %}
+{% block title %}{% trans "Add sale" %}{% endblock title %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -15,7 +16,7 @@
 {% endblock stylesheets %}
 
 <!-- Page Heading -->
-{% block heading %}Add sale{% endblock heading %}
+{% block heading %}{% trans "Add sale" %}{% endblock heading %}
 
 <!-- Page content  -->
 {% block content %}
@@ -24,7 +25,7 @@
     <a href="{% url 'sales:sales_list' %}">
         <button type="button" class="btn btn-info font-weight-bold">
             <i class="fas fa-long-arrow-alt-left mr-2"></i>
-            Go back
+            {% trans "Go back" %}
         </button>
     </a>
 </div>
@@ -38,12 +39,12 @@
                     <!--Left column-->
                     <div class="col-md-9 pl-0">
                         <div class="card card-secondary">
-                            <div class="card-header">Sale products</div>
+                            <div class="card-header">{% trans "Sale products" %}</div>
                             
                             <div class="card-body">
                                 <!--Search product-->
                                 <div class="form-group">
-                                    <label>Search product:</label>
+                                    <label>{% trans "Search product:" %}</label>
                                     <div class="input-group">
                                         <select class="form-control select2" name="searchbox_products" id="searchbox_products"></select>
                                     </div>
@@ -52,7 +53,7 @@
 
                                 <!--Delete all products from sale-->
                                 <button type="button" class="mb-4 btn btn-danger btn-sm deleteAll">
-                                    Delete all products <i class="ml-1 fas fa-trash-alt fa-xs"></i>
+                                    {% trans "Delete all products" %} <i class="ml-1 fas fa-trash-alt fa-xs"></i>
                                 </button>
                                 <!--End Delete all products from sale-->
 
@@ -62,11 +63,11 @@
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>Name</th>
-                                                <th>Price</th>
-                                                <th>Quantity</th>
-                                                <th>Total</th>
-                                                <th class="text-center">Delete</th>
+                                                <th>{% trans "Name" %}</th>
+                                                <th>{% trans "Price" %}</th>
+                                                <th>{% trans "Quantity" %}</th>
+                                                <th>{% trans "Total" %}</th>
+                                                <th class="text-center">{% trans "Delete" %}</th>
                                                 </tr>
                                             </thead>
                                         <tbody>
@@ -82,49 +83,49 @@
                     <!--Righ column-->
                     <div class="col-md-3 pr-0">
                         <div class="card card-secondary">
-                            <div class="card-header">Sale details</div>
+                            <div class="card-header">{% trans "Sale details" %}</div>
                             <div class="card-body">
                                 {% csrf_token %}
                                 <div class="form-group">
-                                    <label for="customer">Customer</label>
+                                    <label for="customer">{% trans "Customer" %}</label>
                                     <select name="customer" class="form-control" id="searchbox_customers" required>
-                                        <option value="" selected disabled hidden>Select the customer</option>
+                                        <option value="" selected disabled hidden>{% trans "Select the customer" %}</option>
                                         {% for customer in customers %}
                                         <option value="{{customer.value}}">{{customer.label}}</option>
                                         {% endfor %}
                                     </select>
                                 <div class="form-group mt-4">
-                                    <label>Subtotal</label>
+                                    <label>{% trans "Subtotal" %}</label>
                                     <div class="input-group">
                                         <input name="sub_total" class="form-control" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Tax Inclusive (%)</label>
+                                    <label>{% trans "Tax Inclusive (%)" %}</label>
                                     <div class="input-group">
                                         <input name="tax_percentage" class="form-control" value=0 required>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Tax Amount</label>
+                                    <label>{% trans "Tax Amount" %}</label>
                                     <div class="input-group">
                                         <input name="tax_amount" class="form-control" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Grand Total</label>
+                                    <label>{% trans "Grand Total" %}</label>
                                     <div class="input-group">
                                         <input name="grand_total" class="form-control" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Amount payed</label>
+                                    <label>{% trans "Amount payed" %}</label>
                                     <div class="input-group">
                                         <input name="amount_payed" class="form-control" required>
                                     </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-success font-weight-bold">Create sale</button>
+                                <button type="submit" class="btn btn-success font-weight-bold">{% trans "Create sale" %}</button>
                             </div>
                             <!--End card-body-->
                     </div>
@@ -247,7 +248,7 @@
                         targets: [-1],
                         orderable: false,
                         render: function (data, type, row){
-                            return '<a rel="delete" type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Delete product"> <i class="fas fa-trash-alt fa-xs"></i> </a>';
+                            return '<a rel="delete" type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="{% trans "Delete product" %}"> <i class="fas fa-trash-alt fa-xs"></i> </a>';
                         },
                     },
 
@@ -290,7 +291,7 @@
 
         //Select2 customers
         $('#searchbox_customers').select2({
-            placeholder: "Select a customer",
+            placeholder: "{% trans "Select a customer" %}",
             allowClear: true,
         });
 
@@ -308,12 +309,12 @@
                         cancelButton: 'btn btn-info'
                     },
                     buttonsStyling: false,
-                    title: "Are you sure you want to delete this product from the sale?",
+                    title: "{% trans "Are you sure you want to delete this product from the sale?" %}",
                     text: product_name,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Delete',
-                    cancelButtonText: 'Cancel',
+                    confirmButtonText: '{% trans "Delete" %}',
+                    cancelButtonText: '{% trans "Cancel" %}',
                     reverseButtons: true,
 
                 }).then((result) => {
@@ -324,7 +325,7 @@
                         sale.items.products.splice(tr.row, 1);
                         //List the table again
                         sale.list_product();
-                        Swal.fire('The product was eliminated!', '', 'success')
+                        Swal.fire('{% trans "The product was eliminated!" %}', '', 'success')
                     };
                 })
 
@@ -359,11 +360,11 @@
                     cancelButton: 'btn btn-info'
                 },
                 buttonsStyling: false,
-                title: "Are you sure you want to delete all products from the sale?",
+                title: "{% trans "Are you sure you want to delete all products from the sale?" %}",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Delete all',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: '{% trans "Delete all" %}',
+                cancelButtonText: '{% trans "Cancel" %}',
                 reverseButtons: true,
 
             }).then((result) => {
@@ -373,7 +374,7 @@
                     sale.items.products = [];
                     // Calculamos de vuelta la factura
                     sale.list_product();
-                    Swal.fire('All products were eliminated!', '', 'success')
+                    Swal.fire('{% trans "All products were eliminated!" %}', '', 'success')
                 };
             })
         });
@@ -397,7 +398,7 @@
 
         $('#searchbox_products').select2({
             delay: 250,
-            placeholder: 'Search a product',
+            placeholder: '{% trans "Search a product" %}',
             minimumInputLength: 1,
             allowClear: true,
             templateResult: template_product_searchbox,
@@ -460,8 +461,8 @@
                     '<div class="col-lg-11 text-left shadow-sm">' +
                       //'<br>' +
                       '<p style="margin-bottom: 5px;">' +
-                      '<b>Name:</b> ' + repo.text + " | Category: " + "<span class='btn-info px-2'>" + repo.category + '</span> <br>' +
-                      '<b>Price:</b> <span class="btn-success px-2">'+repo.price+' $. </span>'+
+                      '<b>{% trans "Name:" %}</b> ' + repo.text + " | {% trans "Category:" %} " + "<span class='btn-info px-2'>" + repo.category + '</span> <br>' +
+                      '<b>{% trans "Price:" %}</b> <span class="btn-success px-2">'+repo.price+' $. </span>'+
                       '</p>' +
                     '</div>' +
                   '</div>' +
@@ -476,8 +477,8 @@
             // Only allow sending if we have at least one product
             if (sale.items.products.length === 0 ) {
                 Swal.fire({
-                    title: 'The sale must have at least 1 product',
-                    text: 'Search a product and add it to the sale',
+                    title: '{% trans "The sale must have at least 1 product" %}',
+                    text: '{% trans "Search a product and add it to the sale" %}',
                     icon: 'warning',
                 });
                 return false;
@@ -486,7 +487,7 @@
             // Only allow sending if the paid amount is equal or greater than the total
             if ($('[name="amount_payed"]').val() < $('[name="grand_total"]').val()) {
                 Swal.fire({
-                    title: 'Payable Amount is lower than the Grand Total',
+                    title: '{% trans "Payable Amount is lower than the Grand Total" %}',
                     icon: 'warning',
                 });
                 return false;

@@ -1,7 +1,8 @@
 {% extends "pos/base.html" %}
 {% load static %}
+{% load i18n %}
 <!-- Page title  -->
-{% block title %}Sale details{% endblock title %}
+{% block title %}{% trans "Sale details" %}{% endblock title %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -15,7 +16,7 @@
 {% endblock stylesheets %}
 
 <!-- Page Heading -->
-{% block heading %}Sale ID: {{sale.id}}, details{% endblock heading %}
+{% block heading %}Sale ID: {{sale.id}}, {% trans "details" %}{% endblock heading %}
 
 <!-- Page content  -->
 {% block content %}
@@ -24,7 +25,7 @@
     <a href="{% url 'sales:sales_list' %}">
         <button type="button" class="btn btn-info font-weight-bold">
             <i class="fas fa-long-arrow-alt-left mr-2"></i>
-            Go back
+            {% trans "Go back" %}
         </button>
     </a>
 </div>
@@ -38,7 +39,7 @@
                     <!--Left column-->
                     <div class="col-md-9 pl-0">
                         <div class="card card-secondary">
-                            <div class="card-header">Sale products</div>
+                            <div class="card-header">{% trans "Sale products" %}</div>
                             
                             <div class="card-body">
                                 <!--Products table-->
@@ -47,10 +48,10 @@
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>Name</th>
-                                                <th>Price</th>
-                                                <th>Quantity</th>
-                                                <th>Total</th>
+                                                <th>{% trans "Name" %}</th>
+                                                <th>{% trans "Price" %}</th>
+                                                <th>{% trans "Quantity" %}</th>
+                                                <th>{% trans "Total" %}</th>
                                                 </tr>
                                             </thead>
                                         <tbody>
@@ -75,40 +76,40 @@
                     <!--Righ column-->
                     <div class="col-md-3 pr-0">
                         <div class="card card-secondary">
-                            <div class="card-header">Sale details</div>
+                            <div class="card-header">{% trans "Sale details" %}</div>
                             <div class="card-body">
                                 {% csrf_token %}
                                 <div class="form-group">
-                                    <label for="customer">Customer</label>
+                                    <label for="customer">{% trans "Customer" %}</label>
                                     <select name="customer" class="form-control" id="searchbox_customers" disabled readonly>
                                         <option value="{{sale.customer.id}}">{{sale.customer.get_full_name}}</option>
                                     </select>
                                 <div class="form-group mt-4">
-                                    <label>Subtotal</label>
+                                    <label>{% trans "Subtotal" %}</label>
                                     <div class="input-group">
                                         <input name="sub_total" class="form-control" value="{{sale.sub_total}}" readonly>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Tax Inclusive (%)</label>
+                                    <label>{% trans "Tax Inclusive (%)" %}</label>
                                     <div class="input-group">
                                         <input name="tax_percentage" class="form-control" value="{{sale.tax_percentage}}" readonly>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Tax Amount</label>
+                                    <label>{% trans "Tax Amount" %}</label>
                                     <div class="input-group">
                                         <input name="tax_amount" class="form-control" value="{{sale.tax_amount}}" readonly>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Grand Total</label>
+                                    <label>{% trans "Grand Total" %}</label>
                                     <div class="input-group">
                                         <input name="grand_total" class="form-control" value="{{sale.grand_total}}" readonly>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Amount payed</label>
+                                    <label>{% trans "Amount payed" %}</label>
                                     <div class="input-group">
                                         <input name="amount_payed" class="form-control" value="{{sale.amount_payed}}" readonly>
                                     </div>

@@ -1,0 +1,542 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-22 15:20+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: authentication/forms.py:11 authentication/forms.py:28
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: authentication/forms.py:18 authentication/forms.py:42
+msgid "Password"
+msgstr "Contraseña"
+
+#: authentication/forms.py:35 templates/customers/customers.html:43
+#: templates/customers/customers_add.html:43
+#: templates/customers/customers_update.html:43
+msgid "Email"
+msgstr "Correo electrónico"
+
+#: authentication/forms.py:49
+msgid "Password confirmation"
+msgstr "Confirmación de contraseña"
+
+#: templates/accounts/login.html:14
+msgid "SB Admin 2 - Login"
+msgstr "SB Admin 2 - Iniciar Sesión"
+
+#: templates/accounts/login.html:44
+msgid "Welcome Back!"
+msgstr "¡Bienvenido de nuevo!"
+
+#: templates/accounts/login.html:60
+msgid "Remember Me"
+msgstr "Recuérdame"
+
+#: templates/accounts/login.html:63
+msgid "Login"
+msgstr "Iniciar Sesión"
+
+#: templates/accounts/login.html:67
+msgid "Forgot Password?"
+msgstr "¿Olvidaste tu contraseña?"
+
+#: templates/accounts/login.html:70
+msgid "Create an Account!"
+msgstr "¡Crea una cuenta!"
+
+#: templates/customers/customers.html:5 templates/customers/customers.html:15
+#: templates/customers/customers.html:33 templates/pos/sidebar.html:49
+#: templates/sales/sales.html:33
+msgid "Customers"
+msgstr "Clientes"
+
+#: templates/customers/customers.html:25
+msgid "Create new customer"
+msgstr "Crear nuevo cliente"
+
+#: templates/customers/customers.html:40 templates/products/categories.html:40
+#: templates/products/products.html:40 templates/sales/sales.html:41
+msgid "ID"
+msgstr "ID"
+
+#: templates/customers/customers.html:42 templates/products/categories.html:42
+#: templates/products/categories_add.html:33
+#: templates/products/categories_update.html:33
+#: templates/products/products.html:42 templates/products/products_add.html:32
+#: templates/products/products_update.html:32 templates/sales/sales_add.html:66
+#: templates/sales/sales_details.html:51
+msgid "Name"
+msgstr "Nombre"
+
+#: templates/customers/customers.html:44
+msgid "Phone"
+msgstr "Teléfono"
+
+#: templates/customers/customers.html:45
+#: templates/customers/customers_add.html:54
+#: templates/customers/customers_update.html:54
+msgid "Address"
+msgstr "Dirección"
+
+#: templates/customers/customers.html:46 templates/products/categories.html:45
+#: templates/products/products.html:47 templates/sales/sales.html:46
+msgid "Actions"
+msgstr "Acciones"
+
+#: templates/customers/customers.html:61
+#: templates/customers/customers_update.html:5
+#: templates/customers/customers_update.html:11
+#: templates/customers/customers_update.html:60
+msgid "Update customer"
+msgstr "Actualizar cliente"
+
+#: templates/customers/customers.html:78
+msgid "Delete customer"
+msgstr "Eliminar cliente"
+
+#: templates/customers/customers.html:84 templates/customers/customers.html:232
+msgid "Are you sure you want to delete the customer:"
+msgstr "¿Estás seguro de que quieres eliminar al cliente:"
+
+#: templates/customers/customers.html:87 templates/pos/logout_modal.html:16
+#: templates/products/categories.html:93 templates/products/products.html:97
+#: templates/sales/sales_add.html:317 templates/sales/sales_add.html:367
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/customers/customers.html:89 templates/products/categories.html:95
+#: templates/products/products.html:100 templates/sales/sales_add.html:70
+#: templates/sales/sales_add.html:316
+msgid "Delete"
+msgstr "Eliminar"
+
+#: templates/customers/customers.html:131
+#: templates/products/categories.html:137 templates/products/products.html:142
+#: templates/sales/sales.html:107
+msgid "Print"
+msgstr "Imprimir"
+
+#: templates/customers/customers.html:140
+#: templates/products/categories.html:146 templates/products/products.html:151
+#: templates/sales/sales.html:116
+msgid "Download Excel"
+msgstr "Descargar Excel"
+
+#: templates/customers/customers.html:149
+#: templates/products/categories.html:155 templates/products/products.html:160
+#: templates/sales/sales.html:125
+msgid "Download PDF"
+msgstr "Descargar PDF"
+
+#: templates/customers/customers.html:192
+#: templates/products/categories.html:198 templates/products/products.html:203
+#: templates/sales/sales.html:168
+msgid "Creation date:"
+msgstr "Fecha de creación:"
+
+#: templates/customers/customers.html:196
+#: templates/products/categories.html:202 templates/products/products.html:207
+#: templates/sales/sales.html:172
+msgid "page"
+msgstr "página"
+
+#: templates/customers/customers.html:196
+#: templates/products/categories.html:202 templates/products/products.html:207
+#: templates/sales/sales.html:172
+msgid "de"
+msgstr "de"
+
+#: templates/customers/customers_add.html:5
+#: templates/customers/customers_add.html:11
+msgid "Add customer"
+msgstr "Añadir cliente"
+
+#: templates/customers/customers_add.html:20
+#: templates/customers/customers_update.html:20
+#: templates/products/categories_add.html:20
+#: templates/products/categories_update.html:20
+#: templates/products/products_add.html:20
+#: templates/products/products_update.html:20 templates/sales/sales_add.html:28
+#: templates/sales/sales_details.html:28
+msgid "Go back"
+msgstr "Volver"
+
+#: templates/customers/customers_add.html:32
+#: templates/customers/customers_update.html:32
+msgid "First Name"
+msgstr "Nombre"
+
+#: templates/customers/customers_add.html:36
+#: templates/customers/customers_update.html:36
+msgid "Last Name"
+msgstr "Apellido"
+
+#: templates/customers/customers_add.html:47
+#: templates/customers/customers_update.html:47
+msgid "Phone number"
+msgstr "Número de teléfono"
+
+#: templates/customers/customers_add.html:60
+msgid "Create customer"
+msgstr "Crear cliente"
+
+#: templates/pos/footer.html:7
+msgid "Copyright &copy;"
+msgstr "Copyright &copy;"
+
+#: templates/pos/index.html:5 templates/pos/index.html:11
+#: templates/pos/sidebar.html:21
+msgid "Dashboard"
+msgstr "Tablero"
+
+#: templates/pos/index.html:25
+msgid "Avg Earning per Month"
+msgstr "Ganancia promedio por mes"
+
+#: templates/pos/index.html:43
+msgid "Earnings (Annual)"
+msgstr "Ganancias (Anual)"
+
+#: templates/pos/index.html:60
+msgid "Registered Products"
+msgstr "Productos Registrados"
+
+#: templates/pos/index.html:82
+msgid "Registered Categories"
+msgstr "Categorías Registradas"
+
+#: templates/pos/index.html:109
+msgid "Year Earnings Overview"
+msgstr "Resumen de ganancias del año"
+
+#: templates/pos/index.html:126
+msgid "Best selling products"
+msgstr "Productos más vendidos"
+
+#: templates/pos/logout_modal.html:9
+msgid "Ready to Leave?"
+msgstr "¿Listo para salir?"
+
+#: templates/pos/logout_modal.html:14
+msgid "Select \""
+msgstr "Selecciona \""
+
+#: templates/pos/logout_modal.html:14
+msgid "Logout\" below if you are ready to end your current session."
+msgstr "Cerrar Sesión\" abajo si estás listo para terminar tu sesión actual."
+
+#: templates/pos/logout_modal.html:17 templates/pos/navbar.html:31
+msgid "Logout"
+msgstr "Cerrar Sesión"
+
+#: templates/pos/sidebar.html:32 templates/pos/sidebar.html:37
+#: templates/products/products.html:5 templates/products/products.html:15
+#: templates/products/products.html:33
+msgid "Products"
+msgstr "Productos"
+
+#: templates/pos/sidebar.html:36 templates/products/categories.html:33
+msgid "Categories"
+msgstr "Categorías"
+
+#: templates/pos/sidebar.html:59 templates/sales/sales.html:5
+#: templates/sales/sales.html:15
+msgid "Sales"
+msgstr "Ventas"
+
+#: templates/products/categories.html:5 templates/products/categories.html:15
+msgid "Product categories"
+msgstr "Categorías de productos"
+
+#: templates/products/categories.html:25
+msgid "Create new category"
+msgstr "Crear nueva categoría"
+
+#: templates/products/categories.html:43
+#: templates/products/categories_add.html:48
+#: templates/products/categories_update.html:53
+#: templates/products/products.html:43 templates/products/products_add.html:47
+#: templates/products/products_update.html:51
+msgid "Description"
+msgstr "Descripción"
+
+#: templates/products/categories.html:44 templates/products/products.html:46
+msgid "Status"
+msgstr "Estado"
+
+#: templates/products/categories.html:57 templates/products/products.html:61
+msgid "ACTIVE"
+msgstr "ACTIVO"
+
+#: templates/products/categories.html:61 templates/products/products.html:65
+msgid "INACTIVE"
+msgstr "INACTIVO"
+
+#: templates/products/categories.html:67
+#: templates/products/categories_update.html:5
+#: templates/products/categories_update.html:11
+#: templates/products/categories_update.html:58
+msgid "Update category"
+msgstr "Actualizar categoría"
+
+#: templates/products/categories.html:84
+msgid "Delete category"
+msgstr "Eliminar categoría"
+
+#: templates/products/categories.html:90 templates/products/categories.html:238
+msgid "Are you sure you want to delete the category:"
+msgstr "¿Estás seguro de que quieres eliminar la categoría:"
+
+#: templates/products/categories_add.html:5
+#: templates/products/categories_add.html:11
+msgid "Add category"
+msgstr "Añadir categoría"
+
+#: templates/products/categories_add.html:37
+#: templates/products/categories_update.html:38
+#: templates/products/products_add.html:36
+#: templates/products/products_update.html:36
+msgid "State"
+msgstr "Estado"
+
+#: templates/products/categories_add.html:53
+msgid "Create category"
+msgstr "Crear categoría"
+
+#: templates/products/products.html:25
+msgid "Create new product"
+msgstr "Crear nuevo producto"
+
+#: templates/products/products.html:44 templates/products/products_add.html:51
+#: templates/products/products_update.html:55
+msgid "Category"
+msgstr "Categoría"
+
+#: templates/products/products.html:45 templates/products/products_add.html:63
+#: templates/products/products_update.html:71 templates/sales/sales_add.html:67
+#: templates/sales/sales_details.html:52
+#: templates/sales/sales_receipt_pdf.html:78
+msgid "Price"
+msgstr "Precio"
+
+#: templates/products/products.html:71
+#: templates/products/products_update.html:5
+#: templates/products/products_update.html:11
+#: templates/products/products_update.html:77
+msgid "Update product"
+msgstr "Actualizar producto"
+
+#: templates/products/products.html:88 templates/sales/sales_add.html:251
+msgid "Delete product"
+msgstr "Eliminar producto"
+
+#: templates/products/products.html:243
+msgid "Are you sure you want to delete the product:"
+msgstr "¿Estás seguro de que quieres eliminar el producto:"
+
+#: templates/products/products_add.html:5
+#: templates/products/products_add.html:11
+msgid "Add product"
+msgstr "Añadir producto"
+
+#: templates/products/products_add.html:53
+#: templates/products/products_update.html:57
+msgid "Select the category"
+msgstr "Seleccionar la categoría"
+
+#: templates/products/products_add.html:69
+msgid "Create product"
+msgstr "Crear producto"
+
+#: templates/sales/sales.html:25
+msgid "Create new sale"
+msgstr "Crear nueva venta"
+
+#: templates/sales/sales.html:42
+msgid "Date"
+msgstr "Fecha"
+
+#: templates/sales/sales.html:43 templates/sales/sales_add.html:90
+#: templates/sales/sales_details.html:83
+msgid "Customer"
+msgstr "Cliente"
+
+#: templates/sales/sales.html:44 templates/sales/sales_add.html:69
+#: templates/sales/sales_details.html:54
+#: templates/sales/sales_receipt_pdf.html:79
+msgid "Total"
+msgstr "Total"
+
+#: templates/sales/sales.html:45
+msgid "Items"
+msgstr "Artículos"
+
+#: templates/sales/sales.html:61
+msgid "Update sale"
+msgstr "Actualizar venta"
+
+#: templates/sales/sales.html:67
+msgid "View Receipt"
+msgstr "Ver Recibo"
+
+#: templates/sales/sales_add.html:5 templates/sales/sales_add.html:19
+msgid "Add sale"
+msgstr "Añadir venta"
+
+#: templates/sales/sales_add.html:42 templates/sales/sales_details.html:42
+msgid "Sale products"
+msgstr "Productos de venta"
+
+#: templates/sales/sales_add.html:47
+msgid "Search product:"
+msgstr "Buscar producto:"
+
+#: templates/sales/sales_add.html:56
+msgid "Delete all products"
+msgstr "Eliminar todos los productos"
+
+#: templates/sales/sales_add.html:68 templates/sales/sales_details.html:53
+#: templates/sales/sales_receipt_pdf.html:77
+msgid "Quantity"
+msgstr "Cantidad"
+
+#: templates/sales/sales_add.html:86 templates/sales/sales_details.html:5
+#: templates/sales/sales_details.html:79
+msgid "Sale details"
+msgstr "Detalles de venta"
+
+#: templates/sales/sales_add.html:92
+msgid "Select the customer"
+msgstr "Seleccionar cliente"
+
+#: templates/sales/sales_add.html:98 templates/sales/sales_details.html:88
+#: templates/sales/sales_receipt_pdf.html:93
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/sales/sales_add.html:104 templates/sales/sales_details.html:94
+#, python-format
+msgid "Tax Inclusive (%%)"
+msgstr "Impuesto incluido (%%)"
+
+#: templates/sales/sales_add.html:110 templates/sales/sales_details.html:100
+msgid "Tax Amount"
+msgstr "Monto de impuesto"
+
+#: templates/sales/sales_add.html:116 templates/sales/sales_details.html:106
+#: templates/sales/sales_receipt_pdf.html:101
+msgid "Grand Total"
+msgstr "Total general"
+
+#: templates/sales/sales_add.html:122 templates/sales/sales_details.html:112
+#: templates/sales/sales_receipt_pdf.html:105
+msgid "Amount payed"
+msgstr "Monto pagado"
+
+#: templates/sales/sales_add.html:128
+msgid "Create sale"
+msgstr "Crear venta"
+
+#: templates/sales/sales_add.html:294
+msgid "Select a customer"
+msgstr "Seleccionar un cliente"
+
+#: templates/sales/sales_add.html:312
+msgid "Are you sure you want to delete this product from the sale?"
+msgstr "¿Estás seguro de que quieres eliminar este producto de la venta?"
+
+#: templates/sales/sales_add.html:328
+msgid "The product was eliminated!"
+msgstr "¡El producto fue eliminado!"
+
+#: templates/sales/sales_add.html:363
+msgid "Are you sure you want to delete all products from the sale?"
+msgstr "¿Estás seguro de que quieres eliminar todos los productos de la venta?"
+
+#: templates/sales/sales_add.html:366
+msgid "Delete all"
+msgstr "Eliminar todo"
+
+#: templates/sales/sales_add.html:377
+msgid "All products were eliminated!"
+msgstr "¡Todos los productos fueron eliminados!"
+
+#: templates/sales/sales_add.html:401
+msgid "Search a product"
+msgstr "Buscar un producto"
+
+#: templates/sales/sales_add.html:464
+msgid "Name:"
+msgstr "Nombre:"
+
+#: templates/sales/sales_add.html:464
+msgid "Category:"
+msgstr "Categoría:"
+
+#: templates/sales/sales_add.html:465
+msgid "Price:"
+msgstr "Precio:"
+
+#: templates/sales/sales_add.html:480
+msgid "The sale must have at least 1 product"
+msgstr "La venta debe tener al menos 1 producto"
+
+#: templates/sales/sales_add.html:481
+msgid "Search a product and add it to the sale"
+msgstr "Busca un producto y añádelo a la venta"
+
+#: templates/sales/sales_add.html:490
+msgid "Payable Amount is lower than the Grand Total"
+msgstr "El monto a pagar es menor que el total general"
+
+#: templates/sales/sales_details.html:19
+msgid "details"
+msgstr "detalles"
+
+#: templates/sales/sales_receipt_pdf.html:7
+msgid "Sale Receipt PDF"
+msgstr "Recibo de venta PDF"
+
+#: templates/sales/sales_receipt_pdf.html:63
+msgid "Date:"
+msgstr "Fecha:"
+
+#: templates/sales/sales_receipt_pdf.html:64
+msgid "Sale ID:"
+msgstr "ID de venta:"
+
+#: templates/sales/sales_receipt_pdf.html:65
+msgid "Customer:"
+msgstr "Cliente:"
+
+#: templates/sales/sales_receipt_pdf.html:76
+msgid "Product"
+msgstr "Producto"
+
+#: templates/sales/sales_receipt_pdf.html:97
+msgid "Tax Inclusive"
+msgstr "Impuesto incluido"
+
+#: templates/sales/sales_receipt_pdf.html:109
+msgid "Change"
+msgstr "Cambio"
+
+#: templates/sales/sales_receipt_pdf.html:115
+msgid "Thank you for your preference!"
+msgstr "¡Gracias por tu preferencia!"

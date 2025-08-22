@@ -1,13 +1,14 @@
 {% extends "pos/base.html" %}
+{% load i18n %}
 
 <!-- Page title  -->
-{% block title %}Update category{% endblock title %}
+{% block title %}{% trans "Update category" %}{% endblock title %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
 
 <!-- Page Heading -->
-{% block heading %}Update category{% endblock heading %}
+{% block heading %}{% trans "Update category" %}{% endblock heading %}
 
 <!-- Page content  -->
 {% block content %}
@@ -16,7 +17,7 @@
     <a href="{% url 'products:categories_list' %}">
         <button type="button" class="btn btn-info font-weight-bold">
             <i class="fas fa-long-arrow-alt-left mr-2"></i>
-            Go back
+            {% trans "Go back" %}
         </button>
     </a>
 </div>
@@ -29,12 +30,12 @@
                 <div class="form-row">
                     
                     <div class="form-group col-md-8">
-                        <label for="inputDescription">Name</label>
+                        <label for="inputDescription">{% trans "Name" %}</label>
                         <input type="text" class="form-control" name="name" value="{{category.name}}" required>
                     </div>
                     
                     <div class="form-group col-md-4">
-                        <label for="state">State</label>
+                        <label for="state">{% trans "State" %}</label>
                         <select name="state" class="form-control" required>
                             {% for status in category_status %}
                                 {% if status.0 == category.status %}
@@ -49,12 +50,12 @@
 
                 <div class="form-row">
                     <div class="form-group col-md-12">
-                        <label for="inputDescription">Description</label>
+                        <label for="inputDescription">{% trans "Description" %}</label>
                         <input type="text" name="description" class="form-control" value="{{category.description}}" required>
                     </div>
                 </div>
                
-                <button type="submit" class="btn btn-success font-weight-bold">Update category</button>
+                <button type="submit" class="btn btn-success font-weight-bold">{% trans "Update category" %}</button>
                
             </form>
         </div>
