@@ -1,9 +1,10 @@
 from django.db import models
 from django.forms import model_to_dict
-
+from suppliers.models import Supplier
+from django.contrib.auth.models import User
 
 class Category(models.Model):
-    STATUS_CHOICES = (  # new
+    STATUS_CHOICES = (
         ("ACTIVE", "Active"),
         ("INACTIVE", "Inactive")
     )
@@ -15,9 +16,9 @@ class Category(models.Model):
         max_length=100,
         verbose_name="Status of the category",
     )
+    prefix = models.CharField(max_length=3, unique=True, default='CAT')
 
     class Meta:
-        # Table's name
         db_table = "Category"
         verbose_name_plural = "Categories"
 
@@ -26,11 +27,12 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    STATUS_CHOICES = (  # new
+    STATUS_CHOICES = (
         ("ACTIVE", "Active"),
         ("INACTIVE", "Inactive")
     )
 
+    sku = models.CharField(max_length=20, unique=True, null=True, blank=True)
     name = models.CharField(max_length=256)
     description = models.TextField(max_length=256)
     status = models.CharField(
@@ -40,11 +42,13 @@ class Product(models.Model):
     )
     category = models.ForeignKey(
         Category, related_name="category", on_delete=models.CASCADE, db_column='category')
-
-    price = models.FloatField(default=0)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, null=True)
+    price_usd = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stock = models.IntegerField(default=0)
+    stock_min = models.IntegerField(default=0)
+    photo = models.ImageField(upload_to='products/', null=True, blank=True)
 
     class Meta:
-        # Table's name
         db_table = "Product"
 
     def __str__(self) -> str:
@@ -58,3 +62,26 @@ class Product(models.Model):
         item['quantity'] = 1
         item['total_product'] = 0
         return item
+
+
+class InventoryMovement(models.Model):
+    MOVEMENT_TYPE_CHOICES = (
+        ('in', 'Entrada'),
+        ('out', 'Salida'),
+        ('adjustment', 'Ajuste'),
+    )
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    movement_type = models.CharField(max_length=10, choices=MOVEMENT_TYPE_CHOICES)
+    quantity = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    reason = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.get_movement_type_display()} of {self.quantity} for {self.product.name} on {self.created_at}'
+
+    class Meta:
+        verbose_name = 'Inventory Movement'
+        verbose_name_plural = 'Inventory Movements'
+        ordering = ['-created_at']

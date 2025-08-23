@@ -29,6 +29,9 @@ def customers_add_view(request):
             "address": data['address'],
             "email": data['email'],
             "phone": data['phone'],
+            "cedula_rif": data.get('cedula_rif'),  # Use .get for optional fields
+            "limite_credito": data.get('limite_credito', 0),  # Provide default value
+            "saldo_pendiente": 0,  # Default to 0 for new customers
         }
 
         # Check if a customer with the same attributes exists

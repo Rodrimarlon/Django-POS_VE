@@ -1,0 +1,106 @@
+Para afinar el plan de implementación, tengo las siguientes preguntas:
+
+
+   1. Tasa del Día (RF01):
+       * ¿La tasa de cambio debe ser única para toda la aplicación en un momento dado, o podría haber diferentes tasas aplicables a diferentes tipos de transacciones o usuarios?
+
+       Respuesta: La tasa del dia idealmente se actuliza diariamente, aunque no descarto que en un momento dado se necesite cambiar mas veces al dia, igual si hay un error al momento de ingresarla se deberia poder midificar. Lo que pienso es que se puede cambiar la tasa cada vez que uno quiera y que lo que este almacenado en ese momento es lo que se va a usar en toda la aplicacion mientras esa tasa este configurada. No cambia por usuario o transaccion. Pero a la hora de ingresar una transaccion en un dia pasado se deberia poder ingresar la tasa a la cual se cobro.
+
+       * ¿Cómo se manejará la persistencia de la tasa? ¿Se guarda un historial de tasas diarias, o solo
+       la última tasa activa?
+
+       Respuesta: Seria bueno poder guardar el historial de tasas, ya que estaran ligadas a las transacciones que se hicieron con dicha tasa.
+
+       * ¿Qué sucede si el usuario no ingresa la tasa al inicio? ¿La aplicación no permite operar hasta
+       que se ingrese?
+
+       Respuesta: Si la tasa del dia no ha sido ingresada se podra navegar por la aplicacion, en inventarios, modificar productos, etc. Pero no se podra hacer ninguna venta hasta que se ingrese la tasa. De igual forma si la tasa no ha sido ingresada se deberia mostrar una alerta.
+
+
+
+
+   2. Productos (RF02, RF03):
+       * Para el "Código (SKU)", ¿es un campo autogenerado, o el usuario lo ingresa manualmente? ¿Debe ser único?
+
+       Respuesta: El codigo se genera automaticamente al momento de ingresar un nuevo producto. Y el formato ideal seria Catergoria/numero esdecir: Categoria=Manguera Producto=1 el codigo seria MAN0001. Y si el codigo debe ser unico.
+
+       * Para "Proveedor", ¿es un campo de texto libre o se gestionará un módulo de proveedores con un CRUD propio?
+
+       Respuesta: Es un es un modulo completo, recordemos que a cada proveedor le estara asociado productos, entradas, etc.
+
+       * ¿Cómo se visualizarán las "Alertas visuales cuando el stock de un producto esté por debajo del mínimo"? ¿En el TPV, en un dashboard, por correo electrónico?
+
+       Respuesta: Se deveria de ver en el dashboard y uno deberia poder, al momento de crear o editar un producto, poder definir cual es la cantidad critica, para saber que esta por debajo de el stock recomendado. Tambien deberia aparecer en el listado de productos como una columna en la tabla.
+
+
+   3. Clientes (RF04, RF05):
+       * Para "Cédula/RIF", ¿se validará el formato o la existencia de la cédula/RIF?
+
+       Respuesta: La cedula/rif tanto de proveedores como de clientes debe ser obligatorio y no es necesario que se valide el formato, ideal mente deberia ser alfanumerico para poder ingresar tipo y numero de documento, por ejemplo "V27049978" o "J501276455".
+
+       * "Límite de Crédito" y "Saldo Pendiente": ¿El "Saldo Pendiente" se calculará automáticamente en función de las ventas a crédito y los pagos registrados? ¿Cómo se registrarán los pagos a crédito? ¿Habrá una interfaz específica para ello?
+
+       Respuesta: El Saldo pendiente se calculara automaticamente en funcion de las ventas a credito y los pagos registrados. Se deberia tener una interfaz para los pagos a credito de manera que uno pueda listar los pagos pendietes, buscar por cliente, por fecha, y registrar que la venta asociada a ese credito se esta pagando, y al momento de pagar calcular el monto en bolivares a la tasa del dia que se esta pagando, no a la tasa de cuando se creo la venta.
+
+       * ¿El "Historial de Compras por Cliente" (RF05) incluirá solo ventas a crédito o todas las v(crédito y contado)?
+
+       Respuesta: Incluira todas las ventas.
+
+
+   4. Punto de Venta (TPV) (RF06, RF07, RF08):
+       * Conversión VES: ¿Se mostrará el total en VES en la pantalla del TPV y también en algún recibo o resumen final? 
+
+       Respuesta: Se mostrara el total y tambien desglosado por producto y categoria de producto.
+
+       *¿El cliente pagará en VES o en USD, y la conversión es solo informativa para el cliente o para el registro fiscal?
+
+       Respuesta: El cliente pagara dependiendo del metodo de pago que se elija. La informacion en informativa para los dos.
+
+       * Métodos de Pago (RF07): ¿Se necesita alguna validación o integración externa para "Transferencia" o "Pago Móvil" (ej. número de referencia, banco)? ¿O es solo un registro interno del método de pago?
+
+       Respuesta: Integrasiones externas no son necesarias, Pero para transacciones con metodos de banco si es iportante poder ingresar en un apartado la referencia de la transaccion, por si se necesita mas adelante. Estos metodos de pago es importante poder gestionarlos, es decir crearlos y editarlo y eliminarlos un crud completo pues.
+
+
+       * Resumen para Caja Fiscal (RF07): ¿Este resumen es solo una visualización en pantalla o se generará algún tipo de reporte imprimible/exportable para el cierre de caja?
+
+       Respuesta: Este resumen solo se mostrara en pantalla como referencia y visualizacion para poder insertar los datos manualmente en la maquina fiscal. Al final del dia cuando se cierre el TPV si se deberia poder ver un resumen para constatar que coincide con el resumen de la maquina.
+
+
+       * Gestión de Ventas Pendientes (RF08): ¿Cómo se marcará una venta como pagada? ¿Habrá un botón "Marcar como pagado" en la lista de ventas pendientes? ¿Se registrará la fecha y el monto del pago?
+
+       Respuesta: Si habra un boton para marcar como pagado, pero tiene que aparecer la opcion para poder ingresar como se pago y dependiendo del metodo de pago hacer lo que sea necesario. Hay que registrar la fecha de pago, el monto y todo lo demas.
+
+
+   5. Reportes (RF09, RF10):
+       * Exportación (RF09): Si es opcional, ¿se prioriza la funcionalidad o la exportación? ¿Se necesita un formato
+         específico para CSV/PDF?
+
+         Respuesta: No es una prioridad la exportacio, en esto nos podemos concentrar despues de que la palicacion este mas adelantada.
+
+       * Movimiento de Inventario (RF10): ¿Qué detalles debe incluir este reporte (fecha, tipo de movimiento, cantidad,
+         producto, usuario que realizó el movimiento)?
+
+         Respuesta: Esos campos por ahora estan bien
+
+   6. Administración y Seguridad (RF11, RF12):
+       * Roles (RF11): ¿Los roles de "Administrador" y "Cajero" son suficientes, o se prevén otros roles en el futuro?
+         ¿Cómo se asignarán los roles a los usuarios?
+
+         Respuesta: Creo que con esos Roles estambien para comenzar. Los roles los asignara el admin.
+
+       * Configuración de la empresa (RF12): ¿Qué otros campos de configuración de la empresa podrían ser necesarios
+         además de nombre y dirección? (ej. RIF de la empresa, logo, etc.)
+
+         Respuesta: Todos los que nombras como ejemplo, idealmente se deveria poder editar todos estas campos. Tambien el logo de la aplicacion se deberia poder editar
+
+
+   7. Consideraciones Generales:
+       * Contexto Venezolano: Además de la moneda, ¿hay alguna otra particularidad legal o fiscal que deba considerarse
+         en el diseño o los cálculos (ej. impuestos específicos, formatos de recibo, etc.)?
+
+         Respuesta: Hay otro impuesto que se llama IGTF que es por pago en moneda extranjera. Pero este impuesto esta mas asociado a un metodo de pago que a los productos en si, podemos gestionarlos en el TPV
+
+       * Integración con hardware: ¿Se prevé alguna integración con hardware (impresoras térmicas, lectores de código de
+         barras) más allá de lo que un navegador web estándar puede manejar?
+
+         Respusta: Creo que por ahora no, puede ser que mas adelante una impresora, pero por ahora no es necesario.
