@@ -22,35 +22,42 @@
         <div class="card-body">
             <form action="{% url 'core:company_update' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <label for="inputName">{% trans "Name" %}</label>
-                        <input type="text" class="form-control" name="name" value="{% if company %}{{ company.name }}{% endif %}" required>
-                    </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">{% trans "Name" %}</label>
+                    {{ form.name.errors }}
+                    {{ form.name }}
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <label for="inputTaxId">{% trans "Tax ID" %}</label>
-                        <input type="text" class="form-control" name="tax_id" value="{% if company %}{{ company.tax_id }}{% endif %}" required>
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.tax_id.id_for_label }}">{% trans "Tax ID" %}</label>
+                    {{ form.tax_id.errors }}
+                    {{ form.tax_id }}
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <label for="inputAddress">{% trans "Address" %}</label>
-                        <textarea name="address" class="form-control" rows="2" required>{% if company %}{{ company.address }}{% endif %}</textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.address.id_for_label }}">{% trans "Address" %}</label>
+                    {{ form.address.errors }}
+                    {{ form.address }}
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <label for="inputLogo">{% trans "Logo" %}</label>
-                        <input type="file" class="form-control-file" name="logo">
-                        {% if company and company.logo %}
-                            <img src="{{ company.logo.url }}" alt="Current Logo" style="max-width: 100px; margin-top: 10px;">
-                        {% endif %}
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.igtf_percentage.id_for_label }}">{% trans "IGTF Percentage" %}</label>
+                    {{ form.igtf_percentage.errors }}
+                    {{ form.igtf_percentage }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.logo.id_for_label }}">{% trans "Logo" %}</label>
+                    {{ form.logo.errors }}
+                    {{ form.logo }}
+                    {% if form.instance and form.instance.logo %}
+                        <div class="mt-2">
+                            <img src="{{ form.instance.logo.url }}" alt="Current Logo" style="max-width: 100px;">
+                            <br>
+                            <small class="text-muted">{% trans "Current Logo" %}</small>
+                        </div>
+                    {% endif %}
                 </div>
                 
                 <button type="submit" class="btn btn-success font-weight-bold">{% trans "Save Company" %}</button>

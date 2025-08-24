@@ -24,30 +24,35 @@
                 {% csrf_token %}
                 <div class="form-row">
                     <div class="form-group col-md-6">
-                        <label for="inputName">{% trans "Name" %}</label>
-                        <input type="text" class="form-control" name="name" value="{{ supplier.name }}" required>
+                        {{ form.name.errors }}
+                        <label for="{{ form.name.id_for_label }}">{% trans "Name" %}</label>
+                        {{ form.name }}
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="inputTaxId">{% trans "Tax ID" %}</label>
-                        <input type="text" class="form-control" name="tax_id" value="{{ supplier.tax_id }}" required>
+                        {{ form.tax_id.errors }}
+                        <label for="{{ form.tax_id.id_for_label }}">{% trans "Tax ID" %}</label>
+                        {{ form.tax_id }}
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group col-md-6">
-                        <label for="inputPhone">{% trans "Phone" %}</label>
-                        <input type="text" name="phone" class="form-control" value="{{ supplier.phone }}" required>
+                        {{ form.phone.errors }}
+                        <label for="{{ form.phone.id_for_label }}">{% trans "Phone" %}</label>
+                        {{ form.phone }}
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="inputEmail">{% trans "Email" %}</label>
-                        <input type="email" name="email" class="form-control" value="{{ supplier.email }}" required>
+                        {{ form.email.errors }}
+                        <label for="{{ form.email.id_for_label }}">{% trans "Email" %}</label>
+                        {{ form.email }}
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group col-md-12">
-                        <label for="inputAddress">{% trans "Address" %}</label>
-                        <textarea name="address" class="form-control" rows="2" required>{{ supplier.address }}</textarea>
+                        {{ form.address.errors }}
+                        <label for="{{ form.address.id_for_label }}">{% trans "Address" %}</label>
+                        {{ form.address }}
                     </div>
                 </div>
                 

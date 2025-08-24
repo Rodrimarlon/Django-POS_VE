@@ -3,8 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from .models import PaymentMethod, Company, ExchangeRate
+from .forms import PaymentMethodForm, CompanyForm
 from datetime import date
 from authentication.decorators import admin_required, role_required
+from django.db import IntegrityError
 
 @admin_required
 @login_required(login_url="/accounts/login/")
@@ -30,23 +32,21 @@ def payment_method_list_view(request):
 @admin_required
 @login_required(login_url="/accounts/login/")
 def payment_method_add_view(request):
-    context = {
-        "active_icon": "payment_methods",
-    }
     if request.method == 'POST':
-        data = request.POST
-        attributes = {
-            "name": data['name'],
-            "is_foreign_currency": 'is_foreign_currency' in data,
-            "requires_reference": 'requires_reference' in data,
-        }
-        try:
-            PaymentMethod.objects.create(**attributes)
+        form = PaymentMethodForm(request.POST)
+        if form.is_valid():
+            form.save()
             messages.success(request, 'Payment method created successfully!', extra_tags="success")
             return redirect('core:payment_method_list')
-        except Exception as e:
-            messages.error(request, f'Error creating payment method: {e}', extra_tags="danger")
-            return redirect('core:payment_method_add')
+        else:
+            messages.error(request, 'Please correct the errors below.', extra_tags="danger")
+    else:
+        form = PaymentMethodForm()
+
+    context = {
+        "active_icon": "payment_methods",
+        "form": form
+    }
     return render(request, "core/payment_methods_add.html", context=context)
 
 @admin_required
@@ -58,24 +58,21 @@ def payment_method_update_view(request, payment_method_id):
         messages.error(request, 'Payment method not found!', extra_tags="danger")
         return redirect('core:payment_method_list')
 
-    context = {
-        "active_icon": "payment_methods",
-        "payment_method": payment_method,
-    }
     if request.method == 'POST':
-        data = request.POST
-        attributes = {
-            "name": data['name'],
-            "is_foreign_currency": 'is_foreign_currency' in data,
-            "requires_reference": 'requires_reference' in data,
-        }
-        try:
-            PaymentMethod.objects.filter(id=payment_method_id).update(**attributes)
+        form = PaymentMethodForm(request.POST, instance=payment_method)
+        if form.is_valid():
+            form.save()
             messages.success(request, 'Payment method updated successfully!', extra_tags="success")
             return redirect('core:payment_method_list')
-        except Exception as e:
-            messages.error(request, f'Error updating payment method: {e}', extra_tags="danger")
-            return redirect('core:payment_method_update', payment_method_id=payment_method_id)
+        else:
+            messages.error(request, 'Please correct the errors below.', extra_tags="danger")
+    else:
+        form = PaymentMethodForm(instance=payment_method)
+
+    context = {
+        "active_icon": "payment_methods",
+        "form": form,
+    }
     return render(request, "core/payment_methods_update.html", context=context)
 
 @admin_required
@@ -87,6 +84,8 @@ def payment_method_delete_view(request, payment_method_id):
         messages.success(request, 'Payment method deleted successfully!', extra_tags="success")
     except PaymentMethod.DoesNotExist:
         messages.error(request, 'Payment method not found!', extra_tags="danger")
+    except IntegrityError:
+        messages.error(request, 'Cannot delete this payment method because it is linked to existing sales.', extra_tags="danger")
     except Exception as e:
         messages.error(request, f'Error deleting payment method: {e}', extra_tags="danger")
     return redirect('core:payment_method_list')
@@ -104,31 +103,24 @@ def company_view(request):
 @admin_required
 @login_required(login_url="/accounts/login/")
 def company_update_view(request):
-    company = Company.objects.first()
-    if request.method == 'POST':
-        data = request.POST
-        attributes = {
-            "name": data['name'],
-            "tax_id": data['tax_id'],
-            "address": data['address'],
-        }
-        # Handle logo upload
-        if 'logo' in request.FILES:
-            attributes['logo'] = request.FILES['logo']
+    # Use get_or_create to simplify logic for existing or new company
+    company, created = Company.objects.get_or_create(pk=1)
 
-        if company:
-            # Update existing company
-            Company.objects.filter(id=company.id).update(**attributes)
-            messages.success(request, 'Company updated successfully!', extra_tags="success")
+    if request.method == 'POST':
+        # Pass request.FILES to handle the logo upload
+        form = CompanyForm(request.POST, request.FILES, instance=company)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Company details updated successfully!', extra_tags="success")
+            return redirect('core:company_view')
         else:
-            # Create new company
-            Company.objects.create(**attributes)
-            messages.success(request, 'Company created successfully!', extra_tags="success")
-        return redirect('core:company_view')
-    
+            messages.error(request, 'Please correct the errors below.', extra_tags="danger")
+    else:
+        form = CompanyForm(instance=company)
+
     context = {
         "active_icon": "company",
-        "company": company,
+        "form": form,
     }
     return render(request, "core/company_update.html", context=context)
 

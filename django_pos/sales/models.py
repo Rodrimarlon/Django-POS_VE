@@ -7,16 +7,19 @@ from core.models import PaymentMethod, ExchangeRate
 from django.contrib.auth.models import User
 
 class Sale(models.Model):
+    """
+    Represents a single sales transaction.
+    """
     SALE_STATUS_CHOICES = (
         ('draft', 'Draft'),
         ('completed', 'Completed'),
         ('pending_credit', 'Pending Credit'),
     )
     date_added = models.DateTimeField(default=django.utils.timezone.now)
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, null=True)
-    exchange_rate = models.ForeignKey(ExchangeRate, on_delete=models.CASCADE, null=True)
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT, null=True)
+    exchange_rate = models.ForeignKey(ExchangeRate, on_delete=models.PROTECT, null=True)
     sub_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -28,9 +31,6 @@ class Sale(models.Model):
     is_credit = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=SALE_STATUS_CHOICES, default='completed')
 
-    class Meta:
-        db_table = 'Sales'
-
     def __str__(self) -> str:
         return f"Sale ID: {self.id} | Grand Total: {self.grand_total} | Datetime: {self.date_added}"
 
@@ -40,14 +40,14 @@ class Sale(models.Model):
 
 
 class SaleDetail(models.Model):
+    """
+    Represents a single item within a sale.
+    """
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField()
     total_detail = models.DecimalField(max_digits=10, decimal_places=2)
-
-    class Meta:
-        db_table = 'SaleDetails'
 
     def __str__(self) -> str:
         return f"Detail ID: {self.id} Sale ID: {self.sale.id} Quantity: {self.quantity}"

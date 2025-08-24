@@ -22,6 +22,7 @@ class Company(models.Model):
     tax_id = models.CharField(max_length=20)
     address = models.TextField()
     logo = models.ImageField(upload_to='company/', null=True, blank=True)
+    igtf_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=3.00)
 
     def __str__(self):
         return self.name
