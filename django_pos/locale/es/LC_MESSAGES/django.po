@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-22 15:20+0000\n"
+"POT-Creation-Date: 2025-08-23 22:18+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,6 +29,9 @@ msgstr "Contraseña"
 #: authentication/forms.py:35 templates/customers/customers.html:43
 #: templates/customers/customers_add.html:43
 #: templates/customers/customers_update.html:43
+#: templates/suppliers/suppliers.html:31
+#: templates/suppliers/suppliers_add.html:42
+#: templates/suppliers/suppliers_update.html:42
 msgid "Email"
 msgstr "Correo electrónico"
 
@@ -80,22 +83,30 @@ msgstr "ID"
 #: templates/products/categories_update.html:33
 #: templates/products/products.html:42 templates/products/products_add.html:32
 #: templates/products/products_update.html:32 templates/sales/sales_add.html:66
-#: templates/sales/sales_details.html:51
+#: templates/sales/sales_details.html:51 templates/suppliers/suppliers.html:28
+#: templates/suppliers/suppliers_add.html:27
+#: templates/suppliers/suppliers_update.html:27
 msgid "Name"
 msgstr "Nombre"
 
-#: templates/customers/customers.html:44
+#: templates/customers/customers.html:44 templates/suppliers/suppliers.html:30
+#: templates/suppliers/suppliers_add.html:38
+#: templates/suppliers/suppliers_update.html:38
 msgid "Phone"
 msgstr "Teléfono"
 
 #: templates/customers/customers.html:45
-#: templates/customers/customers_add.html:54
+#: templates/customers/customers_add.html:65
 #: templates/customers/customers_update.html:54
+#: templates/suppliers/suppliers.html:32
+#: templates/suppliers/suppliers_add.html:49
+#: templates/suppliers/suppliers_update.html:49
 msgid "Address"
 msgstr "Dirección"
 
 #: templates/customers/customers.html:46 templates/products/categories.html:45
 #: templates/products/products.html:47 templates/sales/sales.html:46
+#: templates/suppliers/suppliers.html:33
 msgid "Actions"
 msgstr "Acciones"
 
@@ -174,6 +185,8 @@ msgstr "Añadir cliente"
 #: templates/products/products_add.html:20
 #: templates/products/products_update.html:20 templates/sales/sales_add.html:28
 #: templates/sales/sales_details.html:28
+#: templates/suppliers/suppliers_add.html:15
+#: templates/suppliers/suppliers_update.html:15
 msgid "Go back"
 msgstr "Volver"
 
@@ -192,7 +205,15 @@ msgstr "Apellido"
 msgid "Phone number"
 msgstr "Número de teléfono"
 
-#: templates/customers/customers_add.html:60
+#: templates/customers/customers_add.html:54
+msgid "Cédula/RIF"
+msgstr ""
+
+#: templates/customers/customers_add.html:58
+msgid "Límite de Crédito"
+msgstr ""
+
+#: templates/customers/customers_add.html:71
 msgid "Create customer"
 msgstr "Crear cliente"
 
@@ -234,12 +255,10 @@ msgid "Ready to Leave?"
 msgstr "¿Listo para salir?"
 
 #: templates/pos/logout_modal.html:14
-msgid "Select \""
+#, fuzzy
+#| msgid "Select \""
+msgid "Select \\"
 msgstr "Selecciona \""
-
-#: templates/pos/logout_modal.html:14
-msgid "Logout\" below if you are ready to end your current session."
-msgstr "Cerrar Sesión\" abajo si estás listo para terminar tu sesión actual."
 
 #: templates/pos/logout_modal.html:17 templates/pos/navbar.html:31
 msgid "Logout"
@@ -255,7 +274,12 @@ msgstr "Productos"
 msgid "Categories"
 msgstr "Categorías"
 
-#: templates/pos/sidebar.html:59 templates/sales/sales.html:5
+#: templates/pos/sidebar.html:59 templates/suppliers/suppliers.html:4
+#: templates/suppliers/suppliers.html:8 templates/suppliers/suppliers.html:15
+msgid "Suppliers"
+msgstr ""
+
+#: templates/pos/sidebar.html:69 templates/sales/sales.html:5
 #: templates/sales/sales.html:15
 msgid "Sales"
 msgstr "Ventas"
@@ -540,3 +564,30 @@ msgstr "Cambio"
 #: templates/sales/sales_receipt_pdf.html:115
 msgid "Thank you for your preference!"
 msgstr "¡Gracias por tu preferencia!"
+
+#: templates/suppliers/suppliers.html:22
+#: templates/suppliers/suppliers_add.html:4
+#: templates/suppliers/suppliers_add.html:8
+#: templates/suppliers/suppliers_add.html:54
+#, fuzzy
+#| msgid "Add sale"
+msgid "Add Supplier"
+msgstr "Añadir venta"
+
+#: templates/suppliers/suppliers.html:29
+#: templates/suppliers/suppliers_add.html:31
+#: templates/suppliers/suppliers_update.html:31
+msgid "Tax ID"
+msgstr ""
+
+#: templates/suppliers/suppliers_update.html:4
+#: templates/suppliers/suppliers_update.html:8
+#: templates/suppliers/suppliers_update.html:54
+#, fuzzy
+#| msgid "Update sale"
+msgid "Update Supplier"
+msgstr "Actualizar venta"
+
+#~ msgid "Logout\" below if you are ready to end your current session."
+#~ msgstr ""
+#~ "Cerrar Sesión\" abajo si estás listo para terminar tu sesión actual."

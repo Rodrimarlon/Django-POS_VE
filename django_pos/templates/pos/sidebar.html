@@ -52,6 +52,46 @@
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
+    <!-- Nav Item - Suppliers -->
+    <li class="{% if "suppliers" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
+        <a class="nav-link" href="{% url 'suppliers:supplier_list' %}">
+            <i class="fas fa-fw fa-truck"></i>
+            <span>{% trans "Suppliers" %}</span></a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <!-- Nav Item - Payment Methods -->
+    <li class="{% if "payment_methods" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
+        <a class="nav-link" href="{% url 'core:payment_method_list' %}">
+            <i class="fas fa-fw fa-money-check-alt"></i>
+            <span>{% trans "Payment Methods" %}</span></a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <!-- Nav Item - Company -->
+    <li class="{% if "company" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
+        <a class="nav-link" href="{% url 'core:company_view' %}">
+            <i class="fas fa-fw fa-building"></i>
+            <span>{% trans "Company" %}</span></a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <!-- Nav Item - Exchange Rates -->
+    <li class="{% if "exchange_rates" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
+        <a class="nav-link" href="{% url 'core:exchange_rate_list' %}">
+            <i class="fas fa-fw fa-dollar-sign"></i>
+            <span>{% trans "Exchange Rates" %}</span></a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
     <!-- Nav Item - Sales -->
     <li class="{% if "sales" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
         <a class="nav-link" href="{% url 'sales:sales_list' %}">

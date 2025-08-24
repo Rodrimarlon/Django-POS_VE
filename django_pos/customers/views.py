@@ -29,14 +29,14 @@ def customers_add_view(request):
             "address": data['address'],
             "email": data['email'],
             "phone": data['phone'],
-            "cedula_rif": data.get('cedula_rif'),  # Use .get for optional fields
-            "limite_credito": data.get('limite_credito', 0),  # Provide default value
-            "saldo_pendiente": 0,  # Default to 0 for new customers
+            "tax_id": data.get('tax_id'),  # Use .get for optional fields
+            "credit_limit": data.get('credit_limit', 0),  # Provide default value
+            "outstanding_balance": 0,  # Default to 0 for new customers
         }
 
         # Check if a customer with the same attributes exists
-        if Customer.objects.filter(**attributes).exists():
-            messages.error(request, 'Customer already exists!',
+        if Customer.objects.filter(tax_id=attributes['tax_id']).exists():
+            messages.error(request, 'Customer with this Tax ID already exists!',
                            extra_tags="warning")
             return redirect('customers:customers_add')
 
@@ -61,20 +61,10 @@ def customers_add_view(request):
 
 @login_required(login_url="/accounts/login/")
 def customers_update_view(request, customer_id):
-    """
-    Args:
-        request:
-        customer_id : The customer's ID that will be updated
-    """
-
-    # Get the customer
     try:
-        # Get the customer to update
         customer = Customer.objects.get(id=customer_id)
-    except Exception as e:
-        messages.success(
-            request, 'There was an error trying to get the customer!', extra_tags="danger")
-        print(e)
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer not found!', extra_tags="danger")
         return redirect('customers:customers_list')
 
     context = {
@@ -83,34 +73,30 @@ def customers_update_view(request, customer_id):
     }
 
     if request.method == 'POST':
+        data = request.POST
+        attributes = {
+            "first_name": data['first_name'],
+            "last_name": data['last_name'],
+            "address": data['address'],
+            "email": data['email'],
+            "phone": data['phone'],
+            "tax_id": data.get('tax_id'),
+            "credit_limit": data.get('credit_limit', 0),
+        }
+
+        # Check if a customer with the same tax_id already exists (excluding the current customer)
+        if Customer.objects.filter(tax_id=attributes['tax_id']).exclude(id=customer_id).exists():
+            messages.error(request, 'Customer with this Tax ID already exists!', extra_tags="danger")
+            return redirect('customers:customers_update', customer_id=customer_id)
+
         try:
-            # Save the POST arguments
-            data = request.POST
-
-            attributes = {
-                "first_name": data['first_name'],
-                "last_name": data['last_name'],
-                "address": data['address'],
-                "email": data['email'],
-                "phone": data['phone'],
-            }
-
-            # Check if a customer with the same attributes exists
-            if Customer.objects.filter(**attributes).exists():
-                messages.error(request, 'Customer already exists!',
-                               extra_tags="warning")
-                return redirect('customers:customers_add')
-
-            customer = Customer.objects.get(id=customer_id)
-
-            messages.success(request, '¡Customer: ' + customer.get_full_name() +
-                             ' updated successfully!', extra_tags="success")
+            Customer.objects.filter(id=customer_id).update(**attributes)
+            messages.success(request, 'Customer updated successfully!', extra_tags="success")
             return redirect('customers:customers_list')
         except Exception as e:
-            messages.success(
-                request, 'There was an error during the update!', extra_tags="danger")
+            messages.error(request, f'Error updating customer: {e}', extra_tags="danger")
             print(e)
-            return redirect('customers:customers_list')
+            return redirect('customers:customers_update', customer_id=customer_id)
 
     return render(request, "customers/customers_update.html", context=context)
 
@@ -126,7 +112,7 @@ def customers_delete_view(request, customer_id):
         # Get the customer to delete
         customer = Customer.objects.get(id=customer_id)
         customer.delete()
-        messages.success(request, '¡Customer: ' + customer.get_full_name() +
+        messages.success(request, 'Customer: ' + customer.get_full_name() +
                          ' deleted!', extra_tags="success")
         return redirect('customers:customers_list')
     except Exception as e:

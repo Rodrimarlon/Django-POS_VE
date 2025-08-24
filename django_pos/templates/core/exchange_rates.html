@@ -1,0 +1,44 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Exchange Rates" %}{% endblock title %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block heading %}{% trans "Exchange Rates" %}{% endblock heading %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">{% trans "Exchange Rates History" %}</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "Rate (USD to VES)" %}</th>
+                                <th>{% trans "Recorded By" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rate in exchange_rates %}
+                            <tr>
+                                <td>{{ rate.date }}</td>
+                                <td>{{ rate.rate_usd_ves }}</td>
+                                <td>{{ rate.user.username }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}

@@ -1,0 +1,57 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Update Payment Method" %}{% endblock title %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block heading %}{% trans "Update Payment Method" %}{% endblock heading %}
+
+{% block content %}
+<div class="row ml-0 mb-3">
+    <a href="{% url 'core:payment_method_list' %}">
+        <button type="button" class="btn btn-info font-weight-bold">
+            <i class="fas fa-long-arrow-alt-left mr-2"></i>
+            {% trans "Go back" %}
+        </button>
+    </a>
+</div>
+
+<div class="row">
+    <div class="card col-md-8">
+        <div class="card-body">
+            <form action="{% url 'core:payment_method_update' payment_method.id %}" method="post">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="inputName">{% trans "Name" %}</label>
+                        <input type="text" class="form-control" name="name" value="{{ payment_method.name }}" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_foreign_currency" id="is_foreign_currency" {% if payment_method.is_foreign_currency %}checked{% endif %}>
+                        <label class="form-check-label" for="is_foreign_currency">
+                            {% trans "Is Foreign Currency?" %}
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="requires_reference" id="requires_reference" {% if payment_method.requires_reference %}checked{% endif %}>
+                        <label class="form-check-label" for="requires_reference">
+                            {% trans "Requires Reference?" %}
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success font-weight-bold">{% trans "Update Payment Method" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}

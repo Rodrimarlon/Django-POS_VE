@@ -1,0 +1,56 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Company Details" %}{% endblock title %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block heading %}{% trans "Company Details" %}{% endblock heading %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">{% trans "Company Information" %}</h6>
+            </div>
+            <div class="card-body">
+                {% if company %}
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">{% trans "Name" %}:</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">{{ company.name }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">{% trans "Tax ID" %}:</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">{{ company.tax_id }}</p>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">{% trans "Address" %}:</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">{{ company.address }}</p>
+                    </div>
+                </div>
+                {% if company.logo %}
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">{% trans "Logo" %}:</label>
+                    <div class="col-sm-9">
+                        <img src="{{ company.logo.url }}" alt="Company Logo" style="max-width: 200px;">
+                    </div>
+                </div>
+                {% endif %}
+                <a href="{% url 'core:company_update' %}" class="btn btn-primary">{% trans "Edit Company" %}</a>
+                {% else %}
+                <p>{% trans "No company information found. Please add your company details." %}</p>
+                <a href="{% url 'core:company_update' %}" class="btn btn-success">{% trans "Add Company" %}</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}

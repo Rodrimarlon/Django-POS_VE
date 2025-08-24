@@ -50,6 +50,24 @@
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="inputTaxId">{% trans "Tax ID" %}</label>
+                        <input type="text" class="form-control" name="tax_id" value="{{ customer.tax_id }}">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="inputCreditLimit">{% trans "Credit Limit" %}</label>
+                        <input type="number" step="0.01" class="form-control" name="credit_limit" value="{{ customer.credit_limit }}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="inputOutstandingBalance">{% trans "Outstanding Balance" %}</label>
+                        <input type="number" step="0.01" class="form-control" name="outstanding_balance" value="{{ customer.outstanding_balance }}" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group col-md-12">
                         <label for="inputDescription">{% trans "Address" %}</label>
                         <textarea name="address" class="form-control" rows="2" required>{{customer.address}}</textarea>

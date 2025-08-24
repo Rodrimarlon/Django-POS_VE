@@ -28,13 +28,20 @@
             <form action="{% url 'products:products_update' product.id %}"  method="post">
                 {% csrf_token %}
                 <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="inputSKU">{% trans "SKU" %}</label>
+                        <input type="text" class="form-control" name="sku" value="{{ product.sku }}" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group col-md-8">
                         <label for="inputDescription">{% trans "Name" %}</label>
                         <input type="text" class="form-control" name="name" value="{{product.name}}" required>
                     </div>
                     <div class="form-group col-md-4">
-                        <label for="state">{% trans "State" %}</label>
-                        <select name="state" class="form-control" required>
+                        <label for="state">{% trans "Status" %}</label>
+                        <select name="status" class="form-control" required>
                             {% for status in product_status %}
                                 {% if status.0 == product.status   %}
                                 <option value="{{status.0}}" selected>{{status.1}}</option>
@@ -67,9 +74,51 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group col-md-8">
-                        <label for="inputPrice">{% trans "Price" %}</label>
-                        <input type="number" name="price" step="any"  class="form-control" value="{{product.price}}"  required>
+                    <div class="form-group col-md-6">
+                        <label for="inputPrice">{% trans "Price (USD)" %}</label>
+                        <input type="number" name="price_usd" step="0.01"  class="form-control" value="{{product.price_usd}}"  required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="inputSupplier">{% trans "Supplier" %}</label>
+                        <select name="supplier" class="form-control" required>
+                            <option value="" selected disabled hidden>{% trans "Select the supplier" %}</option>
+                            {% for supplier in suppliers %}
+                                {% if product.supplier.id == supplier.id %}
+                                <option value="{{supplier.id}}" selected>{{supplier.name}}</option>
+                                {% else %}
+                                <option value="{{supplier.id}}">{{supplier.name}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label for="inputStock">{% trans "Stock" %}</label>
+                        <input type="number" name="stock" class="form-control" value="{{product.stock}}" required>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="inputMinStock">{% trans "Minimum Stock" %}</label>
+                        <input type="number" name="stock_min" class="form-control" value="{{product.stock_min}}" required>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="inputPhoto">{% trans "Photo" %}</label>
+                        <input type="file" name="photo" class="form-control-file">
+                        {% if product.photo %}
+                            <img src="{{ product.photo.url }}" alt="Product Photo" style="max-width: 100px; margin-top: 10px;">
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="applies_iva" id="applies_iva" {% if product.applies_iva %}checked{% endif %}>
+                            <label class="form-check-label" for="applies_iva">
+                                {% trans "Applies IVA?" %}
+                            </label>
+                        </div>
                     </div>
                 </div>
                 

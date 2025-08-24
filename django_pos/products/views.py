@@ -2,8 +2,24 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from .models import Category, Product
+from .models import Category, Product, InventoryMovement
+from suppliers.models import Supplier
 
+def generate_sku(category_prefix):
+    # Get the last product in the category
+    last_product = Product.objects.filter(category__prefix=category_prefix).order_by('-id').first()
+    if last_product and last_product.sku:
+        # Extract the number from the last SKU
+        try:
+            last_sku_number = int(last_product.sku[len(category_prefix):])
+        except ValueError:
+            last_sku_number = 0
+        new_sku_number = last_sku_number + 1
+    else:
+        new_sku_number = 1
+    # Format the SKU with leading zeros
+    new_sku = f"{category_prefix}{new_sku_number:04d}"
+    return new_sku
 
 @login_required(login_url="/accounts/login/")
 def categories_list_view(request):
@@ -22,7 +38,6 @@ def categories_add_view(request):
     }
 
     if request.method == 'POST':
-        # Save the POST arguments
         data = request.POST
 
         attributes = {
@@ -38,10 +53,7 @@ def categories_add_view(request):
             return redirect('products:categories_add')
 
         try:
-            # Create the category
             new_category = Category.objects.create(**attributes)
-
-            # If it doesn't exist, save it
             new_category.save()
 
             messages.success(request, 'Category: ' +
@@ -64,9 +76,7 @@ def categories_update_view(request, category_id):
         category_id : The category's ID that will be updated
     """
 
-    # Get the category
     try:
-        # Get the category to update
         category = Category.objects.get(id=category_id)
     except Exception as e:
         messages.success(
@@ -81,23 +91,20 @@ def categories_update_view(request, category_id):
     }
 
     if request.method == 'POST':
+        data = request.POST
+
+        attributes = {
+            "name": data['name'],
+            "status": data['state'],
+            "description": data['description']
+        }
+
+        if Category.objects.filter(**attributes).exists():
+            messages.error(request, 'Category already exists!',
+                           extra_tags="warning")
+            return redirect('products:categories_add')
+
         try:
-            # Save the POST arguments
-            data = request.POST
-
-            attributes = {
-                "name": data['name'],
-                "status": data['state'],
-                "description": data['description']
-            }
-
-            # Check if a category with the same attributes exists
-            if Category.objects.filter(**attributes).exists():
-                messages.error(request, 'Category already exists!',
-                               extra_tags="warning")
-                return redirect('products:categories_add')
-
-            # Get the category to update
             category = Category.objects.filter(
                 id=category_id).update(**attributes)
 
@@ -123,7 +130,6 @@ def categories_delete_view(request, category_id):
         category_id : The category's ID that will be deleted
     """
     try:
-        # Get the category to delete
         category = Category.objects.get(id=category_id)
         category.delete()
         messages.success(request, '¡Category: ' + category.name +
@@ -150,40 +156,52 @@ def products_add_view(request):
     context = {
         "active_icon": "products_categories",
         "product_status": Product.status.field.choices,
-        "categories": Category.objects.all().filter(status="ACTIVE")
+        "categories": Category.objects.all().filter(status="ACTIVE"),
+        "suppliers": Supplier.objects.all()
     }
 
     if request.method == 'POST':
-        # Save the POST arguments
         data = request.POST
+        files = request.FILES # Get files from request
 
         attributes = {
             "name": data['name'],
-            "status": data['state'],
+            "status": data['status'],
             "description": data['description'],
             "category": Category.objects.get(id=data['category']),
-            "price": data['price']
+            "supplier": Supplier.objects.get(id=data['supplier']),
+            "price_usd": data['price_usd'],
+            "stock": data['stock'],
+            "stock_min": data['stock_min'],
+            "applies_iva": 'applies_iva' in data, # Handle checkbox
         }
 
-        # Check if a product with the same attributes exists
-        if Product.objects.filter(**attributes).exists():
-            messages.error(request, 'Product already exists!',
-                           extra_tags="warning")
+        # Generate SKU
+        category = Category.objects.get(id=data['category'])
+        attributes['sku'] = generate_sku(category.prefix)
+
+        # Check if a product with the same name already exists
+        if Product.objects.filter(name=attributes['name']).exists():
+            messages.error(request, 'Product with this name already exists!',
+                           extra_tags="danger")
             return redirect('products:products_add')
 
         try:
-            # Create the product
-            new_product = Product.objects.create(**attributes)
+            # Create the product instance
+            new_product = Product(**attributes)
 
-            # If it doesn't exist, save it
+            # Handle photo upload
+            if 'photo' in files:
+                new_product.photo = files['photo']
+            
             new_product.save()
 
             messages.success(request, 'Product: ' +
                              attributes["name"] + ' created successfully!', extra_tags="success")
             return redirect('products:products_list')
         except Exception as e:
-            messages.success(
-                request, 'There was an error during the creation!', extra_tags="danger")
+            messages.error(
+                request, f'There was an error during the creation! {e}', extra_tags="danger")
             print(e)
             return redirect('products:products_add')
 
@@ -198,9 +216,7 @@ def products_update_view(request, product_id):
         product_id : The product's ID that will be updated
     """
 
-    # Get the product
     try:
-        # Get the product to update
         product = Product.objects.get(id=product_id)
     except Exception as e:
         messages.success(
@@ -212,40 +228,56 @@ def products_update_view(request, product_id):
         "active_icon": "products",
         "product_status": Product.status.field.choices,
         "product": product,
-        "categories": Category.objects.all()
+        "categories": Category.objects.all(),
+        "suppliers": Supplier.objects.all()
     }
 
     if request.method == 'POST':
+        data = request.POST
+        files = request.FILES # Get files from request
+
+        attributes = {
+            "name": data['name'],
+            "status": data['status'],
+            "description": data['description'],
+            "category": Category.objects.get(id=data['category']),
+            "supplier": Supplier.objects.get(id=data['supplier']),
+            "price_usd": data['price_usd'],
+            "stock": data['stock'],
+            "stock_min": data['stock_min'],
+            "applies_iva": 'applies_iva' in data, # Handle checkbox
+        }
+
+        # Check if a product with the same name already exists (excluding the current product)
+        if Product.objects.filter(name=attributes['name']).exclude(id=product_id).exists():
+            messages.error(request, 'Product with this name already exists!',
+                           extra_tags="danger")
+            return redirect('products:products_update', product_id=product_id)
+
         try:
-            # Save the POST arguments
-            data = request.POST
+            # Update the product instance
+            product.name = attributes['name']
+            product.status = attributes['status']
+            product.description = attributes['description']
+            product.category = attributes['category']
+            product.supplier = attributes['supplier']
+            product.price_usd = attributes['price_usd']
+            product.stock = attributes['stock']
+            product.stock_min = attributes['stock_min']
+            product.applies_iva = attributes['applies_iva']
 
-            attributes = {
-                "name": data['name'],
-                "status": data['state'],
-                "description": data['description'],
-                "category": Category.objects.get(id=data['category']),
-                "price": data['price']
-            }
+            # Handle photo upload
+            if 'photo' in files:
+                product.photo = files['photo']
+            
+            product.save()
 
-            # Check if a product with the same attributes exists
-            if Product.objects.filter(**attributes).exists():
-                messages.error(request, 'Product already exists!',
-                               extra_tags="warning")
-                return redirect('products:products_add')
-
-            # Get the product to update
-            product = Product.objects.filter(
-                id=product_id).update(**attributes)
-
-            product = Product.objects.get(id=product_id)
-
-            messages.success(request, '¡Product: ' + product.name +
+            messages.success(request, 'Product: ' + product.name +
                              ' updated successfully!', extra_tags="success")
             return redirect('products:products_list')
         except Exception as e:
-            messages.success(
-                request, 'There was an error during the update!', extra_tags="danger")
+            messages.error(
+                request, f'There was an error during the update! {e}', extra_tags="danger")
             print(e)
             return redirect('products:products_list')
 
@@ -260,7 +292,6 @@ def products_delete_view(request, product_id):
         product_id : The product's ID that will be deleted
     """
     try:
-        # Get the product to delete
         product = Product.objects.get(id=product_id)
         product.delete()
         messages.success(request, '¡Product: ' + product.name +

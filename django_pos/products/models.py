@@ -47,6 +47,7 @@ class Product(models.Model):
     stock = models.IntegerField(default=0)
     stock_min = models.IntegerField(default=0)
     photo = models.ImageField(upload_to='products/', null=True, blank=True)
+    applies_iva = models.BooleanField(default=False)
 
     class Meta:
         db_table = "Product"
@@ -61,6 +62,7 @@ class Product(models.Model):
         item['category'] = self.category.name
         item['quantity'] = 1
         item['total_product'] = 0
+        item['price'] = str(self.price_usd)
         return item
 
 

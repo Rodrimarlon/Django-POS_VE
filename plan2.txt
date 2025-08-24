@@ -31,10 +31,8 @@ Plan de Desarrollo Propuesto
 
 
    * Paso 1.4: Actualización de Productos y Clientes
-       1. Formularios: Modificaré los formularios de creación y edición de productos y clientes para incluir los nuevos
-          campos.
-       2. Auto-generación de SKU: Implementaré la lógica para que el código SKU de los productos se genere automáticamente
-          con el formato PrefijoCategoria-Numero.
+       1. Formularios: Modificaré los formularios de creación y edición de productos y clientes para incluir los nuevos campos.
+       2. Auto-generación de SKU: Implementaré la lógica para que el código SKU de los productos se genere automáticamente con el formato PrefijoCategoria-Numero.
 
   Fase 2: Lógica del Punto de Venta (TPV)
 

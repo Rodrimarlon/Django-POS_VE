@@ -1,0 +1,63 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Update Company" %}{% endblock title %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block heading %}{% trans "Update Company" %}{% endblock heading %}
+
+{% block content %}
+<div class="row ml-0 mb-3">
+    <a href="{% url 'core:company_view' %}">
+        <button type="button" class="btn btn-info font-weight-bold">
+            <i class="fas fa-long-arrow-alt-left mr-2"></i>
+            {% trans "Go back" %}
+        </button>
+    </a>
+</div>
+
+<div class="row">
+    <div class="card col-md-8">
+        <div class="card-body">
+            <form action="{% url 'core:company_update' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="inputName">{% trans "Name" %}</label>
+                        <input type="text" class="form-control" name="name" value="{% if company %}{{ company.name }}{% endif %}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="inputTaxId">{% trans "Tax ID" %}</label>
+                        <input type="text" class="form-control" name="tax_id" value="{% if company %}{{ company.tax_id }}{% endif %}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="inputAddress">{% trans "Address" %}</label>
+                        <textarea name="address" class="form-control" rows="2" required>{% if company %}{{ company.address }}{% endif %}</textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="inputLogo">{% trans "Logo" %}</label>
+                        <input type="file" class="form-control-file" name="logo">
+                        {% if company and company.logo %}
+                            <img src="{{ company.logo.url }}" alt="Current Logo" style="max-width: 100px; margin-top: 10px;">
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success font-weight-bold">{% trans "Save Company" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}

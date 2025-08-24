@@ -14,4 +14,6 @@ urlpatterns = [
     path('customers/', include('customers.urls')),
     # Sales
     path('sales/', include('sales.urls')),
+    path('suppliers/', include('suppliers.urls')),
+    path('core/', include('core.urls')),
 ]

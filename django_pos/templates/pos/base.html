@@ -83,6 +83,10 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+    <!-- Exchange Rate Modal-->
+    {% include 'core/exchange_rate_modal.html' %}
+    <!-- End of Exchange Rate Modal-->
+
     <!-- Logout Modal-->
     {% include 'pos/logout_modal.html' %}
     <!-- End ofLogout Modal-->
@@ -104,6 +108,19 @@
     <!-- Page level custom scripts -->
     <!-- Specific Page JS goes HERE  -->
     {% block javascripts %}{% endblock javascripts %}
+
+    <script>
+        $(document).ready(function() {
+            // Check if exchange_rate_exists is false and show the modal
+            if ("{{ exchange_rate_exists }}" === "False") {
+                $('#exchangeRateModal').modal({
+                    backdrop: 'static', // Prevent closing by clicking outside
+                    keyboard: false // Prevent closing by pressing escape key
+                });
+                $('#exchangeRateModal').modal('show');
+            }
+        });
+    </script>
 
 </body>
 

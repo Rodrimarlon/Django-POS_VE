@@ -1,0 +1,61 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Update Supplier" %}{% endblock title %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block heading %}{% trans "Update Supplier" %}{% endblock heading %}
+
+{% block content %}
+<div class="row ml-0 mb-3">
+    <a href="{% url 'suppliers:supplier_list' %}">
+        <button type="button" class="btn btn-info font-weight-bold">
+            <i class="fas fa-long-arrow-alt-left mr-2"></i>
+            {% trans "Go back" %}
+        </button>
+    </a>
+</div>
+
+<div class="row">
+    <div class="card col-md-8">
+        <div class="card-body">
+            <form action="{% url 'suppliers:supplier_update' supplier.id %}" method="post">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="inputName">{% trans "Name" %}</label>
+                        <input type="text" class="form-control" name="name" value="{{ supplier.name }}" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="inputTaxId">{% trans "Tax ID" %}</label>
+                        <input type="text" class="form-control" name="tax_id" value="{{ supplier.tax_id }}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="inputPhone">{% trans "Phone" %}</label>
+                        <input type="text" name="phone" class="form-control" value="{{ supplier.phone }}" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="inputEmail">{% trans "Email" %}</label>
+                        <input type="email" name="email" class="form-control" value="{{ supplier.email }}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="inputAddress">{% trans "Address" %}</label>
+                        <textarea name="address" class="form-control" rows="2" required>{{ supplier.address }}</textarea>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success font-weight-bold">{% trans "Update Supplier" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}
