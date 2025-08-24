@@ -14,4 +14,6 @@ urlpatterns = [
     # Delete customer
     path('delete/<str:customer_id>',
          views.customers_delete_view, name='customers_delete'),
+    # Get customers AJAX
+    path("get", views.get_customers_ajax_view, name="get_customers"),
 ]

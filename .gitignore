@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# Archivos de planificación 
+plan.txt
+plan2.txt
+prueba.txt

@@ -8,7 +8,8 @@ from django_pos.wsgi import *
 from django_pos import settings
 from django.template.loader import get_template
 from customers.models import Customer
-from products.models import Product
+from products.models import Product, InventoryMovement
+from core.models import PaymentMethod, ExchangeRate
 from weasyprint import HTML, CSS
 from .models import Sale, SaleDetail
 import json
@@ -29,10 +30,34 @@ def sales_list_view(request):
 
 @role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
-def sales_add_view(request):
+def sales_add_view(request, sale_id=None):
+    sale = None
+    sale_details_json = "[]"
+    if sale_id:
+        try:
+            sale = Sale.objects.get(id=sale_id)
+            # Prepare sale details for frontend
+            sale_details = SaleDetail.objects.filter(sale=sale)
+            sale_details_list = []
+            for detail in sale_details:
+                sale_details_list.append({
+                    'id': detail.product.id,
+                    'name': detail.product.name,
+                    'price': str(detail.price), # Convert Decimal to string
+                    'quantity': detail.quantity,
+                    'total_product': str(detail.total_detail), # Convert Decimal to string
+                    'sku': detail.product.sku,
+                })
+            sale_details_json = json.dumps(sale_details_list)
+
+        except Sale.DoesNotExist:
+            messages.error(request, 'Sale not found!', extra_tags="danger")
+            return redirect('sales:sales_add') # Redirect to new sale if not found
+
     context = {
         "active_icon": "sales",
-        "customers": [c.to_select2() for c in Customer.objects.all()]
+        "sale": sale,
+        "sale_details_json": sale_details_json,
     }
 
     if request.method == 'POST':
@@ -47,34 +72,63 @@ def sales_add_view(request):
                 "tax_percentage": float(data["tax_percentage"]),
                 "amount_payed": float(data["amount_payed"]),
                 "amount_change": float(data["amount_change"]),
+                "user": request.user, # Assign current user
+                "total_ves": float(data.get("total_ves", 0)), # New field
+                "igtf_amount": float(data.get("igtf_amount", 0)), # New field
+                "is_credit": data.get("is_credit", False), # New field
+                "payment_method": PaymentMethod.objects.get(id=int(data['payment_method'])) if 'payment_method' in data and data['payment_method'] else None, # New field, handle empty string
+                "exchange_rate": ExchangeRate.objects.get(id=int(data['exchange_rate'])) if 'exchange_rate' in data and data['exchange_rate'] else None, # New field, handle empty string
             }
+            
+            # Determine sale status
+            action_type = data.get("action_type", "finalize") # 'finalize' or 'draft'
+            sale_attributes["status"] = 'draft' if action_type == 'draft' else 'completed'
+
             try:
-                new_sale = Sale.objects.create(**sale_attributes)
-                new_sale.save()
+                if sale_id: # Update existing sale
+                    Sale.objects.filter(id=sale_id).update(**sale_attributes)
+                    current_sale = Sale.objects.get(id=sale_id)
+                    SaleDetail.objects.filter(sale=current_sale).delete() # Clear old details
+                    messages.success(request, 'Sale updated successfully!', extra_tags="success")
+                else: # Create new sale
+                    current_sale = Sale.objects.create(**sale_attributes)
+                    messages.success(request, 'Sale created successfully!', extra_tags="success")
+                
                 products = data["products"]
-
-                for product in products:
+                for product_data in products:
                     detail_attributes = {
-                        "sale": Sale.objects.get(id=new_sale.id),
-                        "product": Product.objects.get(id=int(product["id"])),
-                        "price": product["price"],
-                        "quantity": product["quantity"],
-                        "total_detail": product["total_product"]
+                        "sale": current_sale,
+                        "product": Product.objects.get(id=int(product_data["id"])),
+                        "price": product_data["price"],
+                        "quantity": product_data["quantity"],
+                        "total_detail": product_data["total_product"]
                     }
-                    sale_detail_new = SaleDetail.objects.create(
-                        **detail_attributes)
-                    sale_detail_new.save()
+                    SaleDetail.objects.create(**detail_attributes)
 
-                print("Sale saved")
+                # Stock deduction and InventoryMovement only on finalization
+                if current_sale.status == 'completed':
+                    for product_data in products:
+                        product_obj = Product.objects.get(id=int(product_data["id"]))
+                        product_obj.stock -= product_data["quantity"]
+                        product_obj.save()
 
-                messages.success(
-                    request, 'Sale created successfully!', extra_tags="success")
+                        InventoryMovement.objects.create(
+                            product=product_obj,
+                            movement_type='out',
+                            quantity=product_data["quantity"],
+                            user=request.user,
+                            reason=f'Sale {current_sale.id}'
+                        )
+                    messages.success(request, 'Sale finalized and stock updated successfully!', extra_tags="success")
+                elif current_sale.status == 'draft':
+                    messages.success(request, 'Sale saved as draft!', extra_tags="success")
 
             except Exception as e:
-                messages.success(
-                    request, 'There was an error during the creation!', extra_tags="danger")
+                messages.error(
+                    request, f'There was an error during the operation: {e}', extra_tags="danger")
+                print(e) # For debugging
 
-        return redirect('sales:sales_list')
+        return redirect('sales:sales_list') # Redirect to sales list after operation
 
     return render(request, "sales/sales_add.html", context=context)
 

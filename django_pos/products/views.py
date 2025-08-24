@@ -1,10 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.db.models import Q # Added for OR queries
 from django.shortcuts import render, redirect
 from .models import Category, Product, InventoryMovement
 from suppliers.models import Supplier
-from authentication.decorators import admin_required
+from authentication.decorators import admin_required, role_required
 
 def generate_sku(category_prefix):
     # Get the last product in the category
@@ -22,7 +23,7 @@ def generate_sku(category_prefix):
     new_sku = f"{category_prefix}{new_sku_number:04d}"
     return new_sku
 
-@admin_required
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def categories_list_view(request):
     context = {
@@ -142,7 +143,7 @@ def categories_delete_view(request, category_id):
         print(e)
         return redirect('products:categories_list')
 
-@admin_required
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def products_list_view(request):
     context = {
@@ -311,10 +312,16 @@ def get_products_ajax_view(request):
         if is_ajax(request=request):
             data = []
 
+            term = request.POST['term']
+            print(f"Product search term: {term}")
+
             products = Product.objects.filter(
-                name__icontains=request.POST['term'])
+                Q(name__icontains=term) | Q(sku__icontains=term)
+            )
+            print(f"Found products: {products.count()}")
             for product in products[0:10]:
                 item = product.to_json()
                 data.append(item)
+            print(f"Returning data: {data}")
 
             return JsonResponse(data, safe=False)

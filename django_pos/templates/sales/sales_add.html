@@ -31,7 +31,7 @@
 </div>
 
 <!--Sale products and details-->
-<form action="{% url 'sales:sales_add' %}" class="saleForm" method="post">
+<form action="{% if sale %}{% url 'sales:sales_add_with_id' sale.id %}{% else %}{% url 'sales:sales_add' %}{% endif %}" class="saleForm" method="post">
     <div class="row mt-3">
         <div class="card col-md-12">
             <div class="card-body ml-0">
@@ -90,9 +90,6 @@
                                     <label for="customer">{% trans "Customer" %}</label>
                                     <select name="customer" class="form-control" id="searchbox_customers" required>
                                         <option value="" selected disabled hidden>{% trans "Select the customer" %}</option>
-                                        {% for customer in customers %}
-                                        <option value="{{customer.value}}">{{customer.label}}</option>
-                                        {% endfor %}
                                     </select>
                                 <div class="form-group mt-4">
                                     <label>{% trans "Subtotal" %}</label>
@@ -124,8 +121,48 @@
                                         <input name="amount_payed" class="form-control" required>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <label>{% trans "Amount Change" %}</label>
+                                    <div class="input-group">
+                                        <input name="amount_change" class="form-control" readonly>
+                                    </div>
+                                </div>
 
-                                <button type="submit" class="btn btn-success font-weight-bold">{% trans "Create sale" %}</button>
+                                <div class="form-group">
+                                    <label for="payment_method">{% trans "Payment Method" %}</label>
+                                    <select name="payment_method" class="form-control" id="payment_method" required>
+                                        <option value="" selected disabled hidden>{% trans "Select payment method" %}</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>{% trans "Exchange Rate (USD/VES)" %}</label>
+                                    <div class="input-group">
+                                        <input name="exchange_rate" class="form-control" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>{% trans "Total in VES" %}</label>
+                                    <div class="input-group">
+                                        <input name="total_ves" class="form-control" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>{% trans "IGTF Amount" %}</label>
+                                    <div class="input-group">
+                                        <input name="igtf_amount" class="form-control" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-group form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_credit" name="is_credit">
+                                    <label class="form-check-label" for="is_credit">{% trans "Is Credit Sale?" %}</label>
+                                </div>
+
+                                <button type="submit" class="btn btn-success font-weight-bold" id="finalize_sale_btn">{% trans "Finalize Sale" %}</button>
+                                <button type="button" class="btn btn-info font-weight-bold mt-2" id="save_draft_btn">{% trans "Save as Draft" %}</button>
                             </div>
                             <!--End card-body-->
                     </div>
@@ -135,7 +172,6 @@
             </div>
             <!--End card-body-->
         </div>
-
     </div>
 </form>
 {% endblock content %}
@@ -177,6 +213,12 @@
             tax_percentage : 0.00, 
             amount_payed : 0.00, 
             amount_change : 0.00,
+            total_ves: 0.00, // New
+            igtf_amount: 0.00, // New
+            is_credit: false, // New
+            payment_method: null, // New
+            exchange_rate: null, // New
+            action_type: 'finalize', // New: 'finalize' or 'draft'
             products: [
 
             ]
@@ -203,6 +245,28 @@
             $('input[name="sub_total"]').val(this.items.sub_total);
             $('input[name="tax_amount"]').val(this.items.tax_amount);
             $('input[name="grand_total"]').val(this.items.grand_total);
+
+            // Calculate amount change
+            this.items.amount_change = roundTo($('input[name="amount_payed"]').val() - this.items.grand_total, 2);
+            $('input[name="amount_change"]').val(this.items.amount_change);
+
+            // Calculate total_ves and igtf_amount
+            var current_exchange_rate = parseFloat($('input[name="exchange_rate"]').val() || 0);
+            this.items.total_ves = roundTo(this.items.grand_total * current_exchange_rate, 2);
+            $('input[name="total_ves"]').val(this.items.total_ves);
+
+            var selected_payment_method_id = $('#payment_method').val();
+            var is_foreign_currency = false;
+            // Assuming payment_methods_data is available globally or fetched
+            if (payment_methods_data) {
+                var pm = payment_methods_data.find(p => p.id == selected_payment_method_id);
+                if (pm) {
+                    is_foreign_currency = pm.is_foreign_currency;
+                }
+            }
+            // Assuming IGTF percentage is fixed at 3% for foreign currency payments
+            this.items.igtf_amount = is_foreign_currency ? roundTo(this.items.grand_total * 0.03, 2) : 0.00;
+            $('input[name="igtf_amount"]').val(this.items.igtf_amount);
         },
         // Adds a product to the sale object
         add_product: function (item) {
@@ -240,7 +304,7 @@
                         targets: [2,4],
                         render: function (data, type, row){
                             return parseFloat(data).toFixed(2) + ' $';
-                        },
+                        }
                     },
                     {
                         //Delete button
@@ -273,7 +337,83 @@
         },
     };
 
+    // Global variable to store payment methods data
+    var payment_methods_data = [];
+
     $(document).ready(function() {
+        // Fetch payment methods and populate dropdown
+        $.ajax({
+            url: "{% url 'core:payment_method_list' %}", // Assuming an API endpoint for payment methods
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                payment_methods_data = data.payment_methods; // Store globally
+                var select = $('#payment_method');
+                $.each(payment_methods_data, function(index, pm) {
+                    select.append($('<option>', {
+                        value: pm.id,
+                        text: pm.name
+                    }));
+                });
+            },
+            error: function(error) {
+                console.error("Error fetching payment methods:", error);
+            }
+        });
+
+        // Fetch current exchange rate
+        $.ajax({
+            url: "{% url 'core:exchange_rate_modal' %}", // Assuming this endpoint provides the current rate
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                if (data.exchange_rate_exists) { // Assuming this indicates a rate is available
+                    $('input[name="exchange_rate"]').val(data.rate_usd_ves); // Assuming rate is in data.rate_usd_ves
+                    sale.calculate_sale(); // Recalculate with new rate
+                } else {
+                    Swal.fire({
+                        title: '{% trans "No exchange rate for today!" %}',
+                        text: '{% trans "Please set the daily exchange rate." %}',
+                        icon: 'warning',
+                        showCancelButton: false,
+                        confirmButtonText: '{% trans "OK" %}',
+                    });
+                }
+            },
+            error: function(error) {
+                console.error("Error fetching exchange rate:", error);
+            }
+        });
+
+        // Pre-populate form if loading a draft sale
+        var sale_data_element = document.getElementById('sale_data');
+        var sale_obj = sale_data_element ? JSON.parse(sale_data_element.textContent) : null;
+
+        var sale_details_data_element = document.getElementById('sale_details_data');
+        var sale_details_obj = sale_details_data_element ? JSON.parse(sale_details_data_element.textContent) : [];
+
+        if (sale_obj) { // Check if sale_obj is not null
+            // Populate customer
+            $('#searchbox_customers').val(sale_obj.customer).trigger('change');
+
+            // Populate products
+            sale.items.products = sale_details_obj;
+            sale.list_product();
+
+            // Populate other fields
+            $('input[name="sub_total"]').val(sale_obj.sub_total);
+            $('input[name="grand_total"]').val(sale_obj.grand_total);
+            $('input[name="tax_amount"]').val(sale_obj.tax_amount);
+            $('input[name="tax_percentage"]').val(sale_obj.tax_percentage);
+            $('input[name="amount_payed"]').val(sale_obj.amount_payed);
+            $('input[name="amount_change"]').val(sale_obj.amount_change);
+            $('input[name="total_ves"]').val(sale_obj.total_ves);
+            $('input[name="igtf_amount"]').val(sale_obj.igtf_amount);
+            $('#is_credit').prop('checked', sale_obj.is_credit);
+            $('#payment_method').val(sale_obj.payment_method).trigger('change');
+            $('input[name="exchange_rate"]').val(sale_obj.exchange_rate); // Assuming exchange_rate is a direct value here
+        }
+
 
         //Tax percentage touchspin
         $("input[name='tax_percentage']").TouchSpin({
@@ -288,12 +428,54 @@
             sale.calculate_sale();
         });
 
+        // Amount payed change event
+        $('input[name="amount_payed"]').on('change keyup', function() {
+            sale.calculate_sale();
+        });
+
+        // Payment method change event
+        $('#payment_method').on('change', function() {
+            sale.items.payment_method = $(this).val();
+            sale.calculate_sale();
+        });
+
+        // Is credit checkbox change event
+        $('#is_credit').on('change', function() {
+            sale.items.is_credit = $(this).is(':checked');
+        });
+
 
         //Select2 customers
+        console.log("Initializing customer Select2...");
         $('#searchbox_customers').select2({
+            delay: 250,
             placeholder: "{% trans "Select a customer" %}",
+            minimumInputLength: 1,
             allowClear: true,
+            ajax: {
+                url: "{% url 'customers:get_customers' %}",
+                type: 'POST',
+                data: function (params) {
+                    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val(); // Get token here
+                    var queryParameters = {
+                        term: params.term,
+                        csrfmiddlewaretoken: csrftoken // Explicitly include CSRF token
+                    }
+                    console.log("Customer search params:", queryParameters);
+                    return queryParameters; // Let jQuery handle serialization
+                },
+                processResults: function (data) {
+                    console.log("Customer search results:", data);
+                    return {
+                        results: data
+                    };
+                },
+            }
+        }).on('select2:select', function (e) {
+            var data = e.params.data;
+            console.log("Selected customer:", data);
         });
+        console.log("Customer Select2 initialized.");
 
         // Tables Events
         $('#table_products tbody').on('click', 'a[rel="delete"]', function () {
@@ -380,22 +562,9 @@
         });
 
         //Select2 products searchbox
-        // Validate the csrf_token
-        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        
 
-        function csrfSafeMethod(method) {
-            // these HTTP methods do not require CSRF protection
-            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-        }
-        // To avoid error 403 Fordbidden
-        $.ajaxSetup({
-            beforeSend: function (xhr, settings) {
-                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                }
-            }
-        });
-
+        console.log("Initializing product Select2...");
         $('#searchbox_products').select2({
             delay: 250,
             placeholder: '{% trans "Search a product" %}',
@@ -406,34 +575,37 @@
                 url: "{% url 'products:get_products' %}",
                 type: 'POST',
                 data: function (params) {
-                var queryParameters = {
-                    term: params.term,
-                    //excluir_prod_seleccionados: JSON.stringify(venta.traer_ids())
-                }
-                return queryParameters;
+                    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val(); // Get token here
+                    var queryParameters = {
+                        term: params.term,
+                        csrfmiddlewaretoken: csrftoken // Explicitly include CSRF token
+                    }
+                    console.log("Product search params:", queryParameters);
+                    return queryParameters; // Let jQuery handle serialization
                 },
                 processResults: function (data) {
-                    console.log(data)
+                    console.log("Product search results:", data);
                     return {
                         results: data
                     };
                 },
-            }
-            }).on('select2:select', function (e) {
+            }}).on('select2:select', function (e) {
                 //When a product is selected from the searchbox
                 var data = e.params.data;
+                console.log("Selected product:", data);
                 //Add number, subtotal and quantity of the product to the dictionary
                 data.number = number;
                 number++; //Increase the product number in the table
                 //data.sub_total = 0;
-                //data.quantity = 1;
+                data.quantity = 1;
                 //Add the product to the sale object
                 sale.add_product(data);
                 console.log("Sale items");      
                 console.log(sale.items);      
                 //Clean the searchbox after the product is selected
-                $(this).val('').trigger('change.select2');; 
+                $(this).val('').trigger('change.select2');
             });
+        console.log("Product Select2 initialized.");
     
             // Products datatable
             
@@ -457,15 +629,14 @@
         
             var option = $(
                 '<div class="wrapper container">'+
-                ' <div class="row">' +
-                    '<div class="col-lg-11 text-left shadow-sm">' +
-                      //'<br>' +
-                      '<p style="margin-bottom: 5px;">' +
-                      '<b>{% trans "Name:" %}</b> ' + repo.text + " | {% trans "Category:" %} " + "<span class='btn-info px-2'>" + repo.category + '</span> <br>' +
-                      '<b>{% trans "Price:" %}</b> <span class="btn-success px-2">'+repo.price+' $. </span>'+
-                      '</p>' +
-                    '</div>' +
-                  '</div>' +
+                ' <div class="row">'+
+                    '<div class="col-lg-11 text-left shadow-sm">'+
+                      '<p style="margin-bottom: 5px;">'+
+                      '<b>' + gettext("Name:") + '</b> ' + repo.text + " | " + gettext("Category:") + " " + "<span class='btn-info px-2'>" + repo.category + '</span> <br>'+
+                      '<b>' + gettext("Price:") + '</b> <span class="btn-success px-2">'+repo.price+' $. </span>'+
+                      '</p>'+
+                    '</div>'+
+                  '</div>'+
                 '</div>');
         
             return option;
@@ -473,7 +644,19 @@
 
         // Send the sale via ajax
         
-        $('.saleForm').on('submit', function (e) {  
+        $('#finalize_sale_btn').on('click', function (e) {
+            e.preventDefault(); // Prevent default form submission
+            sale.items.action_type = 'finalize';
+            submitSaleForm();
+        });
+
+        $('#save_draft_btn').on('click', function (e) {
+            e.preventDefault(); // Prevent default form submission
+            sale.items.action_type = 'draft';
+            submitSaleForm();
+        });
+
+        function submitSaleForm() {
             // Only allow sending if we have at least one product
             if (sale.items.products.length === 0 ) {
                 Swal.fire({
@@ -484,8 +667,8 @@
                 return false;
             };
             
-            // Only allow sending if the paid amount is equal or greater than the total
-            if ($('[name="amount_payed"]').val() < $('[name="grand_total"]').val()) {
+            // Only allow sending if the paid amount is equal or greater than the total for finalization
+            if (sale.items.action_type === 'finalize' && $('[name="amount_payed"]').val() < $('[name="grand_total"]').val()) {
                 Swal.fire({
                     title: '{% trans "Payable Amount is lower than the Grand Total" %}',
                     icon: 'warning',
@@ -495,13 +678,18 @@
 
             // Agregamos los datos faltantes al objeto sales
             sale.items.customer = $('select[name="customer"]').val();
-            console.log("Customer: " + sale.items.customer)
             sale.items.sub_total = $('input[name="sub_total"]').val(); 
             sale.items.grand_total = $('input[name="grand_total"]').val();
             sale.items.tax_amount = $('input[name="tax_amount"]').val(); 
             sale.items.tax_percentage = $('input[name="tax_percentage"]').val();
             sale.items.amount_payed = $('input[name="amount_payed"]').val(); 
-            sale.items.amount_change = roundTo($('input[name="amount_payed"]').val() - $('input[name="grand_total"]').val(), 2); 
+            sale.items.amount_change = $('input[name="amount_change"]').val(); // Already calculated in calculate_sale
+
+            sale.items.payment_method = $('#payment_method').val();
+            sale.items.exchange_rate = $('input[name="exchange_rate"]').val();
+            sale.items.is_credit = $('#is_credit').is(':checked');
+            sale.items.total_ves = $('input[name="total_ves"]').val();
+            sale.items.igtf_amount = $('input[name="igtf_amount"]').val();
 
             console.log("Sale:")
             console.log(sale.items)
@@ -521,19 +709,31 @@
                 }
             });
             $.ajax({
-                url: "{% url 'sales:sales_add' %}",
+                url: "{% if sale %}{% url 'sales:sales_add_with_id' sale.id %}{% else %}{% url 'sales:sales_add' %}{% endif %}",
                 type: "POST",
                 // We need to convert the JS object sale to string
                 data: JSON.stringify(sale.items), 
                 datatype: "json",
                 processData: false,
-                contentType: false,
+                contentType: "application/json", // Set content type to JSON
                 success: function (data) {
                     console.log("Ajax OK")
+                    // Redirect to sales list or draft list based on action_type
+                    if (sale.items.action_type === 'finalize') {
+                        window.location.href = "{% url 'sales:sales_list' %}";
+                    } else {
+                        // For draft, maybe redirect to a draft list or clear form
+                        window.location.href = "{% url 'sales:sales_list' %}"; // Temporarily redirect to sales list
+                    }
                 },
                 error: function (error) {
                     console.log("Ajax error");
                     console.log(error);
+                    Swal.fire({
+                        title: '{% trans "Error!" %}',
+                        text: '{% trans "There was an error processing your request." %}',
+                        icon: 'error',
+                    });
                 },
             }).done(function (data){
                 console.log ("Ajax Done");
@@ -542,6 +742,17 @@
                 alert(textStatus + ':' + errorThrown);
             });
             
+        } // End submitSaleForm
+
+        // Attach submitSaleForm to form submission (for enter key, etc.)
+        $('.saleForm').on('submit', function (e) {
+            e.preventDefault(); // Prevent default form submission
+            // If buttons are used, action_type is already set.
+            // If form is submitted by enter key, default to finalize.
+            if (!sale.items.action_type) {
+                sale.items.action_type = 'finalize';
+            }
+            submitSaleForm();
         });
         
 </script>

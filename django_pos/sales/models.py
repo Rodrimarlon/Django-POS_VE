@@ -4,9 +4,17 @@ from customers.models import Customer
 from products.models import Product
 from core.models import PaymentMethod, ExchangeRate
 
+from django.contrib.auth.models import User
+
 class Sale(models.Model):
+    SALE_STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('completed', 'Completed'),
+        ('pending_credit', 'Pending Credit'),
+    )
     date_added = models.DateTimeField(default=django.utils.timezone.now)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, null=True)
     exchange_rate = models.ForeignKey(ExchangeRate, on_delete=models.CASCADE, null=True)
     sub_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -18,6 +26,7 @@ class Sale(models.Model):
     total_ves = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     igtf_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_credit = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=SALE_STATUS_CHOICES, default='completed')
 
     class Meta:
         db_table = 'Sales'

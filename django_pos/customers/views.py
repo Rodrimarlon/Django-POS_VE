@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from .models import Customer
-from authentication.decorators import admin_required
+from authentication.decorators import admin_required, role_required
 
-@admin_required
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def customers_list_view(request):
     context = {
@@ -54,7 +56,7 @@ def customers_add_view(request):
 
     return render(request, "customers/customers_add.html", context=context)
 
-@admin_required
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def customers_update_view(request, customer_id):
     try:
@@ -114,3 +116,27 @@ def customers_delete_view(request, customer_id):
             request, 'There was an error during the elimination!', extra_tags="danger")
         print(e)
         return redirect('customers:customers_list')
+
+@login_required(login_url="/accounts/login/")
+def get_customers_ajax_view(request):
+    if request.method == 'POST':
+        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            data = []
+            term = request.POST.get('term', '')
+            print(f"Customer search term: {term}")
+            
+            customers = Customer.objects.filter(
+                Q(first_name__icontains=term) | 
+                Q(last_name__icontains=term) | 
+                Q(tax_id__icontains=term)
+            )[:10] # Limit to 10 results
+            print(f"Found customers: {customers.count()}")
+
+            for customer in customers:
+                data.append({
+                    'id': customer.id,
+                    'text': customer.get_full_name() + (f' ({customer.tax_id})' if customer.tax_id else '')
+                })
+            print(f"Returning data: {data}")
+            return JsonResponse(data, safe=False)
+    return JsonResponse([], safe=False) # Return empty list for non-POST/AJAX requests

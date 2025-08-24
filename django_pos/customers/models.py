@@ -18,3 +18,9 @@ class Customer(models.Model):
 
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'
+
+    def to_select2(self):
+        return {
+            'id': self.id,
+            'text': self.get_full_name()
+        }

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from .models import PaymentMethod, Company, ExchangeRate
 from datetime import date
 from authentication.decorators import admin_required, role_required
@@ -8,11 +9,23 @@ from authentication.decorators import admin_required, role_required
 @admin_required
 @login_required(login_url="/accounts/login/")
 def payment_method_list_view(request):
-    context = {
-        "active_icon": "payment_methods",
-        "payment_methods": PaymentMethod.objects.all()
-    }
-    return render(request, "core/payment_methods.html", context=context)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest': # Check if it's an AJAX request
+        payment_methods = PaymentMethod.objects.all()
+        data = []
+        for pm in payment_methods:
+            data.append({
+                'id': pm.id,
+                'name': pm.name,
+                'is_foreign_currency': pm.is_foreign_currency,
+                'requires_reference': pm.requires_reference
+            })
+        return JsonResponse({'payment_methods': data})
+    else:
+        context = {
+            "active_icon": "payment_methods",
+            "payment_methods": PaymentMethod.objects.all()
+        }
+        return render(request, "core/payment_methods.html", context=context)
 
 @admin_required
 @login_required(login_url="/accounts/login/")
