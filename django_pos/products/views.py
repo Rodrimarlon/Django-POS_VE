@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from .models import Category, Product, InventoryMovement
 from suppliers.models import Supplier
+from authentication.decorators import admin_required
 
 def generate_sku(category_prefix):
     # Get the last product in the category
@@ -21,6 +22,7 @@ def generate_sku(category_prefix):
     new_sku = f"{category_prefix}{new_sku_number:04d}"
     return new_sku
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def categories_list_view(request):
     context = {
@@ -29,7 +31,7 @@ def categories_list_view(request):
     }
     return render(request, "products/categories.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def categories_add_view(request):
     context = {
@@ -46,7 +48,6 @@ def categories_add_view(request):
             "description": data['description']
         }
 
-        # Check if a category with the same attributes exists
         if Category.objects.filter(**attributes).exists():
             messages.error(request, 'Category already exists!',
                            extra_tags="warning")
@@ -67,7 +68,7 @@ def categories_add_view(request):
 
     return render(request, "products/categories_add.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def categories_update_view(request, category_id):
     """
@@ -121,7 +122,7 @@ def categories_update_view(request, category_id):
 
     return render(request, "products/categories_update.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def categories_delete_view(request, category_id):
     """
@@ -141,7 +142,7 @@ def categories_delete_view(request, category_id):
         print(e)
         return redirect('products:categories_list')
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def products_list_view(request):
     context = {
@@ -150,7 +151,7 @@ def products_list_view(request):
     }
     return render(request, "products/products.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def products_add_view(request):
     context = {
@@ -187,10 +188,8 @@ def products_add_view(request):
             return redirect('products:products_add')
 
         try:
-            # Create the product instance
             new_product = Product(**attributes)
 
-            # Handle photo upload
             if 'photo' in files:
                 new_product.photo = files['photo']
             
@@ -207,7 +206,7 @@ def products_add_view(request):
 
     return render(request, "products/products_add.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def products_update_view(request, product_id):
     """
@@ -255,7 +254,6 @@ def products_update_view(request, product_id):
             return redirect('products:products_update', product_id=product_id)
 
         try:
-            # Update the product instance
             product.name = attributes['name']
             product.status = attributes['status']
             product.description = attributes['description']
@@ -266,7 +264,6 @@ def products_update_view(request, product_id):
             product.stock_min = attributes['stock_min']
             product.applies_iva = attributes['applies_iva']
 
-            # Handle photo upload
             if 'photo' in files:
                 product.photo = files['photo']
             
@@ -283,7 +280,7 @@ def products_update_view(request, product_id):
 
     return render(request, "products/products_update.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def products_delete_view(request, product_id):
     """

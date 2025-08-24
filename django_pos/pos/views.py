@@ -6,8 +6,9 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import render
 from products.models import Product, Category
 from sales.models import Sale
+from authentication.decorators import role_required
 
-
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def index(request):
     today = date.today()

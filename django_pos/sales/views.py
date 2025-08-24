@@ -12,12 +12,13 @@ from products.models import Product
 from weasyprint import HTML, CSS
 from .models import Sale, SaleDetail
 import json
+from authentication.decorators import role_required, admin_required
 
 
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
-
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def sales_list_view(request):
     context = {
@@ -26,7 +27,7 @@ def sales_list_view(request):
     }
     return render(request, "sales/sales.html", context=context)
 
-
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def sales_add_view(request):
     context = {
@@ -36,7 +37,6 @@ def sales_add_view(request):
 
     if request.method == 'POST':
         if is_ajax(request=request):
-            # Save the POST arguments
             data = json.load(request)
 
             sale_attributes = {
@@ -49,10 +49,8 @@ def sales_add_view(request):
                 "amount_change": float(data["amount_change"]),
             }
             try:
-                # Create the sale
                 new_sale = Sale.objects.create(**sale_attributes)
                 new_sale.save()
-                # Create the sale details
                 products = data["products"]
 
                 for product in products:
@@ -80,7 +78,7 @@ def sales_add_view(request):
 
     return render(request, "sales/sales_add.html", context=context)
 
-
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def sales_details_view(request, sale_id):
     """
@@ -89,10 +87,8 @@ def sales_details_view(request, sale_id):
         sale_id: ID of the sale to view
     """
     try:
-        # Get the sale
         sale = Sale.objects.get(id=sale_id)
 
-        # Get the sale details
         details = SaleDetail.objects.filter(sale=sale)
 
         context = {
@@ -107,7 +103,7 @@ def sales_details_view(request, sale_id):
         print(e)
         return redirect('sales:sales_list')
 
-
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def receipt_pdf_view(request, sale_id):
     """
@@ -115,10 +111,8 @@ def receipt_pdf_view(request, sale_id):
         request:
         sale_id: ID of the sale to view the receipt
     """
-    # Get the sale
     sale = Sale.objects.get(id=sale_id)
 
-    # Get the sale details
     details = SaleDetail.objects.filter(sale=sale)
 
     template = get_template("sales/sales_receipt_pdf.html")
@@ -128,11 +122,26 @@ def receipt_pdf_view(request, sale_id):
     }
     html_template = template.render(context)
 
-    # CSS Boostrap
     css_url = os.path.join(
         settings.BASE_DIR, 'static/css/receipt_pdf/bootstrap.min.css')
 
-    # Create the pdf
     pdf = HTML(string=html_template).write_pdf(stylesheets=[CSS(css_url)])
 
     return HttpResponse(pdf, content_type="application/pdf")
+
+@admin_required
+@login_required(login_url="/accounts/login/")
+def daily_cash_close_report_view(request):
+    # Lógica para el reporte de cierre de caja diario
+    # ...
+    return render(request, "sales/daily_cash_close_report.html", {})
+
+@admin_required
+@login_required(login_url="/accounts/login/")
+def pending_sales_list_view(request):
+    pending_sales = Sale.objects.filter(is_credit=True, credit_paid=False)
+    context = {
+        "active_icon": "sales",
+        "pending_sales": pending_sales
+    }
+    return render(request, "sales/pending_sales.html", context=context)

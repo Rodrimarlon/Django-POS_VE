@@ -2,8 +2,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .models import Customer
+from authentication.decorators import admin_required
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def customers_list_view(request):
     context = {
@@ -12,7 +13,7 @@ def customers_list_view(request):
     }
     return render(request, "customers/customers.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def customers_add_view(request):
     context = {
@@ -20,7 +21,6 @@ def customers_add_view(request):
     }
 
     if request.method == 'POST':
-        # Save the POST arguments
         data = request.POST
 
         attributes = {
@@ -29,22 +29,18 @@ def customers_add_view(request):
             "address": data['address'],
             "email": data['email'],
             "phone": data['phone'],
-            "tax_id": data.get('tax_id'),  # Use .get for optional fields
-            "credit_limit": data.get('credit_limit', 0),  # Provide default value
-            "outstanding_balance": 0,  # Default to 0 for new customers
+            "tax_id": data.get('tax_id'),
+            "credit_limit": data.get('credit_limit', 0),
+            "outstanding_balance": 0,
         }
 
-        # Check if a customer with the same attributes exists
         if Customer.objects.filter(tax_id=attributes['tax_id']).exists():
             messages.error(request, 'Customer with this Tax ID already exists!',
                            extra_tags="warning")
             return redirect('customers:customers_add')
 
         try:
-            # Create the customer
             new_customer = Customer.objects.create(**attributes)
-
-            # If it doesn't exist save it
             new_customer.save()
 
             messages.success(request, 'Customer: ' + attributes["first_name"] + " " +
@@ -58,7 +54,7 @@ def customers_add_view(request):
 
     return render(request, "customers/customers_add.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def customers_update_view(request, customer_id):
     try:
@@ -84,7 +80,6 @@ def customers_update_view(request, customer_id):
             "credit_limit": data.get('credit_limit', 0),
         }
 
-        # Check if a customer with the same tax_id already exists (excluding the current customer)
         if Customer.objects.filter(tax_id=attributes['tax_id']).exclude(id=customer_id).exists():
             messages.error(request, 'Customer with this Tax ID already exists!', extra_tags="danger")
             return redirect('customers:customers_update', customer_id=customer_id)
@@ -100,7 +95,7 @@ def customers_update_view(request, customer_id):
 
     return render(request, "customers/customers_update.html", context=context)
 
-
+@admin_required
 @login_required(login_url="/accounts/login/")
 def customers_delete_view(request, customer_id):
     """
@@ -109,7 +104,6 @@ def customers_delete_view(request, customer_id):
         customer_id : The customer's ID that will be deleted
     """
     try:
-        # Get the customer to delete
         customer = Customer.objects.get(id=customer_id)
         customer.delete()
         messages.success(request, 'Customer: ' + customer.get_full_name() +

@@ -3,7 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import PaymentMethod, Company, ExchangeRate
 from datetime import date
+from authentication.decorators import admin_required, role_required
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def payment_method_list_view(request):
     context = {
@@ -12,6 +14,7 @@ def payment_method_list_view(request):
     }
     return render(request, "core/payment_methods.html", context=context)
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def payment_method_add_view(request):
     context = {
@@ -33,6 +36,7 @@ def payment_method_add_view(request):
             return redirect('core:payment_method_add')
     return render(request, "core/payment_methods_add.html", context=context)
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def payment_method_update_view(request, payment_method_id):
     try:
@@ -61,6 +65,7 @@ def payment_method_update_view(request, payment_method_id):
             return redirect('core:payment_method_update', payment_method_id=payment_method_id)
     return render(request, "core/payment_methods_update.html", context=context)
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def payment_method_delete_view(request, payment_method_id):
     try:
@@ -73,6 +78,7 @@ def payment_method_delete_view(request, payment_method_id):
         messages.error(request, f'Error deleting payment method: {e}', extra_tags="danger")
     return redirect('core:payment_method_list')
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def company_view(request):
     company = Company.objects.first()
@@ -82,6 +88,7 @@ def company_view(request):
     }
     return render(request, "core/company.html", context=context)
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def company_update_view(request):
     company = Company.objects.first()
@@ -142,6 +149,7 @@ def exchange_rate_modal_view(request):
     }
     return render(request, 'core/exchange_rate_modal.html', context)
 
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def exchange_rate_list_view(request):
     context = {

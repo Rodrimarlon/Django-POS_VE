@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Supplier
+from authentication.decorators import admin_required
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def supplier_list_view(request):
     context = {
@@ -11,6 +13,7 @@ def supplier_list_view(request):
     }
     return render(request, "suppliers/suppliers.html", context=context)
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def supplier_add_view(request):
     context = {
@@ -34,6 +37,7 @@ def supplier_add_view(request):
             return redirect('suppliers:supplier_add')
     return render(request, "suppliers/suppliers_add.html", context=context)
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def supplier_update_view(request, supplier_id):
     try:
@@ -64,6 +68,7 @@ def supplier_update_view(request, supplier_id):
             return redirect('suppliers:supplier_update', supplier_id=supplier_id)
     return render(request, "suppliers/suppliers_update.html", context=context)
 
+@admin_required
 @login_required(login_url="/accounts/login/")
 def supplier_delete_view(request, supplier_id):
     try:
