@@ -29,6 +29,7 @@ class Sale(models.Model):
     total_ves = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     igtf_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_credit = models.BooleanField(default=False)
+    credit_paid = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=SALE_STATUS_CHOICES, default='completed')
 
     def __str__(self) -> str:

@@ -4,7 +4,9 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from .models import Customer
+from .forms import CustomerForm
 from authentication.decorators import admin_required, role_required
+from django.db import IntegrityError
 
 @role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
@@ -18,42 +20,24 @@ def customers_list_view(request):
 @admin_required
 @login_required(login_url="/accounts/login/")
 def customers_add_view(request):
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, 'Customer created successfully!', extra_tags="success")
+                return redirect('customers:customers_list')
+            except IntegrityError:
+                messages.error(request, 'Customer with this Tax ID already exists.', extra_tags="danger")
+        else:
+            messages.error(request, 'Please correct the errors below.', extra_tags="danger")
+    else:
+        form = CustomerForm()
+
     context = {
         "active_icon": "customers",
+        "form": form,
     }
-
-    if request.method == 'POST':
-        data = request.POST
-
-        attributes = {
-            "first_name": data['first_name'],
-            "last_name": data['last_name'],
-            "address": data['address'],
-            "email": data['email'],
-            "phone": data['phone'],
-            "tax_id": data.get('tax_id'),
-            "credit_limit": data.get('credit_limit', 0),
-            "outstanding_balance": 0,
-        }
-
-        if Customer.objects.filter(tax_id=attributes['tax_id']).exists():
-            messages.error(request, 'Customer with this Tax ID already exists!',
-                           extra_tags="warning")
-            return redirect('customers:customers_add')
-
-        try:
-            new_customer = Customer.objects.create(**attributes)
-            new_customer.save()
-
-            messages.success(request, 'Customer: ' + attributes["first_name"] + " " +
-                             attributes["last_name"] + ' created successfully!', extra_tags="success")
-            return redirect('customers:customers_list')
-        except Exception as e:
-            messages.success(
-                request, 'There was an error during the creation!', extra_tags="danger")
-            print(e)
-            return redirect('customers:customers_add')
-
     return render(request, "customers/customers_add.html", context=context)
 
 @role_required(allowed_roles=['admin', 'cashier'])
@@ -65,36 +49,24 @@ def customers_update_view(request, customer_id):
         messages.error(request, 'Customer not found!', extra_tags="danger")
         return redirect('customers:customers_list')
 
+    if request.method == 'POST':
+        form = CustomerForm(request.POST, instance=customer)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, 'Customer updated successfully!', extra_tags="success")
+                return redirect('customers:customers_list')
+            except IntegrityError:
+                messages.error(request, 'Customer with this Tax ID already exists.', extra_tags="danger")
+        else:
+            messages.error(request, 'Please correct the errors below.', extra_tags="danger")
+    else:
+        form = CustomerForm(instance=customer)
+
     context = {
         "active_icon": "customers",
-        "customer": customer,
+        "form": form,
     }
-
-    if request.method == 'POST':
-        data = request.POST
-        attributes = {
-            "first_name": data['first_name'],
-            "last_name": data['last_name'],
-            "address": data['address'],
-            "email": data['email'],
-            "phone": data['phone'],
-            "tax_id": data.get('tax_id'),
-            "credit_limit": data.get('credit_limit', 0),
-        }
-
-        if Customer.objects.filter(tax_id=attributes['tax_id']).exclude(id=customer_id).exists():
-            messages.error(request, 'Customer with this Tax ID already exists!', extra_tags="danger")
-            return redirect('customers:customers_update', customer_id=customer_id)
-
-        try:
-            Customer.objects.filter(id=customer_id).update(**attributes)
-            messages.success(request, 'Customer updated successfully!', extra_tags="success")
-            return redirect('customers:customers_list')
-        except Exception as e:
-            messages.error(request, f'Error updating customer: {e}', extra_tags="danger")
-            print(e)
-            return redirect('customers:customers_update', customer_id=customer_id)
-
     return render(request, "customers/customers_update.html", context=context)
 
 @admin_required
