@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 <!-- Page title  -->
-{% block title %}{% trans "Products" %}{% endblock title %}
+{% block title %}{% trans "Inventory" %}{% endblock title %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -12,20 +12,10 @@
 {% endblock stylesheets %}
 
 <!-- Page Heading -->
-{% block heading %}{% trans "Products" %}{% endblock heading %}
+{% block heading %}{% trans "Inventory" %}{% endblock heading %}
 
 <!-- Page content  -->
 {% block content %}
-
-    <!--Create new product-->
-    <div class="row ml-0 mb-3">
-        <a href="{% url 'products:products_add' %}">
-            <button type="button" class="btn btn-success font-weight-bold">
-                    <i class="fas fa-plus mr-2"></i>
-                    {% trans "Create new product" %}
-            </button>
-        </a>
-    </div>
 
     <!-- DataTable -->
     <div class="card shadow mb-12">
@@ -40,12 +30,12 @@
                             <th>{% trans "ID" %}</th>
                             <th>{% trans "SKU" %}</th>
                             <th style="width:20%">{% trans "Name" %}</th>
-                            <th style="width:25%">{% trans "Description" %}</th>
+                            <th style="width:20%">{% trans "Description" %}</th>
                             <th style="width:15%">{% trans "Category" %}</th>
                             <th class="text-center" style="width:15%">{% trans "Price" %}</th>
-                            <th class="text-center" style="width:10%">{% trans "Applies IVA" %}</th>
+                            <th class="text-center" style="width:10%">{% trans "Stock" %}</th>
+                            <th class="text-center" style="width:10%">{% trans "IVA" %}</th>
                             <th class="text-center" style="width:10%">{% trans "Status" %}</th>
-                            <th class="text-center" style="width:10%">{% trans "Actions" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,6 +47,7 @@
                             <td>{{p.description}}</td>
                             <td>{{p.category}}</td>
                             <td class="text-right">{{p.price_usd}} $</td>
+                            <td class="text-center">{{p.stock}}</td>
                             <td class="text-center">{% if p.applies_iva %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
                             {% if p.status == "ACTIVE" %}
                             <td class="text-center">
@@ -67,45 +58,6 @@
                                 <span class="badge badge-danger" style="font-size:0.8em;">{% trans "INACTIVE" %}</span>
                             </td>
                             {% endif %}
-                            <td class="text-center">
-                                <!--Update-->
-                                <a href="{% url 'products:products_update' p.id %}" class="text-decoration-none">
-                                    <button  type="button" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" title="{% trans "Update product" %}">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                </a>
-                                <!--Delete modal-->
-                                <!-- Button trigger modal -->
-                                <a class="text-decoration-none">
-                                    <button rel="delete" type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#exampleModal">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </a>
-                                    
-                                <!-- Modal -->
-                                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="exampleModalLabel">{% trans "Delete product" %}</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div id="updateThisText" class="modal-body">
-                                            
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
-                                            <a href="#" class="text-decoration-none">
-                                            <a id="updateThisURL" href="{% url 'products:products_delete' p.id %}" class="text-decoration-none">
-                                                <button  type="button"  class="btn btn-danger">{% trans "Delete" %}</button>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    </div>
-                                </div>
-                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -145,7 +97,7 @@
                 titleAttr: '{% trans "Print" }',
                 className: 'btn btn-info',
                 exportOptions: {
-                    columns: [ 0, 1, 2, 3 ,4 ]
+                    columns: [ 1, 2, 3, 4, 5, 6, 7, 8 ]
                 }            
                 },
                 {
@@ -154,7 +106,7 @@
                     titleAttr: '{% trans "Download Excel" }',
                     className: 'btn btn-success ml-2',
                     exportOptions: {
-                        columns: [ 0, 1, 2, 3 ,4 ]
+                        columns: [ 1, 2, 3, 4, 5, 6, 7, 8 ]
                     } 
                 },
                 {
@@ -167,7 +119,7 @@
                     pageSize: 'A4',
                     title: '*',
                     exportOptions: {
-                        columns: [ 0, 1, 2, 3 ,4 ]
+                        columns: [ 1, 2, 3, 4, 5, 6, 7, 8 ]
                     },
                     customize: function (doc) {
                         doc.styles = {
@@ -194,7 +146,7 @@
                                 alignment: 'center'
                             }
                         };
-                        doc.content[1].table.widths = ['10%', '10%', '30%', '30%', '20%'];
+                        doc.content[1].table.widths = ['10%', '10%', '20%', '20%', '15%', '10%', '5%', '5%', '5%'];
                         doc.content[1].margin = [0, 35, 0, 0];
                         doc.content[1].layout = {};
                         doc['footer'] = (function (page, pages) {
@@ -222,30 +174,9 @@
                     targets: [0],
                     visible: false,
                     searchable: false,
-                },
-                {
-                    targets: [-1], // column index (start from 0)
-                    orderable: false, // set orderable false for selected columns
                 }
             ],
         });
     });
-
-// Alert when trying to delete a product
-$('#dataTable tbody')
-    // Event when whe try to delete a product
-    // We update the text, and href of the modal delete button
-    .on('click', 'button[rel="delete"]', function () {
-    // Row variable
-    var tr = tblProducts.cell($(this).closest('td, li')).index();
-    row_data = ( tblProducts.row(tr.row).data());
-    product_id = row_data[0];
-    product_name = row_data[2]
-    new_delete_url  = 'delete/' + product_id;
-    document.getElementById("updateThisText").innerHTML = "{% trans "Are you sure you want to delete the product:" %}  " + product_name + "?";
-    document.getElementById("updateThisURL").href=new_delete_url;
-    });
-
-
 </script>
 {% endblock javascripts %}

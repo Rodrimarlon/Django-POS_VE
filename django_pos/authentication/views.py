@@ -28,27 +28,15 @@ def login_view(request):
 
 
 def register_user(request):
-    msg = None
-    success = False
-
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            username = form.cleaned_data.get("username")
-            raw_password = form.cleaned_data.get("password1")
-            
             # Create a profile for the new user with default cashier role
             Profile.objects.create(user=user, role='cashier')
-
-            msg = 'User created - please <a href="/login">login</a>.'
-            success = True
-
-            # return redirect("/login/")
-
-        else:
-            msg = 'Form is not valid'
+            # You can add a success message here if you want
+            return redirect("authentication:login")
     else:
         form = SignUpForm()
 
-    return render(request, "accounts/register.html", {"form": form, "msg": msg, "success": success})
+    return render(request, "accounts/register.html", {"form": form})

@@ -66,6 +66,7 @@ def customers_update_view(request, customer_id):
     context = {
         "active_icon": "customers",
         "form": form,
+        "customer": customer,
     }
     return render(request, "customers/customers_update.html", context=context)
 
@@ -112,3 +113,23 @@ def get_customers_ajax_view(request):
             print(f"Returning data: {data}")
             return JsonResponse(data, safe=False)
     return JsonResponse([], safe=False) # Return empty list for non-POST/AJAX requests
+
+@admin_required
+@login_required(login_url="/accounts/login/")
+def customer_purchase_history_view(request, customer_id):
+    try:
+        customer = Customer.objects.get(id=customer_id)
+        sales = Sale.objects.filter(customer=customer).order_by('-date_added') # Order by date descending
+
+        context = {
+            "active_icon": "customers", # Or "reports" if a separate reports section is desired
+            "customer": customer,
+            "sales": sales,
+        }
+        return render(request, "customers/customer_purchase_history.html", context)
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer not found!', extra_tags="danger")
+        return redirect('customers:customers_list')
+    except Exception as e:
+        messages.error(request, f'An error occurred: {e}', extra_tags="danger")
+        return redirect('customers:customers_list')

@@ -1,0 +1,141 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Daily Cash Close Report" %}{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{% trans "Daily Cash Close Report for" %} {{ today }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card card-stats">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <div class="icon-big text-center icon-warning">
+                                                <i class="nc-icon nc-chart text-warning"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-7 d-flex align-items-center">
+                                            <div class="numbers">
+                                                <p class="card-category">{% trans "Total Sales (USD)" %}</p>
+                                                <h4 class="card-title">${{ total_sales_usd|floatformat:2 }}</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-stats">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <div class="icon-big text-center icon-success">
+                                                <i class="nc-icon nc-money-coins text-success"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-7 d-flex align-items-center">
+                                            <div class="numbers">
+                                                <p class="card-category">{% trans "Total Sales (VES)" %}</p>
+                                                <h4 class="card-title">{{ total_sales_ves|floatformat:2 }} Bs.</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-stats">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <div class="icon-big text-center icon-danger">
+                                                <i class="nc-icon nc-credit-card text-danger"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-7 d-flex align-items-center">
+                                            <div class="numbers">
+                                                <p class="card-category">{% trans "Total Credit Sales" %}</p>
+                                                <h4 class="card-title">${{ total_credit_sales|floatformat:2 }}</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">{% trans "Sales by Payment Method" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans "Payment Method" %}</th>
+                                                <th class="text-right">{% trans "Total" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for sale in sales_by_payment_method %}
+                                            <tr>
+                                                <td>{{ sale.payment_method__name }}</td>
+                                                <td class="text-right">${{ sale.total|floatformat:2 }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">{% trans "Sales Today" %}</h5>
+                                </div>
+                                <div class="card-body table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>{% trans "ID" %}</th>
+                                                <th>{% trans "Date" %}</th>
+                                                <th>{% trans "Customer" %}</th>
+                                                <th class="text-right">{% trans "Total" %}</th>
+                                                <th class="text-center">{% trans "Items" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for sale in sales_today %}
+                                            <tr>
+                                                <td>{{ forloop.counter }}</td>
+                                                <td>{{ sale.id }}</td>
+                                                <td>{{ sale.date_added }}</td>
+                                                <td>{{ sale.customer.get_full_name }}</td>
+                                                <td class="text-right">${{ sale.grand_total|floatformat:2 }}</td>
+                                                <td class="text-center">{{ sale.sum_items }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

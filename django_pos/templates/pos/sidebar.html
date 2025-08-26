@@ -25,8 +25,8 @@
     <hr class="sidebar-divider my-0">
 
     <!-- Nav Item - POS -->
-    <li class="{% if "pos_add" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
-        <a class="nav-link" href="{% url 'sales:sales_add' %}">
+    <li class="{% if "pos" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
+        <a class="nav-link" href="{% url 'pos:pos' %}">
             <i class="fas fa-fw fa-cash-register"></i>
             <span>{% trans "POS" %}</span></a>
     </li>
@@ -34,19 +34,12 @@
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - Products Collapse Menu -->
-    <li class="{% if "products" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-            aria-expanded="true" aria-controls="collapseTwo">
+    <!-- Nav Item - Inventory -->
+    <li class="{% if "products" in active_icon or "products_products" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
+        <a class="nav-link" href="{% url 'products:products_list' %}">
             <i class="fas fa-fw fa-tag"></i>
-            <span>{% trans "Products" %}</span>
+            <span>{% trans "Inventory" %}</span>
         </a>
-        <div id="collapseTwo" class="{% if "products" in active_icon %} collapse show {% else %} collapse {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <a class="{% if "categories" in active_icon %} collapse-item active {% else %} collapse-item {% endif %}" href="{% url 'products:categories_list' %}">{% trans "Categories" %}</a>
-                <a class="{% if "products_products" in active_icon %} collapse-item active {% else %} collapse-item {% endif %}" href="{% url 'products:products_list' %}">{% trans "Products" %}</a>
-            </div>
-        </div>
     </li>
 
     <!-- Divider -->

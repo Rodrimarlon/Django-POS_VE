@@ -65,7 +65,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = "django_pos.urls"
 LOGIN_URL = '/accounts/login/'
 # Route defined in authentication/urls.py
-LOGIN_REDIRECT_URL = "authentication:home"
+LOGIN_REDIRECT_URL = "pos:index"
 # Route defined in authentication/urls.py
 LOGOUT_REDIRECT_URL = "authentication:login"
 

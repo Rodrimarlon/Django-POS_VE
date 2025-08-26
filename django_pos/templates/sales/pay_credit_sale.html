@@ -1,0 +1,71 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Pay Credit Sale" %}{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{% trans "Pay Credit Sale" %}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>{% trans "Sale ID" %}</label>
+                                    <input type="text" class="form-control" value="{{ sale.id }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>{% trans "Customer" %}</label>
+                                    <input type="text" class="form-control" value="{{ sale.customer.get_full_name }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>{% trans "Total Amount (USD)" %}</label>
+                                    <input type="text" class="form-control" value="{{ sale.grand_total }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>{% trans "Total Amount (VES)" %}</label>
+                                    <input type="text" class="form-control" value="{{ sale.total_ves }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="payment_method">{% trans "Payment Method" %}</label>
+                                    <select class="form-control" id="payment_method" name="payment_method">
+                                        {% for method in payment_methods %}
+                                        <option value="{{ method.id }}">{{ method.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reference">{% trans "Reference" %}</label>
+                                    <input type="text" class="form-control" id="reference" name="reference">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">{% trans "Pay" %}</button>
+                        <a href="{% url 'sales:pending_sales_list' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

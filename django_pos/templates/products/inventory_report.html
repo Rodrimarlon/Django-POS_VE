@@ -1,0 +1,105 @@
+{% extends "pos/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Inventory Report" %}{% endblock title %}
+
+{% block heading %}{% trans "Inventory Report" %}{% endblock heading %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">{% trans "Low Stock Products" %}</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="lowStockTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Product Name" %}</th>
+                                <th>{% trans "Current Stock" %}</th>
+                                <th>{% trans "Minimum Stock" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in low_stock_products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.stock_actual }}</td>
+                                <td>{{ product.stock_minimo }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3">{% trans "No products with low stock." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">{% trans "Inventory Movement History" %}</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="movementHistoryTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "Product" %}</th>
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Quantity" %}</th>
+                                <th>{% trans "User" %}</th>
+                                <th>{% trans "Reason" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movement in inventory_movements %}
+                            <tr>
+                                <td>{{ movement.date|date:"DATETIME_FORMAT" }}</td>
+                                <td>{{ movement.product.name }}</td>
+                                <td>{{ movement.movement_type }}</td>
+                                <td>{{ movement.quantity }}</td>
+                                <td>{{ movement.user.username }}</td>
+                                <td>{{ movement.reason }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6">{% trans "No inventory movements recorded." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- Page level plugins -->
+<script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+
+<!-- Page level custom scripts -->
+<script src="{% static 'js/demo/datatables-demo.js' %}"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#lowStockTable').DataTable();
+        $('#movementHistoryTable').DataTable({
+            "order": [[ 0, "desc" ]] // Order by date column (0) descending
+        });
+    });
+</script>
+{% endblock javascripts %}

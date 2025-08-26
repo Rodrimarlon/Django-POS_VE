@@ -1,18 +1,16 @@
 import os
-
+from datetime import date # Added
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django_pos.wsgi import *
+from django.db.models import Sum, F # Added
+from django.db.models.functions import Coalesce # Added
 from django_pos import settings
 from django.template.loader import get_template
-from customers.models import Customer
-from products.models import Product, InventoryMovement
-from core.models import PaymentMethod, ExchangeRate
+from core.models import PaymentMethod # Added
 from weasyprint import HTML, CSS
 from .models import Sale, SaleDetail
-import json
 from authentication.decorators import role_required, admin_required
 
 
@@ -28,109 +26,9 @@ def sales_list_view(request):
     }
     return render(request, "sales/sales.html", context=context)
 
-@role_required(allowed_roles=['admin', 'cashier'])
-@login_required(login_url="/accounts/login/")
-def sales_add_view(request, sale_id=None):
-    sale = None
-    sale_details_json = "[]"
-    if sale_id:
-        try:
-            sale = Sale.objects.get(id=sale_id)
-            # Prepare sale details for frontend
-            sale_details = SaleDetail.objects.filter(sale=sale)
-            sale_details_list = []
-            for detail in sale_details:
-                sale_details_list.append({
-                    'id': detail.product.id,
-                    'name': detail.product.name,
-                    'price': str(detail.price), # Convert Decimal to string
-                    'quantity': detail.quantity,
-                    'total_product': str(detail.total_detail), # Convert Decimal to string
-                    'sku': detail.product.sku,
-                })
-            sale_details_json = json.dumps(sale_details_list)
 
-        except Sale.DoesNotExist:
-            messages.error(request, 'Sale not found!', extra_tags="danger")
-            return redirect('sales:sales_add') # Redirect to new sale if not found
 
-    context = {
-        "active_icon": "sales",
-        "sale": sale,
-        "sale_details_json": sale_details_json,
-    }
-
-    if request.method == 'POST':
-        if is_ajax(request=request):
-            data = json.load(request)
-
-            sale_attributes = {
-                "customer": Customer.objects.get(id=int(data['customer'])),
-                "sub_total": float(data["sub_total"]),
-                "grand_total": float(data["grand_total"]),
-                "tax_amount": float(data["tax_amount"]),
-                "tax_percentage": float(data["tax_percentage"]),
-                "amount_payed": float(data["amount_payed"]),
-                "amount_change": float(data["amount_change"]),
-                "user": request.user, # Assign current user
-                "total_ves": float(data.get("total_ves", 0)), # New field
-                "igtf_amount": float(data.get("igtf_amount", 0)), # New field
-                "is_credit": data.get("is_credit", False), # New field
-                "payment_method": PaymentMethod.objects.get(id=int(data['payment_method'])) if 'payment_method' in data and data['payment_method'] else None, # New field, handle empty string
-                "exchange_rate": ExchangeRate.objects.get(id=int(data['exchange_rate'])) if 'exchange_rate' in data and data['exchange_rate'] else None, # New field, handle empty string
-            }
-            
-            # Determine sale status
-            action_type = data.get("action_type", "finalize") # 'finalize' or 'draft'
-            sale_attributes["status"] = 'draft' if action_type == 'draft' else 'completed'
-
-            try:
-                if sale_id: # Update existing sale
-                    Sale.objects.filter(id=sale_id).update(**sale_attributes)
-                    current_sale = Sale.objects.get(id=sale_id)
-                    SaleDetail.objects.filter(sale=current_sale).delete() # Clear old details
-                    messages.success(request, 'Sale updated successfully!', extra_tags="success")
-                else: # Create new sale
-                    current_sale = Sale.objects.create(**sale_attributes)
-                    messages.success(request, 'Sale created successfully!', extra_tags="success")
-                
-                products = data["products"]
-                for product_data in products:
-                    detail_attributes = {
-                        "sale": current_sale,
-                        "product": Product.objects.get(id=int(product_data["id"])),
-                        "price": product_data["price"],
-                        "quantity": product_data["quantity"],
-                        "total_detail": product_data["total_product"]
-                    }
-                    SaleDetail.objects.create(**detail_attributes)
-
-                # Stock deduction and InventoryMovement only on finalization
-                if current_sale.status == 'completed':
-                    for product_data in products:
-                        product_obj = Product.objects.get(id=int(product_data["id"]))
-                        product_obj.stock -= product_data["quantity"]
-                        product_obj.save()
-
-                        InventoryMovement.objects.create(
-                            product=product_obj,
-                            movement_type='out',
-                            quantity=product_data["quantity"],
-                            user=request.user,
-                            reason=f'Sale {current_sale.id}'
-                        )
-                    messages.success(request, 'Sale finalized and stock updated successfully!', extra_tags="success")
-                elif current_sale.status == 'draft':
-                    messages.success(request, 'Sale saved as draft!', extra_tags="success")
-
-            except Exception as e:
-                messages.error(
-                    request, f'There was an error during the operation: {e}', extra_tags="danger")
-                print(e) # For debugging
-
-        return redirect('sales:sales_list') # Redirect to sales list after operation
-
-    return render(request, "sales/sales_add.html", context=context)
+    
 
 @role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
@@ -183,12 +81,35 @@ def receipt_pdf_view(request, sale_id):
 
     return HttpResponse(pdf, content_type="application/pdf")
 
+from datetime import datetime, time
+
 @admin_required
 @login_required(login_url="/accounts/login/")
 def daily_cash_close_report_view(request):
-    # Lógica para el reporte de cierre de caja diario
-    # ...
-    return render(request, "sales/daily_cash_close_report.html", {})
+    today = date.today()
+    start_of_day = datetime.combine(today, time.min)
+    end_of_day = datetime.combine(today, time.max)
+
+    sales_today = Sale.objects.filter(date_added__range=(start_of_day, end_of_day), status='completed')
+
+    total_sales_usd = sales_today.aggregate(Sum('grand_total'))['grand_total__sum'] or 0
+    total_sales_ves = sales_today.aggregate(Sum('total_ves'))['total_ves__sum'] or 0
+    
+    sales_by_payment_method = sales_today.values('payment_method__name').annotate(total=Sum('grand_total')).order_by('payment_method__name')
+
+    credit_sales = sales_today.filter(is_credit=True)
+    total_credit_sales = credit_sales.aggregate(Sum('grand_total'))['grand_total__sum'] or 0
+
+    context = {
+        'today': today,
+        'total_sales_usd': total_sales_usd,
+        'total_sales_ves': total_sales_ves,
+        'sales_by_payment_method': sales_by_payment_method,
+        'total_credit_sales': total_credit_sales,
+        'sales_today': sales_today,
+        'active_icon': 'sales'
+    }
+    return render(request, "sales/daily_cash_close_report.html", context)
 
 @admin_required
 @login_required(login_url="/accounts/login/")
@@ -199,3 +120,42 @@ def pending_sales_list_view(request):
         "pending_sales": pending_sales
     }
     return render(request, "sales/pending_sales.html", context=context)
+
+@admin_required
+@login_required(login_url="/accounts/login/")
+def pay_credit_sale_view(request, sale_id):
+    try:
+        sale = Sale.objects.get(id=sale_id)
+        if request.method == 'POST':
+            payment_method_id = request.POST.get('payment_method')
+            reference = request.POST.get('reference')
+            
+            payment_method = PaymentMethod.objects.get(id=payment_method_id)
+            
+            # Create CreditPayment record
+            CreditPayment.objects.create(
+                sale=sale,
+                amount_usd=sale.grand_total,
+                amount_ves=sale.total_ves,
+                exchange_rate=sale.exchange_rate,
+                payment_method=payment_method,
+                reference=reference
+            )
+            
+            # Update sale status
+            sale.credit_paid = True
+            sale.status = 'completed'
+            sale.save()
+            
+            messages.success(request, 'Credit sale paid successfully!', extra_tags='success')
+            return redirect('sales:pending_sales_list')
+
+        payment_methods = PaymentMethod.objects.all()
+        context = {
+            'sale': sale,
+            'payment_methods': payment_methods
+        }
+        return render(request, 'sales/pay_credit_sale.html', context)
+    except Sale.DoesNotExist:
+        messages.error(request, 'Sale not found!', extra_tags='danger')
+        return redirect('sales:pending_sales_list')

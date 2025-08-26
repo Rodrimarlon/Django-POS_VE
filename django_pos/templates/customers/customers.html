@@ -17,20 +17,16 @@
 <!-- Page content  -->
 {% block content %}
 
-    <!--Create new customer-->
-    <div class="row ml-0 mb-3">
-        <a href="{% url 'customers:customers_add' %}">
-            <button type="button" class="btn btn-success font-weight-bold">
-                    <i class="fas fa-plus mr-2"></i>
-                    {% trans "Create new customer" %}
-            </button>
-        </a>
-    </div>
-
     <!-- DataTable -->
     <div class="card shadow mb-12">
-        <div class="card-header py-3">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">{% trans "Customers" %}</h6>
+            <a href="{% url 'customers:customers_add' %}" class="btn btn-success btn-icon-split">
+                <span class="icon text-white-50">
+                    <i class="fas fa-plus"></i>
+                </span>
+                <span class="text">{% trans "Create new customer" %}</span>
+            </a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -39,10 +35,11 @@
                         <tr>
                             <th>{% trans "ID" %}</th>
                             <th style="width:5%">#</th>
+                            <th style="width:15%">{% trans "Cedula/Rif" %}</th>
                             <th style="width:20%">{% trans "Name" %}</th>
                             <th style="width:25%">{% trans "Email" %}</th>
                             <th style="width:15%">{% trans "Phone" %}</th>
-                            <th style="width:25%">{% trans "Address" %}</th>
+                            <th style="width:20%">{% trans "Address" %}</th>
                             <th class="text-center" style="width:10%">{% trans "Actions" %}</th>
                         </tr>
                     </thead>
@@ -51,6 +48,7 @@
                         <tr>
                             <td>{{c.id}}</td>
                             <td>{{forloop.counter}}</td>
+                            <td>{{c.tax_id}}</td>
                             <td>{{c.get_full_name}}</td>
                             <td>{{c.email}}</td>
                             <td>{{c.phone}}</td>
@@ -132,7 +130,7 @@
                 titleAttr: '{% trans "Print" }',
                 className: 'btn btn-info',
                 exportOptions: {
-                    columns: [ 0, 1, 2, 3 ,4 ]
+                    columns: [ 1, 2, 3, 4, 5, 6 ]
                 }            
                 },
                 {
@@ -141,7 +139,7 @@
                     titleAttr: '{% trans "Download Excel" }',
                     className: 'btn btn-success ml-2',
                     exportOptions: {
-                        columns: [ 0, 1, 2, 3 ,4 ]
+                        columns: [ 1, 2, 3, 4, 5, 6 ]
                     } 
                 },
                 {
@@ -154,52 +152,7 @@
                     pageSize: 'A4',
                     title: '*',
                     exportOptions: {
-                        columns: [ 0, 1, 2, 3 ,4 ]
-                    },
-                    customize: function (doc) {
-                        doc.styles = {
-                            header: {
-                                fontSize: 18,
-                                bold: true,
-                                alignment: 'center'
-                            },
-                            subheader: {
-                                fontSize: 13,
-                                bold: true
-                            },
-                            quote: {
-                                italics: true
-                            },
-                            small: {
-                                fontSize: 8
-                            },
-                            tableHeader: {
-                                bold: true,
-                                fontSize: 11,
-                                color: 'white',
-                                fillColor: '#2d4154',
-                                alignment: 'center'
-                            }
-                        };
-                        doc.content[1].table.widths = ['10%', '10%', '30%', '30%', '20%'];
-                        doc.content[1].margin = [0, 35, 0, 0];
-                        doc.content[1].layout = {};
-                        doc['footer'] = (function (page, pages) {
-                            return {
-                                columns: [
-                                    {
-                                        alignment: 'left',
-                                        text: ['{% trans "Creation date:" %} ', {text: moment().format('MM-DD-YYYY (HH:mm:ss)')}]
-                                    },
-                                    {
-                                        alignment: 'right',
-                                        text: ['{% trans "page" %} ', {text: page.toString()}, ' {% trans "de" %} ', {text: pages.toString()}]
-                                    }
-                                ],
-                                margin: 20
-                            }
-                        });
-
+                        columns: [ 1, 2, 3, 4, 5, 6 ]
                     }
                 }
             ],
