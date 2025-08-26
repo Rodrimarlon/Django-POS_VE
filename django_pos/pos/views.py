@@ -1,20 +1,21 @@
 import json
-from datetime import date
+from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, FloatField, F
 from django.db.models.functions import Coalesce
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from products.models import Product, Category, InventoryMovement
 from sales.models import Sale, SaleDetail
 from customers.models import Customer
-from core.models import PaymentMethod, ExchangeRate, Company # Added Company
+from core.models import PaymentMethod, ExchangeRate, Company
 from authentication.decorators import role_required
 
 @role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def index(request):
-    today = date.today()
+    today = timezone.now().date()
 
     year = today.year
     monthly_earnings = []
@@ -64,20 +65,6 @@ def index(request):
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
-
-import json
-from datetime import date
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, FloatField, F
-from django.db.models.functions import Coalesce
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
-from products.models import Product, Category, InventoryMovement
-from sales.models import Sale, SaleDetail
-from customers.models import Customer
-from core.models import PaymentMethod, ExchangeRate, Company # Added Company
-from authentication.decorators import role_required
 
 @role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")

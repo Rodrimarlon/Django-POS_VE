@@ -52,25 +52,9 @@
             <span>{% trans "Customers" %}</span></a>
     </li>
 
-    <!-- Divider -->
-    <hr class="sidebar-divider my-0">
+    
 
-    <!-- Nav Item - Suppliers -->
-    <li class="{% if "suppliers" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
-        <a class="nav-link" href="{% url 'suppliers:supplier_list' %}">
-            <i class="fas fa-fw fa-truck"></i>
-            <span>{% trans "Suppliers" %}</span></a>
-    </li>
-
-    <!-- Divider -->
-    <hr class="sidebar-divider my-0">
-
-    <!-- Nav Item - Payment Methods -->
-    <li class="{% if "payment_methods" in active_icon %} nav-item active {% else %} nav-item {% endif %}">
-        <a class="nav-link" href="{% url 'core:payment_method_list' %}">
-            <i class="fas fa-fw fa-money-check-alt"></i>
-            <span>{% trans "Payment Methods" %}</span></a>
-    </li>
+    
 
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
