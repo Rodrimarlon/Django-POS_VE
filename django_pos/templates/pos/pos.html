@@ -20,47 +20,109 @@
             <div class="search-bar">
                 <input type="text" id="product-search" class="form-control" placeholder="{% trans 'Search products...' %}">
             </div>
-            <div class="user-menu">
-                <!-- User menu will go here -->
+            <div class="user-menu dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{request.user.username}}</span>
+                    <img class="img-profile rounded-circle"
+                        src="{% static 'img/undraw_profile.svg' %}">
+                </a>
+                <!-- Dropdown - User Information -->
+                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                    aria-labelledby="userDropdown">
+                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        {% trans "Logout" %}
+                    </a>
+                </div>
             </div>
         </div>
     </header>
 
     <main class="pos-content">
-        <div class="left-pane panel-hidden-on-mobile">
-            <div class="order-summary-container">
-                <ul id="cart-items-list" class="cart-items-list">
-                    <!-- Cart items will be injected here by JavaScript -->
-                </ul>
-                <div class="totals-section">
-                    <!-- Totals will be injected here by JavaScript -->
-                </div>
-            </div>
-            <div class="numpad-container">
-                <div class="numpad">
-                    <div class="numpad-modes">
-                        <button class="btn btn-light numpad-mode active">{% trans "Cant." %}</button>
-                        <button class="btn btn-light numpad-mode">{% trans "Disc" %}</button>
-                        <button class="btn btn-light numpad-mode">{% trans "Price" %}</button>
+        <div class="left-pane">
+            <div class="order">
+                <div class="order-body">
+                    <div class="orderlines-table">
+                        <div class="orderlines-header">
+                            <div class="col-product">Producto</div>
+                            <div class="col-qty">Cant.</div>
+                            <div class="col-price">Precio</div>
+                            <div class="col-total">Total</div>
+                        </div>
+                        <div class="orderlines-body">
+                            <!-- Prototype Order Line -->
+                            <div class="orderline selected">
+                                <div class="col-product">Whiteboard Pen</div>
+                                <div class="col-qty">1.00</div>
+                                <div class="col-price">
+                                    <span class="price-usd">$ 1.80</span>
+                                    <span class="price-ves">Bs. 54.00</span>
+                                </div>
+                                <div class="col-total">
+                                    <span class="price-usd">$ 1.80</span>
+                                    <span class="price-ves">Bs. 54.00</span>
+                                </div>
+                            </div>
+                            <div class="orderline">
+                                <div class="col-product">Desk Pad</div>
+                                <div class="col-qty">1.00</div>
+                                <div class="col-price">
+                                    <span class="price-usd">$ 10.50</span>
+                                    <span class="price-ves">Bs. 315.00</span>
+                                </div>
+                                <div class="col-total">
+                                    <span class="price-usd">$ 10.50</span>
+                                    <span class="price-ves">Bs. 315.00</span>
+                                </div>
+                            </div>
+                            <div class="orderline">
+                                <div class="col-product">Magnetic Assorted Color Set</div>
+                                <div class="col-qty">1.00</div>
+                                <div class="col-price">
+                                    <span class="price-usd">$ 15.00</span>
+                                    <span class="price-ves">Bs. 450.00</span>
+                                </div>
+                                <div class="col-total">
+                                    <span class="price-usd">$ 15.00</span>
+                                    <span class="price-ves">Bs. 450.00</span>
+                                </div>
+                            </div>
+                            <!-- JS will populate this list -->
+                        </div>
                     </div>
-                    <div class="numpad-grid">
-                        <button class="btn btn-light numpad-button">1</button>
-                        <button class="btn btn-light numpad-button">2</button>
-                        <button class="btn btn-light numpad-button">3</button>
-                        <button class="btn btn-light numpad-button">4</button>
-                        <button class="btn btn-light numpad-button">5</button>
-                        <button class="btn btn-light numpad-button">6</button>
-                        <button class="btn btn-light numpad-button">7</button>
-                        <button class="btn btn-light numpad-button">8</button>
-                        <button class="btn btn-light numpad-button">9</button>
-                        <button class="btn btn-light numpad-button">.</button>
-                        <button class="btn btn-light numpad-button">0</button>
-                        <button class="btn btn-light numpad-button"><i class="fas fa-backspace"></i></button>
-                    </div>
                 </div>
-                <div class="action-buttons">
-                    <button id="customer-btn" class="btn btn-secondary btn-block">{% trans "Customer" %}</button>
-                    <button id="pay-btn" class="btn btn-success btn-block" disabled>{% trans "Payment" %}</button>
+                <div class="order-footer">
+                    <div class="totals">
+                        <!-- Row 1 -->
+                        <span>Subtotal</span>
+                        <span class="total-ves">Bs. 819.00</span>
+                        <span class="separator">|</span>
+                        <span class="total-usd">$ 27.30</span>
+                        <!-- Row 2 -->
+                        <span>Taxes</span>
+                        <span class="total-ves">Bs. 0.00</span>
+                        <span class="separator">|</span>
+                        <span class="total-usd">$ 0.00</span>
+                        <!-- Row 3 -->
+                        <span class="total-row total-row-label">Total</span>
+                        <span class="total-ves total-row">Bs. 819.00</span>
+                        <span class="separator total-row">|</span>
+                        <span class="total-usd total-row total-row-primary">$ 27.30</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-action-icon">
+                            <i class="fas fa-cogs"></i>
+                        </button>
+                        <button class="btn-customer">
+                            <i class="fas fa-user"></i>
+                            Customer
+                        </button>
+                        <button class="btn-payment">
+                            <i class="fas fa-money-bill-wave"></i>
+                            Payment
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -85,6 +147,24 @@
 </div>
 
 <!-- Modals will be here -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">{% trans "Ready to Leave?" %}</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">{% trans "Select \"Logout\" below if you are ready to end your current session." %}</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <a class="btn btn-primary" href="{% url 'authentication:logout' %}">{% trans "Logout" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock page_content_wrapper %}
 

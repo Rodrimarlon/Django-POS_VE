@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoryDropdownEl = document.getElementById('category-dropdown');
     const searchInput = document.getElementById('product-search');
 
-
     // --- API FUNCTIONS ---
     async function fetchProducts(search = '', category = '') {
         try {
@@ -60,14 +59,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
 
-            card.addEventListener('click', () => console.log(`Product clicked: ${product.name}`)); // Placeholder for now
+            card.addEventListener('click', () => {
+                console.log(`Product clicked: ${product.name}`);
+                // Placeholder: Add product to cart logic here
+            });
             productListEl.appendChild(card);
         });
     }
 
     function renderCategories(categoriesToRender) {
         if (!categoryButtonsEl || !categoryDropdownEl) return;
-        
+
         // Render buttons
         categoryButtonsEl.innerHTML = '';
         const allButton = document.createElement('button');
@@ -104,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- EVENT HANDLERS ---
     function handleCategoryChange(categoryId) {
         activeCategoryId = categoryId;
-        
+
         // Update active state for buttons
         const buttons = categoryButtonsEl.querySelectorAll('button');
         buttons.forEach(btn => {
