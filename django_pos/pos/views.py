@@ -6,6 +6,7 @@ from django.db.models import Sum, FloatField, F
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from products.models import Product, Category, InventoryMovement
 from sales.models import Sale, SaleDetail
 from customers.models import Customer
@@ -106,6 +107,8 @@ def pos_view(request, sale_id=None):
         "sale": sale,
         "sale_details_json": sale_details_json,
         "igtf_percentage": igtf_percentage, # Pass IGTF percentage to context
+        "product_list_api_url": reverse('products:product_list_api'),
+        "clean_view": True,
     }
 
     if request.method == 'POST':

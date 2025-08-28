@@ -1,8 +1,10 @@
+import json
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 from .models import Customer
 from .forms import CustomerForm
 from authentication.decorators import admin_required, role_required
@@ -92,27 +94,42 @@ def customers_delete_view(request, customer_id):
 
 @login_required(login_url="/accounts/login/")
 def get_customers_ajax_view(request):
-    if request.method == 'POST':
-        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
-            data = []
-            term = request.POST.get('term', '')
-            print(f"Customer search term: {term}")
-            
-            customers = Customer.objects.filter(
-                Q(first_name__icontains=term) | 
-                Q(last_name__icontains=term) | 
-                Q(tax_id__icontains=term)
-            )[:10] # Limit to 10 results
-            print(f"Found customers: {customers.count()}")
+    if 'search' in request.GET:
+        term = request.GET.get('search', '')
+        customers = Customer.objects.filter(
+            Q(first_name__icontains=term) | 
+            Q(last_name__icontains=term) | 
+            Q(tax_id__icontains=term)
+        )[:10]
+    else:
+        customers = Customer.objects.all()[:10]
 
-            for customer in customers:
-                data.append({
-                    'id': customer.id,
-                    'text': customer.get_full_name() + (f' ({customer.tax_id})' if customer.tax_id else '')
-                })
-            print(f"Returning data: {data}")
-            return JsonResponse(data, safe=False)
-    return JsonResponse([], safe=False) # Return empty list for non-POST/AJAX requests
+    data = [{
+        'id': customer.id,
+        'text': customer.get_full_name() + (f' ({customer.tax_id})' if customer.tax_id else '')
+    } for customer in customers]
+    
+    return JsonResponse(data, safe=False)
+
+@csrf_exempt
+@login_required(login_url="/accounts/login/")
+def customer_create_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            customer = Customer.objects.create(
+                first_name=data.get('first_name', ''),
+                last_name=data.get('last_name', ''),
+                email=data.get('email', ''),
+                phone=data.get('phone', ''),
+                tax_id=data.get('tax_id', ''),
+                address=data.get('address', '')
+            )
+            return JsonResponse({'status': 'success', 'customer': {'id': customer.id, 'text': customer.get_full_name()}}, status=201)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
 
 @admin_required
 @login_required(login_url="/accounts/login/")

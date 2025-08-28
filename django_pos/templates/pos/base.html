@@ -34,7 +34,9 @@
     <div id="wrapper">
 
         <!-- Sidebar -->
+        {% if not clean_view %}
         {% include 'pos/sidebar.html' %}
+        {% endif %}
         <!-- End of Sidebar -->
 
         <!-- Content Wrapper -->
@@ -44,9 +46,12 @@
             <div id="content">
 
                 <!-- Topbar -->
+                {% if not clean_view %}
                 {% include 'pos/navbar.html' %}
+                {% endif %}
                 <!-- End of Topbar -->
 
+                {% block page_content_wrapper %}
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
@@ -64,12 +69,15 @@
 
                 </div>
                 <!-- /.container-fluid -->
+                {% endblock page_content_wrapper %}
 
             </div>
             <!-- End of Main Content -->
 
             <!-- Footer -->
+            {% if not clean_view %}
             {% include 'pos/footer.html' %}
+            {% endif %}
             <!-- End of Footer -->
 
         </div>

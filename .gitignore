@@ -60,6 +60,8 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+media/
+/django_pos/staticfiles/
 
 # Flask stuff:
 instance/
@@ -91,7 +93,7 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+# PEP 582; used by e.com/David-OConnor/pyflow
 __pypackages__/
 
 # Celery stuff
@@ -129,8 +131,10 @@ dmypy.json
 .pyre/
 
 
-# Archivos de planificación 
+# Archivos de planificación
 plan.txt
 plan2.txt
 plan3.txt
 prueba.txt
+
+odoo_pos.html

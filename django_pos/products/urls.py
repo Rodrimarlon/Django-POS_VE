@@ -7,7 +7,8 @@ urlpatterns = [
     # List products
     path('', views.products_list_view, name='products_list'),
     # Get products AJAX
-    path("get", views.get_products_ajax_view, name="get_products"),
+    path("api/list", views.product_list_api, name="product_list_api"),
+    path('api/categories/', views.category_list_api, name='category_list_api'),
     # Inventory Report
     path("inventory/report", views.inventory_report_view, name="inventory_report"),
 ]

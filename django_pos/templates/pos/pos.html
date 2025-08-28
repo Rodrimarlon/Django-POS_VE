@@ -1,193 +1,94 @@
 {% extends "pos/base.html" %}
 {% load static %}
 {% load i18n %}
-<!-- Page title  -->
-{% block title %}{% trans "Add sale" %}{% endblock title %}
 
-<!-- Specific Page CSS goes HERE  -->
+{% block title %}{% trans "POS" %}{% endblock title %}
+
 {% block stylesheets %}
-<!-- Datatables -->
-<link href="{% static 'vendor/datatables/dataTables.bootstrap4.min.css ' %}" rel="stylesheet">
-<!--Select2 CSS-->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
-<!--Bootstrap Touchspin-->
-<link rel="stylesheet" href="{% static 'assets/bootstrap-touchspin-master/src/jquery.bootstrap-touchspin.css' %}">
+    <link href="{% static 'css/pos/pos.css' %}?v=fresh-start" rel="stylesheet">
 {% endblock stylesheets %}
 
-<!-- Page Heading -->
-{% block heading %}{% trans "Add sale" %}{% endblock heading %}
+{% block page_content_wrapper %}
+<div class="pos-container">
+    <header class="pos-header">
+        <div class="pos-header-left">
+            <!-- Header left content will go here -->
+            <button class="btn btn-light">{% trans "Orders" %}</button>
+        </div>
+        <div class="pos-header-right">
+            <!-- Header right content will go here -->
+            <div class="search-bar">
+                <input type="text" id="product-search" class="form-control" placeholder="{% trans 'Search products...' %}">
+            </div>
+            <div class="user-menu">
+                <!-- User menu will go here -->
+            </div>
+        </div>
+    </header>
 
-<!-- Page content  -->
-{% block content %}
-<!--Go back-->
-<div class="row ml-0 mb-3">
-    <a href="{% url 'sales:sales_list' %}">
-        <button type="button" class="btn btn-info font-weight-bold">
-            <i class="fas fa-long-arrow-alt-left mr-2"></i>
-            {% trans "Go back" %}
-        </button>
-    </a>
+    <main class="pos-content">
+        <div class="left-pane panel-hidden-on-mobile">
+            <div class="order-summary-container">
+                <ul id="cart-items-list" class="cart-items-list">
+                    <!-- Cart items will be injected here by JavaScript -->
+                </ul>
+                <div class="totals-section">
+                    <!-- Totals will be injected here by JavaScript -->
+                </div>
+            </div>
+            <div class="numpad-container">
+                <div class="numpad">
+                    <div class="numpad-modes">
+                        <button class="btn btn-light numpad-mode active">{% trans "Cant." %}</button>
+                        <button class="btn btn-light numpad-mode">{% trans "Disc" %}</button>
+                        <button class="btn btn-light numpad-mode">{% trans "Price" %}</button>
+                    </div>
+                    <div class="numpad-grid">
+                        <button class="btn btn-light numpad-button">1</button>
+                        <button class="btn btn-light numpad-button">2</button>
+                        <button class="btn btn-light numpad-button">3</button>
+                        <button class="btn btn-light numpad-button">4</button>
+                        <button class="btn btn-light numpad-button">5</button>
+                        <button class="btn btn-light numpad-button">6</button>
+                        <button class="btn btn-light numpad-button">7</button>
+                        <button class="btn btn-light numpad-button">8</button>
+                        <button class="btn btn-light numpad-button">9</button>
+                        <button class="btn btn-light numpad-button">.</button>
+                        <button class="btn btn-light numpad-button">0</button>
+                        <button class="btn btn-light numpad-button"><i class="fas fa-backspace"></i></button>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button id="customer-btn" class="btn btn-secondary btn-block">{% trans "Customer" %}</button>
+                    <button id="pay-btn" class="btn btn-success btn-block" disabled>{% trans "Payment" %}</button>
+                </div>
+            </div>
+        </div>
+        <div class="right-pane">
+            <div class="category-filters">
+                <div id="category-buttons" class="category-buttons">
+                    <!-- Category buttons will be injected by JS -->
+                </div>
+                <select id="category-dropdown" class="category-dropdown form-control">
+                    <!-- Category options will be injected by JS -->
+                </select>
+            </div>
+            <div id="product-list" class="product-list">
+                <!-- Product cards will be injected by JS -->
+            </div>
+        </div>
+    </main>
+
+    <button id="panel-switcher" class="panel-switcher-btn">
+        <i class="fas fa-list-alt"></i>
+    </button>
 </div>
 
-<!--Sale products and details-->
-<form action="{% if sale %}{% url 'pos:pos_add_with_id' sale.id %}{% else %}{% url 'pos:pos' %}{% endif %}" class="saleForm" method="post">
-    <div class="row mt-3">
-        <div class="card col-md-12">
-            <div class="card-body ml-0">
-                <div class="row">
-                    <!--Left column-->
-                    <div class="col-md-9 pl-0">
-                        <div class="card card-secondary">
-                            <div class="card-header">{% trans "Sale products" %}</div>
-                            
-                            <div class="card-body">
-                                <!--Search product-->
-                                <div class="form-group">
-                                    <label>{% trans "Search product:" %}</label>
-                                    <div class="input-group">
-                                        <select class="form-control select2" name="searchbox_products" id="searchbox_products"></select>
-                                    </div>
-                                </div>
-                                <!--End Search product-->
+<!-- Modals will be here -->
 
-                                <!--Delete all products from sale-->
-                                <button type="button" class="mb-4 btn btn-danger btn-sm deleteAll">
-                                    {% trans "Delete all products" %} <i class="ml-1 fas fa-trash-alt fa-xs"></i>
-                                </button>
-                                <!--End Delete all products from sale-->
+{% endblock page_content_wrapper %}
 
-                                <!--Products table-->
-                                <div class="card-body table-responsive p-0">
-                                    <table class="table table-hover text-nowrap" id="table_products">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>{% trans "Name" %}</th>
-                                                <th>{% trans "Price" %}</th>
-                                                <th>{% trans "Quantity" %}</th>
-                                                <th>{% trans "Total" %}</th>
-                                                <th class="text-center">{% trans "Delete" %}</th>
-                                                </tr>
-                                            </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <!--End Products table-->
-                            </div>
-                        </div>
-                    </div>
-                    <!--End Left column-->
-
-                    <!--Righ column-->
-                    <div class="col-md-3 pr-0">
-                        <div class="card card-secondary">
-                            <div class="card-header">{% trans "Sale details" %}</div>
-                            <div class="card-body">
-                                {% csrf_token %}
-                                <input type="hidden" id="igtf_percentage_from_backend" value="{{ igtf_percentage }}">
-                                <div class="form-group">
-                                    <label for="customer">{% trans "Customer" %}</label>
-                                    <select name="customer" class="form-control" id="searchbox_customers" required>
-                                        <option value="" selected disabled hidden>{% trans "Select the customer" %}</option>
-                                    </select>
-                                <div class="form-group mt-4">
-                                    <label>{% trans "Subtotal" %}</label>
-                                    <div class="input-group">
-                                        <input name="sub_total" class="form-control" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Tax Inclusive (%)" %}</label>
-                                    <div class="input-group">
-                                        <input name="tax_percentage" class="form-control" value=0 required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Tax Amount" %}</label>
-                                    <div class="input-group">
-                                        <input name="tax_amount" class="form-control" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Grand Total" %}</label>
-                                    <div class="input-group">
-                                        <input name="grand_total" class="form-control" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Amount payed" %}</label>
-                                    <div class="input-group">
-                                        <input name="amount_payed" class="form-control" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Amount Change" %}</label>
-                                    <div class="input-group">
-                                        <input name="amount_change" class="form-control" readonly>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="payment_method">{% trans "Payment Method" %}</label>
-                                    <select name="payment_method" class="form-control" id="payment_method" required>
-                                        <option value="" selected disabled hidden>{% trans "Select payment method" %}</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>{% trans "Exchange Rate (USD/VES)" %}</label>
-                                    <div class="input-group">
-                                        <input name="exchange_rate" class="form-control" readonly>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>{% trans "Total in VES" %}</label>
-                                    <div class="input-group">
-                                        <input name="total_ves" class="form-control" readonly>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>{% trans "IGTF Amount" %}</label>
-                                    <div class="input-group">
-                                        <input name="igtf_amount" class="form-control" readonly>
-                                    </div>
-                                </div>
-
-                                <div class="form-group form-check">
-                                    <input type="checkbox" class="form-check-input" id="is_credit" name="is_credit">
-                                    <label class="form-check-label" for="is_credit">{% trans "Is Credit Sale?" %}</label>
-                                </div>
-
-                                <button type="submit" class="btn btn-success font-weight-bold" id="finalize_sale_btn">{% trans "Finalize Sale" %}</button>
-                                <button type="button" class="btn btn-info font-weight-bold mt-2" id="save_draft_btn">{% trans "Save as Draft" %}</button>
-                            </div>
-                            <!--End card-body-->
-                    </div>
-                    <!--End Right column-->
-                </div>
-                <!--End row-->
-            </div>
-            <!--End card-body-->
-        </div>
-    </div>
-</form>
-{% endblock content %}
-
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-<!-- Datatables -->
-<script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
-<!--Select2-->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
-<!--Bootstrap Touchspin-->
-<script src="{% static 'assets/bootstrap-touchspin-master/src/jquery.bootstrap-touchspin.js' %}"></script>
-<!--Sweet Alert-->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.15/dist/sweetalert2.all.min.js"></script>
-
-<script src="{% static 'js/pos/pos.js' %}"></script>
+    {{ product_list_api_url|json_script:"product_list_api_url" }}
+    <script src="{% static 'js/pos/pos.js' %}?v=fresh-start"></script>
 {% endblock javascripts %}

@@ -80,3 +80,24 @@ def exchange_rate_list_view(request):
         "exchange_rates": ExchangeRate.objects.all().order_by('-date')
     }
     return render(request, "core/exchange_rates.html", context=context)
+
+def get_latest_exchange_rate_api(request):
+    try:
+        latest_rate = ExchangeRate.objects.latest('date')
+        data = {
+            'rate_usd_ves': latest_rate.rate_usd_ves
+        }
+    except ExchangeRate.DoesNotExist:
+        data = {
+            'rate_usd_ves': 0 # Or some other default
+        }
+    return JsonResponse(data)
+
+def payment_method_list_api(request):
+    payment_methods = PaymentMethod.objects.all()
+    data = [{
+        'id': pm.id,
+        'name': pm.name,
+        'is_foreign_currency': pm.is_foreign_currency
+    } for pm in payment_methods]
+    return JsonResponse(data, safe=False)
