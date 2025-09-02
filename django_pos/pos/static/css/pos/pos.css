@@ -513,3 +513,35 @@
     width: 100%;
     flex-grow: 1;
 }
+
+/* Payment Modal Styles */
+.payment-summary {
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+.payment-methods h6 {
+    margin-bottom: 1rem;
+}
+
+#payment-methods-buttons .btn {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.payment-inputs {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.payment-lines {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.payment-change {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: right;
+}

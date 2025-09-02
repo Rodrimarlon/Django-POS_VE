@@ -18,13 +18,11 @@ class Sale(models.Model):
     date_added = models.DateTimeField(default=django.utils.timezone.now)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT, null=True)
     exchange_rate = models.ForeignKey(ExchangeRate, on_delete=models.PROTECT, null=True)
     sub_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     grand_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax_percentage = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    amount_payed = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     amount_change = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_ves = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     igtf_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -52,6 +50,16 @@ class SaleDetail(models.Model):
 
     def __str__(self) -> str:
         return f"Detail ID: {self.id} Sale ID: {self.sale.id} Quantity: {self.quantity}"
+
+
+class Payment(models.Model):
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='payments')
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    reference = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f'Payment for sale {self.sale.id} of {self.amount} using {self.payment_method.name}'
 
 
 class CreditPayment(models.Model):

@@ -98,6 +98,7 @@ def payment_method_list_api(request):
     data = [{
         'id': pm.id,
         'name': pm.name,
-        'is_foreign_currency': pm.is_foreign_currency
+        'is_foreign_currency': pm.is_foreign_currency,
+        'requires_reference': pm.requires_reference
     } for pm in payment_methods]
     return JsonResponse(data, safe=False)

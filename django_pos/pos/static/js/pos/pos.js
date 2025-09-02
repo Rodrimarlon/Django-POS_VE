@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
         exchangeRate: 0,
         isLeftPanelActive: false,
         selectedCustomer: null,
+        paymentMethods: [],
+        currentPayments: [],
     };
 
     // --- DOM ELEMENTS ---
@@ -31,6 +33,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const addNewCustomerBtn = document.getElementById('add-new-customer-btn');
     const saveNewCustomerBtn = document.getElementById('save-new-customer-btn');
     const newCustomerForm = document.getElementById('new-customer-form');
+    const paymentModal = new bootstrap.Modal(document.getElementById('payment-modal'));
+    const paymentBtn = document.querySelector('.btn-payment');
+    const paymentTotalUsdEl = document.getElementById('payment-total-usd');
+    const paymentTotalVesEl = document.getElementById('payment-total-ves');
+    const paymentRemainingUsdEl = document.getElementById('payment-remaining-usd');
+    const paymentMethodsButtonsEl = document.getElementById('payment-methods-buttons');
+    const paymentAmountInput = document.getElementById('payment-amount');
+    const paymentReferenceInput = document.getElementById('payment-reference');
+    const addPaymentBtn = document.getElementById('add-payment-btn');
+    const paymentLinesListEl = document.getElementById('payment-lines-list');
+    const paymentChangeUsdEl = document.getElementById('payment-change-usd');
+    const creditSaleBtn = document.getElementById('credit-sale-btn');
+    const finalizePaymentBtn = document.getElementById('finalize-payment-btn');
 
     // --- API FUNCTIONS ---
     async function fetchProducts(search = '', category = '') {
@@ -87,6 +102,18 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } catch (error) {
             console.error('Error creating customer:', error);
+        }
+    }
+
+    async function fetchPaymentMethods() {
+        try {
+            const url = JSON.parse(document.getElementById('payment_methods_list_api_url').textContent);
+            const response = await fetch(url);
+            const data = await response.json();
+            state.paymentMethods = data;
+            renderPaymentMethods();
+        } catch (error) {
+            console.error('Error fetching payment methods:', error);
         }
     }
 
@@ -250,6 +277,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function renderPaymentMethods() {
+        paymentMethodsButtonsEl.innerHTML = '';
+        state.paymentMethods.forEach(pm => {
+            const button = document.createElement('button');
+            button.className = 'btn btn-outline-secondary';
+            button.textContent = pm.name;
+            button.dataset.id = pm.id;
+            button.addEventListener('click', () => handlePaymentMethodSelect(pm));
+            paymentMethodsButtonsEl.appendChild(button);
+        });
+    }
+
     // --- EVENT HANDLERS ---
     function handleCategoryFilterChange(categoryId) {
         fetchProducts(searchInput.value, categoryId);
@@ -282,6 +321,147 @@ document.addEventListener('DOMContentLoaded', function () {
             address: document.getElementById('new-customer-address').value,
         };
         createCustomer(customerData);
+    }
+
+    function openPaymentModal() {
+        const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
+        paymentTotalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
+        paymentTotalVesEl.textContent = `Bs. ${(totalUsd * state.exchangeRate).toFixed(2)}`;
+        updatePaymentTotals();
+    }
+
+    function handlePaymentMethodSelect(paymentMethod) {
+        // Prefill amount if it's the first payment
+        if (state.currentPayments.length === 0) {
+            const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
+            paymentAmountInput.value = totalUsd.toFixed(2);
+        }
+        if (paymentMethod.requires_reference) {
+            paymentReferenceInput.style.display = 'block';
+        } else {
+            paymentReferenceInput.style.display = 'none';
+        }
+    }
+
+    function handleAddPayment() {
+        const amount = parseFloat(paymentAmountInput.value);
+        const selectedPmEl = paymentMethodsButtonsEl.querySelector('.active');
+        if (!selectedPmEl || !amount || amount <= 0) {
+            alert('Please select a payment method and enter a valid amount.');
+            return;
+        }
+        const paymentMethodId = parseInt(selectedPmEl.dataset.id);
+        const paymentMethod = state.paymentMethods.find(pm => pm.id === paymentMethodId);
+        const reference = paymentReferenceInput.value;
+
+        if (paymentMethod.requires_reference && !reference) {
+            alert('This payment method requires a reference.');
+            return;
+        }
+
+        state.currentPayments.push({
+            payment_method_id: paymentMethodId,
+            payment_method_name: paymentMethod.name,
+            amount: amount,
+            reference: reference,
+        });
+
+        paymentAmountInput.value = '';
+        paymentReferenceInput.value = '';
+        updatePaymentTotals();
+        renderPaymentLines();
+    }
+
+    function updatePaymentTotals() {
+        const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
+        const paidAmount = state.currentPayments.reduce((acc, p) => acc + p.amount, 0);
+        const remaining = totalUsd - paidAmount;
+        const change = paidAmount > totalUsd ? paidAmount - totalUsd : 0;
+
+        paymentRemainingUsdEl.textContent = `$ ${remaining > 0 ? remaining.toFixed(2) : '0.00'}`;
+        paymentChangeUsdEl.textContent = `$ ${change.toFixed(2)}`;
+    }
+
+    function renderPaymentLines() {
+        paymentLinesListEl.innerHTML = '';
+        state.currentPayments.forEach((p, index) => {
+            const line = document.createElement('li');
+            line.className = 'list-group-item d-flex justify-content-between align-items-center';
+            line.innerHTML = `
+                <span>${p.payment_method_name}: $${p.amount.toFixed(2)} ${p.reference ? `(${p.reference})` : ''}</span>
+                <button class="btn btn-danger btn-sm" data-index="${index}">&times;</button>
+            `;
+            paymentLinesListEl.appendChild(line);
+        });
+    }
+
+    async function finalizeSale(isCredit = false) {
+        if (!state.selectedCustomer) {
+            alert('Please select a customer.');
+            return;
+        }
+
+        const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
+        const paidAmount = state.currentPayments.reduce((acc, p) => acc + p.amount, 0);
+
+        if (!isCredit && paidAmount < totalUsd) {
+            alert('The paid amount is less than the total.');
+            return;
+        }
+
+        const saleData = {
+            customer: state.selectedCustomer.id,
+            sub_total: totalUsd, // Assuming sub_total is the same as grand_total for now
+            grand_total: totalUsd,
+            tax_amount: 0, // Add tax calculation if needed
+            tax_percentage: 0,
+            amount_change: paidAmount > totalUsd ? paidAmount - totalUsd : 0,
+            total_ves: totalUsd * state.exchangeRate,
+            igtf_amount: 0, // Add IGTF calculation if needed
+            is_credit: isCredit,
+            products: state.cart.map(item => ({
+                id: item.id,
+                quantity: item.quantity,
+                price: item.price_usd,
+                total_product: item.quantity * item.price_usd,
+            })),
+            payments: state.currentPayments,
+        };
+
+        try {
+            const response = await fetch(window.location.pathname, { // Post to the same URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify(saleData),
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                alert(data.message);
+                resetPOS();
+                paymentModal.hide();
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Error finalizing sale:', error);
+            alert('An unexpected error occurred.');
+        }
+    }
+
+    function resetPOS() {
+        state.cart = [];
+        state.currentPayments = [];
+        state.selectedCustomer = null;
+        customerBtnText.textContent = 'Customer';
+        renderCart();
+        renderPaymentLines();
+        updatePaymentTotals();
     }
 
     function togglePanels() {
@@ -337,6 +517,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     saveNewCustomerBtn.addEventListener('click', handleSaveNewCustomer);
 
+    paymentBtn.addEventListener('click', () => {
+        paymentModal.show();
+        openPaymentModal();
+    });
+
+    addPaymentBtn.addEventListener('click', handleAddPayment);
+
+    finalizePaymentBtn.addEventListener('click', () => finalizeSale(false));
+
+    creditSaleBtn.addEventListener('click', () => finalizeSale(true));
+
+    paymentLinesListEl.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-danger')) {
+            const index = parseInt(e.target.dataset.index);
+            state.currentPayments.splice(index, 1);
+            renderPaymentLines();
+            updatePaymentTotals();
+        }
+    });
+
     // --- UTILS ---
     function getCookie(name) {
         let cookieValue = null;
@@ -358,6 +558,7 @@ document.addEventListener('DOMContentLoaded', function () {
         state.exchangeRate = parseFloat(JSON.parse(document.getElementById('exchange_rate').textContent)) || 0;
         fetchProducts();
         fetchCategories();
+        fetchPaymentMethods();
         renderCart();
     }
 

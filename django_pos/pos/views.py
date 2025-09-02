@@ -119,6 +119,7 @@ def pos_view(request, sale_id=None):
         "categories_list_api_url": reverse('products:category_list_api'),
         "get_customers_api_url": reverse('customers:get_customers_api'),
         "create_customer_api_url": reverse('customers:create_customer_api'),
+        "payment_methods_list_api_url": reverse('core:payment_method_list_api'),
         "exchange_rate": exchange_rate,
         "clean_view": True,
     }
@@ -134,28 +135,41 @@ def pos_view(request, sale_id=None):
                     "grand_total": float(data["grand_total"]),
                     "tax_amount": float(data["tax_amount"]),
                     "tax_percentage": float(data["tax_percentage"]),
-                    "amount_payed": float(data["amount_payed"]),
                     "amount_change": float(data["amount_change"]),
-                    "user": request.user,  # Assign current user
-                    "total_ves": float(data.get("total_ves", 0)),  # New field
-                    "igtf_amount": float(data.get("igtf_amount", 0)),  # New field
-                    "is_credit": data.get("is_credit", False),  # New field
-                    "payment_method": PaymentMethod.objects.get(id=int(data['payment_method'])) if 'payment_method' in data and data['payment_method'] else None,  # New field, handle empty string
-                    "exchange_rate": ExchangeRate.objects.get(id=int(data['exchange_rate'])) if 'exchange_rate' in data and data['exchange_rate'] else None,  # New field, handle empty string
+                    "user": request.user,
+                    "total_ves": float(data.get("total_ves", 0)),
+                    "igtf_amount": float(data.get("igtf_amount", 0)),
+                    "is_credit": data.get("is_credit", False),
+                    "exchange_rate": ExchangeRate.objects.latest('date'),
                 }
 
                 # Determine sale status
-                action_type = data.get("action_type", "finalize")  # 'finalize' or 'draft'
-                sale_attributes["status"] = 'draft' if action_type == 'draft' else 'completed'
+                action_type = data.get("action_type", "finalize")
+                if sale_attributes["is_credit"]:
+                    sale_attributes["status"] = 'pending_credit'
+                else:
+                    sale_attributes["status"] = 'draft' if action_type == 'draft' else 'completed'
 
-                if sale_id:  # Update existing sale
+                if sale_id:
                     Sale.objects.filter(id=sale_id).update(**sale_attributes)
                     current_sale = Sale.objects.get(id=sale_id)
                     SaleDetail.objects.filter(sale=current_sale).delete()  # Clear old details
+                    Payment.objects.filter(sale=current_sale).delete() # Clear old payments
                     message = 'Sale updated successfully!'
-                else:  # Create new sale
+                else:
                     current_sale = Sale.objects.create(**sale_attributes)
                     message = 'Sale created successfully!'
+
+                # Create Payment objects
+                if not sale_attributes["is_credit"]:
+                    payments = data.get("payments", [])
+                    for payment_data in payments:
+                        Payment.objects.create(
+                            sale=current_sale,
+                            payment_method=PaymentMethod.objects.get(id=int(payment_data["payment_method_id"])),
+                            amount=float(payment_data["amount"]),
+                            reference=payment_data.get("reference", "")
+                        )
 
                 products = data["products"]
                 for product_data in products:
