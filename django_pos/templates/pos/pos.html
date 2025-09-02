@@ -42,6 +42,12 @@
     <main class="pos-content">
         <div class="left-pane">
             <div class="order">
+                <div class="order-customer-bar">
+                    <button class="btn-customer" id="btn-customer">
+                        <i class="fas fa-user"></i>
+                        <span>Customer</span>
+                    </button>
+                </div>
                 <div class="order-body">
                     <div class="orderlines-table">
                         <div class="orderlines-header">
@@ -65,13 +71,6 @@
                         <span class="total-usd total-row total-row-primary" id="total-usd">$ 0.00</span>
                     </div>
                     <div class="actions">
-                        <button class="btn-action-icon">
-                            <i class="fas fa-cogs"></i>
-                        </button>
-                        <button class="btn-customer">
-                            <i class="fas fa-user"></i>
-                            Customer
-                        </button>
                         <button class="btn-payment">
                             <i class="fas fa-money-bill-wave"></i>
                             Payment
@@ -120,11 +119,89 @@ aria-hidden="true">
     </div>
 </div>
 
+<!-- Customer Select Modal -->
+<div class="modal fade" id="customer-modal" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalLabel">Select Customer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="customer-search-container">
+                    <input type="text" id="customer-search-input" class="form-control" placeholder="Search by name or tax ID...">
+                </div>
+                <div id="customer-list" class="list-group mt-3">
+                    <!-- Customer list will be populated by JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="add-new-customer-btn">Add New Customer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Customer Modal -->
+<div class="modal fade" id="new-customer-modal" tabindex="-1" role="dialog" aria-labelledby="newCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newCustomerModalLabel">{% trans "Add New Customer" %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="new-customer-form">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="new-customer-first-name">{% trans "First Name" %}</label>
+                            <input type="text" class="form-control" id="new-customer-first-name" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="new-customer-last-name">{% trans "Last Name" %}</label>
+                            <input type="text" class="form-control" id="new-customer-last-name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="new-customer-tax-id">{% trans "Tax ID" %}</label>
+                            <input type="text" class="form-control" id="new-customer-tax-id">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="new-customer-phone">{% trans "Phone" %}</label>
+                            <input type="text" class_="form-control" id="new-customer-phone">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-customer-email">{% trans "Email" %}</label>
+                        <input type="email" class="form-control" id="new-customer-email">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-customer-address">{% trans "Address" %}</label>
+                        <textarea class="form-control" id="new-customer-address" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-primary" id="save-new-customer-btn">{% trans "Save Customer" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock page_content_wrapper %}
 
 {% block javascripts %}
     {{ product_list_api_url|json_script:"product_list_api_url" }}
     {{ categories_list_api_url|json_script:"categories_list_api_url" }}
+    {{ get_customers_api_url|json_script:"get_customers_api_url" }}
+    {{ create_customer_api_url|json_script:"create_customer_api_url" }}
     {{ exchange_rate|json_script:"exchange_rate" }}
     <script src="{% static 'js/pos/pos.js' %}?v=fresh-start"></script>
 {% endblock javascripts %}

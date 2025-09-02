@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cart: [],
         exchangeRate: 0,
         isLeftPanelActive: false,
+        selectedCustomer: null,
     };
 
     // --- DOM ELEMENTS ---
@@ -21,6 +22,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const leftPane = document.querySelector('.left-pane');
     const rightPane = document.querySelector('.right-pane');
     const switcherIcon = panelSwitcherBtn ? panelSwitcherBtn.querySelector('i') : null;
+    const customerBtn = document.getElementById('btn-customer');
+    const customerBtnText = customerBtn.querySelector('span');
+    const customerModal = new bootstrap.Modal(document.getElementById('customer-modal'));
+    const newCustomerModal = new bootstrap.Modal(document.getElementById('new-customer-modal'));
+    const customerSearchInput = document.getElementById('customer-search-input');
+    const customerListEl = document.getElementById('customer-list');
+    const addNewCustomerBtn = document.getElementById('add-new-customer-btn');
+    const saveNewCustomerBtn = document.getElementById('save-new-customer-btn');
+    const newCustomerForm = document.getElementById('new-customer-form');
 
     // --- API FUNCTIONS ---
     async function fetchProducts(search = '', category = '') {
@@ -43,6 +53,40 @@ document.addEventListener('DOMContentLoaded', function () {
             renderCategories(categories);
         } catch (error) {
             console.error('Error fetching categories:', error);
+        }
+    }
+
+    async function fetchCustomers(search = '') {
+        try {
+            const url = JSON.parse(document.getElementById('get_customers_api_url').textContent);
+            const response = await fetch(`${url}?search=${search}`);
+            const customers = await response.json();
+            renderCustomers(customers);
+        } catch (error) {
+            console.error('Error fetching customers:', error);
+        }
+    }
+
+    async function createCustomer(customerData) {
+        try {
+            const url = JSON.parse(document.getElementById('create_customer_api_url').textContent);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify(customerData),
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                handleCustomerSelect(data.customer);
+                newCustomerModal.hide();
+            } else {
+                console.error('Error creating customer:', data.message);
+            }
+        } catch (error) {
+            console.error('Error creating customer:', error);
         }
     }
 
@@ -179,10 +223,65 @@ document.addEventListener('DOMContentLoaded', function () {
             categoryButtonsEl.appendChild(button);
         });
     }
-    
+
+    function renderCustomers(customersToRender) {
+        customerListEl.innerHTML = '';
+
+        const deselectButton = document.createElement('a');
+        deselectButton.href = '#';
+        deselectButton.className = 'list-group-item list-group-item-action list-group-item-danger';
+        deselectButton.textContent = 'Deselect Customer';
+        deselectButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleDeselectCustomer();
+        });
+        customerListEl.appendChild(deselectButton);
+
+        customersToRender.forEach(customer => {
+            const customerItem = document.createElement('a');
+            customerItem.href = '#';
+            customerItem.className = 'list-group-item list-group-item-action';
+            customerItem.textContent = customer.text;
+            customerItem.addEventListener('click', (e) => {
+                e.preventDefault();
+                handleCustomerSelect(customer);
+            });
+            customerListEl.appendChild(customerItem);
+        });
+    }
+
     // --- EVENT HANDLERS ---
     function handleCategoryFilterChange(categoryId) {
         fetchProducts(searchInput.value, categoryId);
+    }
+
+    function handleCustomerSelect(customer) {
+        state.selectedCustomer = customer;
+        customerBtnText.textContent = customer.text;
+        customerModal.hide();
+    }
+
+    function handleDeselectCustomer() {
+        state.selectedCustomer = null;
+        customerBtnText.textContent = 'Customer';
+        customerModal.hide();
+    }
+
+    function handleAddNewCustomer() {
+        customerModal.hide();
+        newCustomerModal.show();
+    }
+
+    function handleSaveNewCustomer() {
+        const customerData = {
+            first_name: document.getElementById('new-customer-first-name').value,
+            last_name: document.getElementById('new-customer-last-name').value,
+            tax_id: document.getElementById('new-customer-tax-id').value,
+            email: document.getElementById('new-customer-email').value,
+            phone: document.getElementById('new-customer-phone').value,
+            address: document.getElementById('new-customer-address').value,
+        };
+        createCustomer(customerData);
     }
 
     function togglePanels() {
@@ -225,6 +324,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (categoryDropdownEl) {
         categoryDropdownEl.addEventListener('change', (e) => handleCategoryFilterChange(e.target.value));
+    }
+
+    customerBtn.addEventListener('click', () => {
+        customerModal.show();
+        fetchCustomers();
+    });
+
+    customerSearchInput.addEventListener('input', (e) => fetchCustomers(e.target.value));
+
+    addNewCustomerBtn.addEventListener('click', handleAddNewCustomer);
+
+    saveNewCustomerBtn.addEventListener('click', handleSaveNewCustomer);
+
+    // --- UTILS ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
     // --- INITIALIZATION ---

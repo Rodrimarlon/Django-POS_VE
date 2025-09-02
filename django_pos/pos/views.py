@@ -117,6 +117,8 @@ def pos_view(request, sale_id=None):
         "igtf_percentage": igtf_percentage, # Pass IGTF percentage to context
         "product_list_api_url": reverse('products:product_list_api'),
         "categories_list_api_url": reverse('products:category_list_api'),
+        "get_customers_api_url": reverse('customers:get_customers_api'),
+        "create_customer_api_url": reverse('customers:create_customer_api'),
         "exchange_rate": exchange_rate,
         "clean_view": True,
     }

@@ -486,3 +486,30 @@
 .line-input[type=number] {
     -moz-appearance: textfield;
 }
+
+/* Customer Bar */
+.order-customer-bar {
+    padding: 8px;
+    background-color: #f8f9fa;
+}
+
+.order-customer-bar .btn-customer {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    font-size: 1.1rem;
+    background-color: #e9ecef;
+    border: 1px solid #dcdcdc;
+    color: #5a5c69;
+    border-radius: 3px;
+}
+
+.order-customer-bar .btn-customer i {
+    margin-right: 8px;
+}
+
+/* Actions */
+.actions .btn-payment {
+    width: 100%;
+    flex-grow: 1;
+}
