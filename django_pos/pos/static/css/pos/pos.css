@@ -98,6 +98,7 @@
 .order-body {
     flex-grow: 1; /* This makes the body take up available space, pushing footer down */
     overflow-y: auto;
+    overflow-x: auto; /* Allow horizontal scroll if content is too wide */
     padding: 0 8px;
 }
 
@@ -109,7 +110,7 @@
 
 .orderlines-header {
     display: grid;
-    grid-template-columns: 3fr 1fr 1.5fr 1.5fr;
+    grid-template-columns: 3fr 1fr 1.5fr 0.8fr 1.5fr 0.5fr;
     gap: 10px;
     padding: 12px 8px;
     font-weight: bold;
@@ -125,12 +126,38 @@
 
 .orderline {
     display: grid;
-    grid-template-columns: 3fr 1fr 1.5fr 1.5fr;
+    grid-template-columns: 3fr 1fr 1.5fr 0.8fr 1.5fr 0.5fr;
     gap: 10px;
     align-items: center;
-    padding: 12px 8px;
+    padding: 8px;
     cursor: pointer;
     border-bottom: 1px solid #e0e0e0;
+}
+
+.line-input {
+    width: 100%;
+    border: 1px solid transparent;
+    background-color: transparent;
+    border-radius: 3px;
+    padding: 4px;
+    text-align: right;
+}
+
+.line-input:focus {
+    border: 1px solid #4e73df;
+    background-color: white;
+    outline: none;
+}
+
+.btn-remove {
+    border: none;
+    background-color: transparent;
+    color: #c9302c;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
 }
 
 .orderline.selected {
@@ -147,6 +174,14 @@
 
 .col-price span, .col-total span {
     display: block;
+}
+
+.col-discount {
+    text-align: right;
+}
+
+.col-remove {
+    text-align: center;
 }
 
 .price-usd {
@@ -439,4 +474,15 @@
 .pos-header .img-profile {
     height: 2rem;
     width: 2rem;
+}
+
+/* Hide arrows from number inputs */
+.line-input::-webkit-outer-spin-button,
+.line-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.line-input[type=number] {
+    -moz-appearance: textfield;
 }

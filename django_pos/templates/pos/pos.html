@@ -48,67 +48,21 @@
                             <div class="col-product">Producto</div>
                             <div class="col-qty">Cant.</div>
                             <div class="col-price">Precio</div>
+                            <div class="col-discount">%</div>
                             <div class="col-total">Total</div>
+                            <div class="col-remove"></div>
                         </div>
-                        <div class="orderlines-body">
-                            <!-- Prototype Order Line -->
-                            <div class="orderline selected">
-                                <div class="col-product">Whiteboard Pen</div>
-                                <div class="col-qty">1.00</div>
-                                <div class="col-price">
-                                    <span class="price-usd">$ 1.80</span>
-                                    <span class="price-ves">Bs. 54.00</span>
-                                </div>
-                                <div class="col-total">
-                                    <span class="price-usd">$ 1.80</span>
-                                    <span class="price-ves">Bs. 54.00</span>
-                                </div>
-                            </div>
-                            <div class="orderline">
-                                <div class="col-product">Desk Pad</div>
-                                <div class="col-qty">1.00</div>
-                                <div class="col-price">
-                                    <span class="price-usd">$ 10.50</span>
-                                    <span class="price-ves">Bs. 315.00</span>
-                                </div>
-                                <div class="col-total">
-                                    <span class="price-usd">$ 10.50</span>
-                                    <span class="price-ves">Bs. 315.00</span>
-                                </div>
-                            </div>
-                            <div class="orderline">
-                                <div class="col-product">Magnetic Assorted Color Set</div>
-                                <div class="col-qty">1.00</div>
-                                <div class="col-price">
-                                    <span class="price-usd">$ 15.00</span>
-                                    <span class="price-ves">Bs. 450.00</span>
-                                </div>
-                                <div class="col-total">
-                                    <span class="price-usd">$ 15.00</span>
-                                    <span class="price-ves">Bs. 450.00</span>
-                                </div>
-                            </div>
+                        <div class="orderlines-body" id="orderlines-body">
                             <!-- JS will populate this list -->
                         </div>
                     </div>
                 </div>
                 <div class="order-footer">
                     <div class="totals">
-                        <!-- Row 1 -->
-                        <span>Subtotal</span>
-                        <span class="total-ves">Bs. 819.00</span>
-                        <span class="separator">|</span>
-                        <span class="total-usd">$ 27.30</span>
-                        <!-- Row 2 -->
-                        <span>Taxes</span>
-                        <span class="total-ves">Bs. 0.00</span>
-                        <span class="separator">|</span>
-                        <span class="total-usd">$ 0.00</span>
-                        <!-- Row 3 -->
                         <span class="total-row total-row-label">Total</span>
-                        <span class="total-ves total-row">Bs. 819.00</span>
+                        <span class="total-ves total-row" id="total-ves">Bs. 0.00</span>
                         <span class="separator total-row">|</span>
-                        <span class="total-usd total-row total-row-primary">$ 27.30</span>
+                        <span class="total-usd total-row total-row-primary" id="total-usd">$ 0.00</span>
                     </div>
                     <div class="actions">
                         <button class="btn-action-icon">
@@ -170,5 +124,7 @@ aria-hidden="true">
 
 {% block javascripts %}
     {{ product_list_api_url|json_script:"product_list_api_url" }}
+    {{ categories_list_api_url|json_script:"categories_list_api_url" }}
+    {{ exchange_rate|json_script:"exchange_rate" }}
     <script src="{% static 'js/pos/pos.js' %}?v=fresh-start"></script>
 {% endblock javascripts %}

@@ -42,17 +42,24 @@ def inventory_report_view(request):
     return render(request, "products/inventory_report.html", context)
 
 
+from django.core.paginator import Paginator
+
 def product_list_api(request):
-    products = Product.objects.all().order_by('name')
+    product_list = Product.objects.all().order_by('name')
 
     if 'search' in request.GET:
         search_term = request.GET['search']
-        products = products.filter(models.Q(name__icontains=search_term) | models.Q(sku__icontains=search_term))
+        product_list = product_list.filter(models.Q(name__icontains=search_term) | models.Q(sku__icontains=search_term))
 
     if 'category' in request.GET:
         category_id = request.GET['category']
         if category_id.isdigit():
-            products = products.filter(category_id=category_id)
+            product_list = product_list.filter(category_id=category_id)
+
+    # Paginate the results
+    paginator = Paginator(product_list, 30) # Show 30 products per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
     data = [{
         'id': product.id,
@@ -61,9 +68,12 @@ def product_list_api(request):
         'price_usd': product.price_usd,
         'stock': product.stock,
         'image_url': product.photo.url if product.photo else ''
-    } for product in products]
+    } for product in page_obj.object_list]
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({
+        'products': data,
+        'has_next': page_obj.has_next()
+    })
 
 def category_list_api(request):
     categories = Category.objects.all().order_by('name')

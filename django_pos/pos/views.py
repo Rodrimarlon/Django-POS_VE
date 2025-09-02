@@ -102,12 +102,22 @@ def pos_view(request, sale_id=None):
     except Company.DoesNotExist:
         pass # Handle case where no company is configured
 
+    # Fetch latest exchange rate
+    exchange_rate = 0
+    try:
+        latest_rate = ExchangeRate.objects.latest('date')
+        exchange_rate = latest_rate.rate_usd_ves
+    except ExchangeRate.DoesNotExist:
+        pass # Handle case where no exchange rate is configured
+
     context = {
         "active_icon": "pos",
         "sale": sale,
         "sale_details_json": sale_details_json,
         "igtf_percentage": igtf_percentage, # Pass IGTF percentage to context
         "product_list_api_url": reverse('products:product_list_api'),
+        "categories_list_api_url": reverse('products:category_list_api'),
+        "exchange_rate": exchange_rate,
         "clean_view": True,
     }
 
