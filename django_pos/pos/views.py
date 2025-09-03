@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from products.models import Product, Category, InventoryMovement
-from sales.models import Sale, SaleDetail
+from sales.models import Sale, SaleDetail, Payment
 from customers.models import Customer
 from core.models import PaymentMethod, ExchangeRate, Company
 from authentication.decorators import role_required

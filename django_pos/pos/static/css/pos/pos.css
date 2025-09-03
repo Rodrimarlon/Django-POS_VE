@@ -545,3 +545,8 @@
     font-weight: bold;
     text-align: right;
 }
+
+.btn-payment.disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+}

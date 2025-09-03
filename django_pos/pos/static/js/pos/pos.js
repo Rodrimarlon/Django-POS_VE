@@ -216,6 +216,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         totalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
         totalVesEl.textContent = `Bs. ${totalVes.toFixed(2)}`;
+        updatePaymentButtonState();
+    }
+
+    function updatePaymentButtonState() {
+        if (state.selectedCustomer && state.cart.length > 0) {
+            paymentBtn.classList.remove('disabled');
+        } else {
+            paymentBtn.classList.add('disabled');
+        }
     }
 
     function renderProducts(productsToRender) {
@@ -298,12 +307,14 @@ document.addEventListener('DOMContentLoaded', function () {
         state.selectedCustomer = customer;
         customerBtnText.textContent = customer.text;
         customerModal.hide();
+        updatePaymentButtonState();
     }
 
     function handleDeselectCustomer() {
         state.selectedCustomer = null;
         customerBtnText.textContent = 'Customer';
         customerModal.hide();
+        updatePaymentButtonState();
     }
 
     function handleAddNewCustomer() {
@@ -380,6 +391,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         paymentRemainingUsdEl.textContent = `$ ${remaining > 0 ? remaining.toFixed(2) : '0.00'}`;
         paymentChangeUsdEl.textContent = `$ ${change.toFixed(2)}`;
+
+        if (paidAmount >= totalUsd) {
+            finalizePaymentBtn.disabled = false;
+        } else {
+            finalizePaymentBtn.disabled = true;
+        }
     }
 
     function renderPaymentLines() {
@@ -518,6 +535,10 @@ document.addEventListener('DOMContentLoaded', function () {
     saveNewCustomerBtn.addEventListener('click', handleSaveNewCustomer);
 
     paymentBtn.addEventListener('click', () => {
+        if (!state.selectedCustomer) {
+            alert('Please select a customer before proceeding to payment.');
+            return;
+        }
         paymentModal.show();
         openPaymentModal();
     });
@@ -560,6 +581,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchCategories();
         fetchPaymentMethods();
         renderCart();
+        updatePaymentButtonState();
     }
 
     init();
