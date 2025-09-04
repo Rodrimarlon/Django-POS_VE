@@ -45,7 +45,7 @@ def inventory_report_view(request):
 from django.core.paginator import Paginator
 
 def product_list_api(request):
-    product_list = Product.objects.all().order_by('name')
+    product_list = Product.objects.select_related('category').all().order_by('name')
 
     if 'search' in request.GET:
         search_term = request.GET['search']
@@ -67,7 +67,8 @@ def product_list_api(request):
         'sku': product.sku,
         'price_usd': product.price_usd,
         'stock': product.stock,
-        'image_url': product.photo.url if product.photo else ''
+        'image_url': product.photo.url if product.photo else '',
+        'category_name': product.category.name if product.category else 'Uncategorized'
     } for product in page_obj.object_list]
 
     return JsonResponse({

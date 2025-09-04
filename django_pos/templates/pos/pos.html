@@ -206,47 +206,44 @@ aria-hidden="true">
                 </button>
             </div>
             <div class="modal-body">
-                <div class="payment-summary">
-                    <div class="row">
-                        <div class="col-md-6">
+                <div class="row">
+                    <!-- Left Column: Sale Summary -->
+                    <div class="col-md-6">
+                        <div id="payment-summary-by-category">
+                            <!-- Category summary will be injected by JS -->
+                        </div>
+                        <div class="payment-summary-total mt-3">
                             <p><strong>Total:</strong> <span id="payment-total-usd">$0.00</span> | <span id="payment-total-ves">Bs. 0.00</span></p>
-                        </div>
-                        <div class="col-md-6">
                             <p><strong>Remaining:</strong> <span id="payment-remaining-usd">$0.00</span></p>
+                            <p><strong>Change:</strong> <span id="payment-change-usd">$0.00</span></p>
                         </div>
                     </div>
-                </div>
-                <div class="payment-methods">
-                    <h6>Payment Methods</h6>
-                    <div id="payment-methods-buttons" class="btn-group-toggle" data-toggle="buttons">
-                        <!-- Payment method buttons will be injected by JS -->
-                    </div>
-                </div>
-                <div class="payment-inputs mt-3">
-                    <div class="row">
-                        <div class="col-md-6">
+                    <!-- Right Column: Payment Methods -->
+                    <div class="col-md-6">
+                        <div class="payment-methods">
+                            <h6>Payment Methods</h6>
+                            <div id="payment-methods-buttons" class="btn-group-toggle" data-toggle="buttons">
+                                <!-- Payment method buttons will be injected by JS -->
+                            </div>
+                        </div>
+                        <div class="payment-inputs mt-3">
                             <div class="form-group">
                                 <label for="payment-amount">Amount</label>
                                 <input type="number" class="form-control" id="payment-amount" placeholder="Enter amount">
                             </div>
-                        </div>
-                        <div class="col-md-6">
                             <div class="form-group">
                                 <label for="payment-reference">Reference</label>
                                 <input type="text" class="form-control" id="payment-reference" placeholder="Enter reference">
                             </div>
+                            <button type="button" class="btn btn-primary btn-block" id="add-payment-btn">Add Payment</button>
+                        </div>
+                        <div class="payment-lines mt-3">
+                            <h6>Payments</h6>
+                            <ul id="payment-lines-list" class="list-group">
+                                <!-- Payment lines will be populated by JS -->
+                            </ul>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-primary" id="add-payment-btn">Add Payment</button>
-                </div>
-                <div class="payment-lines mt-3">
-                    <h6>Payments</h6>
-                    <ul id="payment-lines-list" class="list-group">
-                        <!-- Payment lines will be populated by JS -->
-                    </ul>
-                </div>
-                <div class="payment-change mt-3">
-                    <p><strong>Change:</strong> <span id="payment-change-usd">$0.00</span></p>
                 </div>
             </div>
             <div class="modal-footer">
