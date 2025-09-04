@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     price_usd: parseFloat(product.price_usd),
                     original_price_usd: parseFloat(product.price_usd),
                     discount_percent: 0,
+                    category_name: product.category_name,
                 });
             }
         }
@@ -298,6 +299,54 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function renderCategorySummary() {
+        const summaryEl = document.getElementById('payment-summary-by-category');
+        summaryEl.innerHTML = '';
+
+        const groupedByCategory = state.cart.reduce((acc, item) => {
+            const categoryName = item.category_name || 'Uncategorized';
+            if (!acc[categoryName]) {
+                acc[categoryName] = {
+                    totalUsd: 0,
+                };
+            }
+            const itemTotalUsd = item.quantity * item.price_usd;
+            acc[categoryName].totalUsd += itemTotalUsd;
+            return acc;
+        }, {});
+
+        let tableHtml = `
+            <table class="table category-summary-table">
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th class="text-right">$</th>
+                        <th class="text-right">Bs.</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        for (const categoryName in groupedByCategory) {
+            const categoryData = groupedByCategory[categoryName];
+            const totalVes = categoryData.totalUsd * state.exchangeRate;
+            tableHtml += `
+                <tr>
+                    <td>${categoryName}</td>
+                    <td class="text-right">${categoryData.totalUsd.toFixed(2)}</td>
+                    <td class="text-right price-ves">${totalVes.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+
+        tableHtml += `
+                </tbody>
+            </table>
+        `;
+
+        summaryEl.innerHTML = tableHtml;
+    }
+
     // --- EVENT HANDLERS ---
     function handleCategoryFilterChange(categoryId) {
         fetchProducts(searchInput.value, categoryId);
@@ -335,6 +384,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openPaymentModal() {
+        renderCategorySummary();
         const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
         paymentTotalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
         paymentTotalVesEl.textContent = `Bs. ${(totalUsd * state.exchangeRate).toFixed(2)}`;
