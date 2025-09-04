@@ -213,9 +213,25 @@ aria-hidden="true">
                             <!-- Category summary will be injected by JS -->
                         </div>
                         <div class="payment-summary-total mt-3">
-                            <p><strong>Total:</strong> <span id="payment-total-usd">$0.00</span> | <span id="payment-total-ves">Bs. 0.00</span></p>
-                            <p><strong>Remaining:</strong> <span id="payment-remaining-usd">$0.00</span></p>
-                            <p><strong>Change:</strong> <span id="payment-change-usd">$0.00</span></p>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Total:</strong></td>
+                                        <td class="text-right" id="payment-total-usd">$0.00</td>
+                                        <td class="text-right" id="payment-total-ves">Bs. 0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Remaining:</strong></td>
+                                        <td class="text-right" id="payment-remaining-usd">$0.00</td>
+                                        <td class="text-right" id="payment-remaining-ves">Bs. 0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Change:</strong></td>
+                                        <td class="text-right" id="payment-change-usd">$0.00</td>
+                                        <td class="text-right" id="payment-change-ves">Bs. 0.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     <!-- Right Column: Payment Methods -->
@@ -227,13 +243,19 @@ aria-hidden="true">
                             </div>
                         </div>
                         <div class="payment-inputs mt-3">
-                            <div class="form-group">
-                                <label for="payment-amount">Amount</label>
-                                <input type="number" class="form-control" id="payment-amount" placeholder="Enter amount">
-                            </div>
-                            <div class="form-group">
-                                <label for="payment-reference">Reference</label>
-                                <input type="text" class="form-control" id="payment-reference" placeholder="Enter reference">
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="form-group">
+                                        <label for="payment-amount">Amount</label>
+                                        <input type="number" class="form-control" id="payment-amount" placeholder="Enter amount">
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label for="payment-reference">Reference</label>
+                                        <input type="text" class="form-control" id="payment-reference" placeholder="Enter reference" maxlength="8">
+                                    </div>
+                                </div>
                             </div>
                             <button type="button" class="btn btn-primary btn-block" id="add-payment-btn">Add Payment</button>
                         </div>

@@ -420,10 +420,15 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        let amountInUsd = amount;
+        if (!paymentMethod.is_foreign_currency) {
+            amountInUsd = amount / state.exchangeRate;
+        }
+
         state.currentPayments.push({
             payment_method_id: paymentMethodId,
             payment_method_name: paymentMethod.name,
-            amount: amount,
+            amount: amountInUsd,
             reference: reference,
         });
 
@@ -439,8 +444,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const remaining = totalUsd - paidAmount;
         const change = paidAmount > totalUsd ? paidAmount - totalUsd : 0;
 
-        paymentRemainingUsdEl.textContent = `$ ${remaining > 0 ? remaining.toFixed(2) : '0.00'}`;
-        paymentChangeUsdEl.textContent = `$ ${change.toFixed(2)}`;
+        const totalVes = totalUsd * state.exchangeRate;
+        const remainingVes = remaining * state.exchangeRate;
+        const changeVes = change * state.exchangeRate;
+
+        document.getElementById('payment-total-usd').textContent = `$ ${totalUsd.toFixed(2)}`;
+        document.getElementById('payment-total-ves').textContent = `Bs. ${totalVes.toFixed(2)}`;
+        document.getElementById('payment-remaining-usd').textContent = `$ ${remaining > 0 ? remaining.toFixed(2) : '0.00'}`;
+        document.getElementById('payment-remaining-ves').textContent = `Bs. ${remainingVes > 0 ? remainingVes.toFixed(2) : '0.00'}`;
+        document.getElementById('payment-change-usd').textContent = `$ ${change.toFixed(2)}`;
+        document.getElementById('payment-change-ves').textContent = `Bs. ${changeVes.toFixed(2)}`;
+
 
         if (paidAmount >= totalUsd) {
             finalizePaymentBtn.disabled = false;
