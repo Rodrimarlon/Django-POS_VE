@@ -191,7 +191,7 @@
 
 .price-ves {
     font-size: 0.8rem;
-    color: #007bff;
+    color: #555;
 }
 
 .order-footer {
@@ -549,40 +549,4 @@
 .btn-payment.disabled {
     background-color: #a0a0a0;
     cursor: not-allowed;
-}
-
-/* Two-column layout for payment modal */
-.modal-body .row {
-    display: flex;
-}
-
-.modal-body .col-md-6 {
-    flex: 1;
-    padding: 0 15px;
-}
-
-.payment-methods {
-    margin-bottom: 1.5rem;
-}
-
-.payment-summary-total {
-    border-top: 1px solid #ddd;
-    padding-top: 15px;
-    margin-top: 15px;
-}
-
-.category-summary-table {
-    width: 100%;
-    margin-bottom: 1rem;
-}
-
-.category-summary-table th,
-.category-summary-table td {
-    padding: 8px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.category-summary-table th {
-    font-weight: bold;
-    text-align: left;
 }
