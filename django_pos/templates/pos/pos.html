@@ -66,7 +66,7 @@
                 <div class="order-footer">
                     <div class="totals">
                         <span class="total-row total-row-label">Total</span>
-                        <span class="total-ves total-row" id="total-ves">Bs. 0.00</span>
+                        <span class="total-ves total-row text-primary" id="total-ves">Bs. 0.00</span>
                         <span class="separator total-row">|</span>
                         <span class="total-usd total-row total-row-primary" id="total-usd">$ 0.00</span>
                     </div>
@@ -213,22 +213,29 @@ aria-hidden="true">
                             <!-- Category summary will be injected by JS -->
                         </div>
                         <div class="payment-summary-total mt-3">
-                            <table class="table">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Pago</th>
+                                        <th class="text-right">$</th>
+                                        <th class="text-right">VES</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <tr>
                                         <td><strong>Total:</strong></td>
-                                        <td class="text-right" id="payment-total-usd">$0.00</td>
-                                        <td class="text-right" id="payment-total-ves">Bs. 0.00</td>
+                                        <td class="text-right" id="payment-total-usd">0.00</td>
+                                        <td class="text-right text-primary" id="payment-total-ves">0.00</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Remaining:</strong></td>
-                                        <td class="text-right" id="payment-remaining-usd">$0.00</td>
-                                        <td class="text-right" id="payment-remaining-ves">Bs. 0.00</td>
+                                        <td class="text-right" id="payment-remaining-usd">0.00</td>
+                                        <td class="text-right text-primary" id="payment-remaining-ves">0.00</td>
                                     </tr>
-                                    <tr>
+                                    <tr class="text-success">
                                         <td><strong>Change:</strong></td>
-                                        <td class="text-right" id="payment-change-usd">$0.00</td>
-                                        <td class="text-right" id="payment-change-ves">Bs. 0.00</td>
+                                        <td class="text-right" id="payment-change-usd">0.00</td>
+                                        <td class="text-right text-primary" id="payment-change-ves">0.00</td>
                                     </tr>
                                 </tbody>
                             </table>

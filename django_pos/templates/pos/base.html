@@ -1,7 +1,7 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
 
@@ -21,6 +21,7 @@
 
     <!-- Custom styles for this template-->
     <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/sweetalert2/sweetalert2.min.css' %}">
     <!--Favicon-->
     <link rel="icon" type="image/png" href="{% static 'favicon.png' %}"/>
 
@@ -112,6 +113,8 @@
 
     <!--JavaScript to dissapear messagess automatically-->
     {% comment %} <script type='text/javascript' src="{% static 'js/dissapear_messages.js' %}"></script> {% endcomment %}
+
+    <script src="{% static 'vendor/sweetalert2/sweetalert2.all.min.js' %}"></script>
 
     <!-- Page level custom scripts -->
     <!-- Specific Page JS goes HERE  -->

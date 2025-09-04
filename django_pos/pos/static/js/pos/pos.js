@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <tr>
                         <th>Categoria</th>
                         <th class="text-right">$</th>
-                        <th class="text-right">Bs.</th>
+                        <th class="text-right">VES</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <tr>
                     <td>${categoryName}</td>
                     <td class="text-right">${categoryData.totalUsd.toFixed(2)}</td>
-                    <td class="text-right price-ves">${totalVes.toFixed(2)}</td>
+                    <td class="text-right text-primary">${totalVes.toFixed(2)}</td>
                 </tr>
             `;
         }
@@ -436,6 +436,7 @@ document.addEventListener('DOMContentLoaded', function () {
         paymentReferenceInput.value = '';
         updatePaymentTotals();
         renderPaymentLines();
+        selectedPmEl.classList.remove('active');
     }
 
     function updatePaymentTotals() {
@@ -448,12 +449,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const remainingVes = remaining * state.exchangeRate;
         const changeVes = change * state.exchangeRate;
 
-        document.getElementById('payment-total-usd').textContent = `$ ${totalUsd.toFixed(2)}`;
-        document.getElementById('payment-total-ves').textContent = `Bs. ${totalVes.toFixed(2)}`;
-        document.getElementById('payment-remaining-usd').textContent = `$ ${remaining > 0 ? remaining.toFixed(2) : '0.00'}`;
-        document.getElementById('payment-remaining-ves').textContent = `Bs. ${remainingVes > 0 ? remainingVes.toFixed(2) : '0.00'}`;
-        document.getElementById('payment-change-usd').textContent = `$ ${change.toFixed(2)}`;
-        document.getElementById('payment-change-ves').textContent = `Bs. ${changeVes.toFixed(2)}`;
+        document.getElementById('payment-total-usd').textContent = totalUsd.toFixed(2);
+        document.getElementById('payment-total-ves').textContent = totalVes.toFixed(2);
+        document.getElementById('payment-remaining-usd').textContent = `${remaining > 0 ? remaining.toFixed(2) : '0.00'}`;
+        document.getElementById('payment-remaining-ves').textContent = `${remainingVes > 0 ? remainingVes.toFixed(2) : '0.00'}`;
+        document.getElementById('payment-change-usd').textContent = change.toFixed(2);
+        document.getElementById('payment-change-ves').textContent = changeVes.toFixed(2);
 
 
         if (paidAmount >= totalUsd) {
@@ -523,15 +524,29 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (data.status === 'success') {
-                alert(data.message);
+                Swal.fire({
+                    title: 'Venta Realizada!',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
                 resetPOS();
                 paymentModal.hide();
             } else {
-                alert(`Error: ${data.message}`);
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error'
+                });
             }
         } catch (error) {
             console.error('Error finalizing sale:', error);
-            alert('An unexpected error occurred.');
+            Swal.fire({
+                title: 'Error Inesperado',
+                text: 'Ocurrió un error inesperado.',
+                icon: 'error'
+            });
         }
     }
 
