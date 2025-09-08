@@ -127,18 +127,19 @@ def pos_view(request, sale_id=None):
     if request.method == 'POST':
         if is_ajax(request=request):
             try:
+                from decimal import Decimal
                 data = json.load(request)
 
                 sale_attributes = {
                     "customer": Customer.objects.get(id=int(data['customer'])),
-                    "sub_total": float(data["sub_total"]),
-                    "grand_total": float(data["grand_total"]),
-                    "tax_amount": float(data["tax_amount"]),
-                    "tax_percentage": float(data["tax_percentage"]),
-                    "amount_change": float(data["amount_change"]),
+                    "sub_total": Decimal(data["sub_total"]),
+                    "grand_total": Decimal(data["grand_total"]),
+                    "tax_amount": Decimal(data["tax_amount"]),
+                    "tax_percentage": Decimal(data["tax_percentage"]),
+                    "amount_change": Decimal(data["amount_change"]),
                     "user": request.user,
-                    "total_ves": float(data.get("total_ves", 0)),
-                    "igtf_amount": float(data.get("igtf_amount", 0)),
+                    "total_ves": Decimal(data.get("total_ves", 0)),
+                    "igtf_amount": Decimal(data.get("igtf_amount", 0)),
                     "is_credit": data.get("is_credit", False),
                     "exchange_rate": ExchangeRate.objects.latest('date'),
                 }
@@ -158,6 +159,11 @@ def pos_view(request, sale_id=None):
                     message = 'Sale updated successfully!'
                 else:
                     current_sale = Sale.objects.create(**sale_attributes)
+                    # Update customer outstanding balance on new credit sale
+                    if current_sale.is_credit:
+                        customer = current_sale.customer
+                        customer.outstanding_balance += current_sale.grand_total
+                        customer.save()
                     message = 'Sale created successfully!'
 
                 # Create Payment objects
@@ -167,7 +173,7 @@ def pos_view(request, sale_id=None):
                         Payment.objects.create(
                             sale=current_sale,
                             payment_method=PaymentMethod.objects.get(id=int(payment_data["payment_method_id"])),
-                            amount=float(payment_data["amount"]),
+                            amount=Decimal(payment_data["amount"]),
                             reference=payment_data.get("reference", "")
                         )
 
@@ -176,9 +182,9 @@ def pos_view(request, sale_id=None):
                     detail_attributes = {
                         "sale": current_sale,
                         "product": Product.objects.get(id=int(product_data["id"])),
-                        "price": product_data["price"],
+                        "price": Decimal(product_data["price"]),
                         "quantity": product_data["quantity"],
-                        "total_detail": product_data["total_product"]
+                        "total_detail": Decimal(product_data["total_product"])
                     }
                     SaleDetail.objects.create(**detail_attributes)
 
