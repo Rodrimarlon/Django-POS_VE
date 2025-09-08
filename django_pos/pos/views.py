@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -67,6 +68,92 @@ def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 
+def _process_sale_data(request, data, sale_id=None):
+    """
+    Helper function to process the business logic of creating or updating a sale.
+    This function is designed to be called from within the main pos_view.
+    """
+    sale_attributes = {
+        "customer": Customer.objects.get(id=int(data['customer'])),
+        "sub_total": Decimal(data["sub_total"]),
+        "grand_total": Decimal(data["grand_total"]),
+        "tax_amount": Decimal(data["tax_amount"]),
+        "tax_percentage": Decimal(data["tax_percentage"]),
+        "amount_change": Decimal(data["amount_change"]),
+        "user": request.user,
+        "total_ves": Decimal(data.get("total_ves", 0)),
+        "igtf_amount": Decimal(data.get("igtf_amount", 0)),
+        "is_credit": data.get("is_credit", False),
+        "exchange_rate": ExchangeRate.objects.latest('date'),
+    }
+
+    # Determine sale status
+    action_type = data.get("action_type", "finalize")
+    if sale_attributes["is_credit"]:
+        sale_attributes["status"] = 'pending_credit'
+    else:
+        sale_attributes["status"] = 'draft' if action_type == 'draft' else 'completed'
+
+    if sale_id:
+        # Note: Updating customer balance for edited credit sales is not handled here.
+        # This would require a more complex logic to calculate the difference.
+        Sale.objects.filter(id=sale_id).update(**sale_attributes)
+        current_sale = Sale.objects.get(id=sale_id)
+        SaleDetail.objects.filter(sale=current_sale).delete()  # Clear old details
+        Payment.objects.filter(sale=current_sale).delete() # Clear old payments
+        message = 'Sale updated successfully!'
+    else:
+        current_sale = Sale.objects.create(**sale_attributes)
+        # Update customer outstanding balance on new credit sale
+        if current_sale.is_credit:
+            customer = current_sale.customer
+            customer.outstanding_balance = F('outstanding_balance') + current_sale.grand_total
+            customer.save()
+        message = 'Sale created successfully!'
+
+    # Create Payment objects
+    if not sale_attributes["is_credit"]:
+        payments = data.get("payments", [])
+        for payment_data in payments:
+            Payment.objects.create(
+                sale=current_sale,
+                payment_method=PaymentMethod.objects.get(id=int(payment_data["payment_method_id"])),
+                amount=Decimal(payment_data["amount"]),
+                reference=payment_data.get("reference", "")
+            )
+
+    products = data["products"]
+    for product_data in products:
+        detail_attributes = {
+            "sale": current_sale,
+            "product": Product.objects.get(id=int(product_data["id"])),
+            "price": Decimal(product_data["price"]),
+            "quantity": product_data["quantity"],
+            "total_detail": Decimal(product_data["total_product"])
+        }
+        SaleDetail.objects.create(**detail_attributes)
+
+    # Stock deduction and InventoryMovement only on finalization
+    if current_sale.status == 'completed':
+        for product_data in products:
+            product_obj = Product.objects.get(id=int(product_data["id"]))
+            product_obj.stock = F('stock') - product_data["quantity"]
+            product_obj.save()
+
+            InventoryMovement.objects.create(
+                product=product_obj,
+                movement_type='out',
+                quantity=product_data["quantity"],
+                user=request.user,
+                reason=f'Sale {current_sale.id}'
+            )
+        message = 'Sale finalized and stock updated successfully!'
+    elif current_sale.status == 'draft':
+        message = 'Sale saved as draft!'
+    
+    return message
+
+
 @role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def pos_view(request, sale_id=None):
@@ -127,87 +214,9 @@ def pos_view(request, sale_id=None):
     if request.method == 'POST':
         if is_ajax(request=request):
             try:
-                from decimal import Decimal
                 data = json.load(request)
-
-                sale_attributes = {
-                    "customer": Customer.objects.get(id=int(data['customer'])),
-                    "sub_total": Decimal(data["sub_total"]),
-                    "grand_total": Decimal(data["grand_total"]),
-                    "tax_amount": Decimal(data["tax_amount"]),
-                    "tax_percentage": Decimal(data["tax_percentage"]),
-                    "amount_change": Decimal(data["amount_change"]),
-                    "user": request.user,
-                    "total_ves": Decimal(data.get("total_ves", 0)),
-                    "igtf_amount": Decimal(data.get("igtf_amount", 0)),
-                    "is_credit": data.get("is_credit", False),
-                    "exchange_rate": ExchangeRate.objects.latest('date'),
-                }
-
-                # Determine sale status
-                action_type = data.get("action_type", "finalize")
-                if sale_attributes["is_credit"]:
-                    sale_attributes["status"] = 'pending_credit'
-                else:
-                    sale_attributes["status"] = 'draft' if action_type == 'draft' else 'completed'
-
-                if sale_id:
-                    Sale.objects.filter(id=sale_id).update(**sale_attributes)
-                    current_sale = Sale.objects.get(id=sale_id)
-                    SaleDetail.objects.filter(sale=current_sale).delete()  # Clear old details
-                    Payment.objects.filter(sale=current_sale).delete() # Clear old payments
-                    message = 'Sale updated successfully!'
-                else:
-                    current_sale = Sale.objects.create(**sale_attributes)
-                    # Update customer outstanding balance on new credit sale
-                    if current_sale.is_credit:
-                        customer = current_sale.customer
-                        customer.outstanding_balance += current_sale.grand_total
-                        customer.save()
-                    message = 'Sale created successfully!'
-
-                # Create Payment objects
-                if not sale_attributes["is_credit"]:
-                    payments = data.get("payments", [])
-                    for payment_data in payments:
-                        Payment.objects.create(
-                            sale=current_sale,
-                            payment_method=PaymentMethod.objects.get(id=int(payment_data["payment_method_id"])),
-                            amount=Decimal(payment_data["amount"]),
-                            reference=payment_data.get("reference", "")
-                        )
-
-                products = data["products"]
-                for product_data in products:
-                    detail_attributes = {
-                        "sale": current_sale,
-                        "product": Product.objects.get(id=int(product_data["id"])),
-                        "price": Decimal(product_data["price"]),
-                        "quantity": product_data["quantity"],
-                        "total_detail": Decimal(product_data["total_product"])
-                    }
-                    SaleDetail.objects.create(**detail_attributes)
-
-                # Stock deduction and InventoryMovement only on finalization
-                if current_sale.status == 'completed':
-                    for product_data in products:
-                        product_obj = Product.objects.get(id=int(product_data["id"]))
-                        product_obj.stock -= product_data["quantity"]
-                        product_obj.save()
-
-                        InventoryMovement.objects.create(
-                            product=product_obj,
-                            movement_type='out',
-                            quantity=product_data["quantity"],
-                            user=request.user,
-                            reason=f'Sale {current_sale.id}'
-                        )
-                    message = 'Sale finalized and stock updated successfully!'
-                elif current_sale.status == 'draft':
-                    message = 'Sale saved as draft!'
-                
+                message = _process_sale_data(request, data, sale_id)
                 return JsonResponse({'status': 'success', 'message': message})
-
             except Exception as e:
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
