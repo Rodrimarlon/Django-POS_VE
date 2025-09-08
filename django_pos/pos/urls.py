@@ -8,4 +8,5 @@ urlpatterns = [
     # Add sale (new or load draft)
     path('add/<int:sale_id>/', views.pos_view, name='pos_add_with_id'),
     path('add/', views.pos_view, name='pos'),
+    path('orders/save/', views.save_order_view, name='save_order'),
 ]

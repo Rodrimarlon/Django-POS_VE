@@ -92,7 +92,7 @@ def _process_sale_data(request, data, sale_id=None):
     if sale_attributes["is_credit"]:
         sale_attributes["status"] = 'pending_credit'
     else:
-        sale_attributes["status"] = 'draft' if action_type == 'draft' else 'completed'
+        sale_attributes["status"] = 'completed'
 
     if sale_id:
         # Note: Updating customer balance for edited credit sales is not handled here.
@@ -148,8 +148,6 @@ def _process_sale_data(request, data, sale_id=None):
                 reason=f'Sale {current_sale.id}'
             )
         message = 'Sale finalized and stock updated successfully!'
-    elif current_sale.status == 'draft':
-        message = 'Sale saved as draft!'
     
     return message
 
@@ -223,3 +221,41 @@ def pos_view(request, sale_id=None):
         return redirect('sales:sales_list')  # Redirect to sales list after operation
 
     return render(request, "pos/pos.html", context=context)
+
+
+@login_required
+@require_POST
+def save_order_view(request):
+    if not is_ajax(request):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    try:
+        data = json.load(request)
+        cart_products = data.get('products', [])
+        customer_id = data.get('customer')
+
+        if not cart_products:
+            return JsonResponse({'status': 'error', 'message': 'Cannot save an empty order.'}, status=400)
+
+        customer = Customer.objects.get(id=customer_id) if customer_id else None
+
+        # Create the main Order
+        new_order = Order.objects.create(
+            user=request.user,
+            customer=customer
+        )
+
+        # Create the OrderDetail items
+        for product_data in cart_products:
+            OrderDetail.objects.create(
+                order=new_order,
+                product=Product.objects.get(id=int(product_data["id"])),
+                quantity=int(product_data["quantity"]),
+                price_usd=Decimal(product_data["price"]),
+                discount_percent=Decimal(product_data.get("discount_percent", 0))
+            )
+        
+        return JsonResponse({'status': 'success', 'message': 'Order saved successfully!'})
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

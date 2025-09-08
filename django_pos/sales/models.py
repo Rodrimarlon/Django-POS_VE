@@ -11,7 +11,6 @@ class Sale(models.Model):
     Represents a single sales transaction.
     """
     SALE_STATUS_CHOICES = (
-        ('draft', 'Draft'),
         ('completed', 'Completed'),
         ('pending_credit', 'Pending Credit'),
     )
