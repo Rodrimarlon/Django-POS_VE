@@ -133,8 +133,8 @@ def _process_sale_data(request, data, sale_id=None):
         }
         SaleDetail.objects.create(**detail_attributes)
 
-    # Stock deduction and InventoryMovement only on finalization
-    if current_sale.status == 'completed':
+    # Stock deduction and InventoryMovement for completed or credit sales
+    if current_sale.status in ['completed', 'pending_credit']:
         for product_data in products:
             product_obj = Product.objects.get(id=int(product_data["id"]))
             product_obj.stock = F('stock') - product_data["quantity"]
