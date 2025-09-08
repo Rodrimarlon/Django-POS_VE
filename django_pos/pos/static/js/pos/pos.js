@@ -1,8 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
-    console.log("Advanced POS JavaScript loaded!");
-
+const PosApp = {
     // --- STATE ---
-    const state = {
+    state: {
         products: [],
         cart: [],
         exchangeRate: 0,
@@ -10,122 +8,241 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedCustomer: null,
         paymentMethods: [],
         currentPayments: [],
-    };
+    },
 
     // --- DOM ELEMENTS ---
-    const productListEl = document.getElementById('product-list');
-    const categoryButtonsEl = document.getElementById('category-buttons');
-    const categoryDropdownEl = document.getElementById('category-dropdown');
-    const searchInput = document.getElementById('product-search');
-    const orderlinesBodyEl = document.getElementById('orderlines-body');
-    const totalUsdEl = document.getElementById('total-usd');
-    const totalVesEl = document.getElementById('total-ves');
-    const panelSwitcherBtn = document.getElementById('panel-switcher');
-    const leftPane = document.querySelector('.left-pane');
-    const rightPane = document.querySelector('.right-pane');
-    const switcherIcon = panelSwitcherBtn ? panelSwitcherBtn.querySelector('i') : null;
-    const customerBtn = document.getElementById('btn-customer');
-    const customerBtnText = customerBtn.querySelector('span');
-    const customerModal = new bootstrap.Modal(document.getElementById('customer-modal'));
-    const newCustomerModal = new bootstrap.Modal(document.getElementById('new-customer-modal'));
-    const customerSearchInput = document.getElementById('customer-search-input');
-    const customerListEl = document.getElementById('customer-list');
-    const addNewCustomerBtn = document.getElementById('add-new-customer-btn');
-    const saveNewCustomerBtn = document.getElementById('save-new-customer-btn');
-    const newCustomerForm = document.getElementById('new-customer-form');
-    const paymentModal = new bootstrap.Modal(document.getElementById('payment-modal'));
-    const paymentBtn = document.querySelector('.btn-payment');
-    const paymentTotalUsdEl = document.getElementById('payment-total-usd');
-    const paymentTotalVesEl = document.getElementById('payment-total-ves');
-    const paymentRemainingUsdEl = document.getElementById('payment-remaining-usd');
-    const paymentMethodsButtonsEl = document.getElementById('payment-methods-buttons');
-    const paymentAmountInput = document.getElementById('payment-amount');
-    const paymentReferenceInput = document.getElementById('payment-reference');
-    const addPaymentBtn = document.getElementById('add-payment-btn');
-    const paymentLinesListEl = document.getElementById('payment-lines-list');
-    const paymentChangeUsdEl = document.getElementById('payment-change-usd');
-    const creditSaleBtn = document.getElementById('credit-sale-btn');
-    const finalizePaymentBtn = document.getElementById('finalize-payment-btn');
+    dom: {
+        productListEl: null,
+        categoryButtonsEl: null,
+        categoryDropdownEl: null,
+        searchInput: null,
+        orderlinesBodyEl: null,
+        totalUsdEl: null,
+        totalVesEl: null,
+        panelSwitcherBtn: null,
+        leftPane: null,
+        rightPane: null,
+        switcherIcon: null,
+        customerBtn: null,
+        customerBtnText: null,
+        customerModal: null,
+        newCustomerModal: null,
+        customerSearchInput: null,
+        customerListEl: null,
+        addNewCustomerBtn: null,
+        saveNewCustomerBtn: null,
+        newCustomerForm: null,
+        paymentModal: null,
+        paymentBtn: null,
+        paymentTotalUsdEl: null,
+        paymentTotalVesEl: null,
+        paymentRemainingUsdEl: null,
+        paymentMethodsButtonsEl: null,
+        paymentAmountInput: null,
+        paymentReferenceInput: null,
+        addPaymentBtn: null,
+        paymentLinesListEl: null,
+        paymentChangeUsdEl: null,
+        creditSaleBtn: null,
+        finalizePaymentBtn: null,
+    },
+
+    // --- INITIALIZATION ---
+    init: function() {
+        console.log("Advanced POS JavaScript loaded!");
+        // Bind DOM elements
+        this.dom.productListEl = document.getElementById('product-list');
+        this.dom.categoryButtonsEl = document.getElementById('category-buttons');
+        this.dom.categoryDropdownEl = document.getElementById('category-dropdown');
+        this.dom.searchInput = document.getElementById('product-search');
+        this.dom.orderlinesBodyEl = document.getElementById('orderlines-body');
+        this.dom.totalUsdEl = document.getElementById('total-usd');
+        this.dom.totalVesEl = document.getElementById('total-ves');
+        this.dom.panelSwitcherBtn = document.getElementById('panel-switcher');
+        this.dom.leftPane = document.querySelector('.left-pane');
+        this.dom.rightPane = document.querySelector('.right-pane');
+        this.dom.switcherIcon = this.dom.panelSwitcherBtn ? this.dom.panelSwitcherBtn.querySelector('i') : null;
+        this.dom.customerBtn = document.getElementById('btn-customer');
+        this.dom.customerBtnText = this.dom.customerBtn.querySelector('span');
+        this.dom.customerModal = new bootstrap.Modal(document.getElementById('customer-modal'));
+        this.dom.newCustomerModal = new bootstrap.Modal(document.getElementById('new-customer-modal'));
+        this.dom.customerSearchInput = document.getElementById('customer-search-input');
+        this.dom.customerListEl = document.getElementById('customer-list');
+        this.dom.addNewCustomerBtn = document.getElementById('add-new-customer-btn');
+        this.dom.saveNewCustomerBtn = document.getElementById('save-new-customer-btn');
+        this.dom.newCustomerForm = document.getElementById('new-customer-form');
+        this.dom.paymentModal = new bootstrap.Modal(document.getElementById('payment-modal'));
+        this.dom.paymentBtn = document.querySelector('.btn-payment');
+        this.dom.paymentTotalUsdEl = document.getElementById('payment-total-usd');
+        this.dom.paymentTotalVesEl = document.getElementById('payment-total-ves');
+        this.dom.paymentRemainingUsdEl = document.getElementById('payment-remaining-usd');
+        this.dom.paymentMethodsButtonsEl = document.getElementById('payment-methods-buttons');
+        this.dom.paymentAmountInput = document.getElementById('payment-amount');
+        this.dom.paymentReferenceInput = document.getElementById('payment-reference');
+        this.dom.addPaymentBtn = document.getElementById('add-payment-btn');
+        this.dom.paymentLinesListEl = document.getElementById('payment-lines-list');
+        this.dom.paymentChangeUsdEl = document.getElementById('payment-change-usd');
+        this.dom.creditSaleBtn = document.getElementById('credit-sale-btn');
+        this.dom.finalizePaymentBtn = document.getElementById('finalize-payment-btn');
+
+        // Set initial state
+        this.state.exchangeRate = parseFloat(JSON.parse(document.getElementById('exchange_rate').textContent)) || 0;
+
+        // Fetch initial data
+        this.fetchProducts();
+        this.fetchCategories();
+        this.fetchPaymentMethods();
+
+        // Initial render
+        this.renderCart();
+        this.updatePaymentButtonState();
+
+        // Bind event listeners
+        this.bindEvents();
+    },
+
+    // --- EVENT BINDING ---
+    bindEvents: function() {
+        this.dom.orderlinesBodyEl.addEventListener('change', (e) => {
+            if (e.target.classList.contains('line-input')) {
+                const productId = parseInt(e.target.dataset.id);
+                const type = e.target.dataset.type;
+                const value = e.target.value;
+
+                if (type === 'qty') this.handleQuantityChange(productId, value);
+                else if (type === 'price') this.handlePriceChange(productId, value);
+                else if (type === 'discount') this.handleDiscountChange(productId, value);
+            }
+        });
+
+        this.dom.orderlinesBodyEl.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-remove')) {
+                const productId = parseInt(e.target.dataset.id);
+                this.handleRemoveItem(productId);
+            }
+        });
+
+        this.dom.searchInput.addEventListener('input', (e) => this.fetchProducts(e.target.value, ''));
+
+        if (this.dom.panelSwitcherBtn) {
+            this.dom.panelSwitcherBtn.addEventListener('click', () => this.togglePanels());
+        }
+
+        if (this.dom.categoryDropdownEl) {
+            this.dom.categoryDropdownEl.addEventListener('change', (e) => this.handleCategoryFilterChange(e.target.value));
+        }
+
+        this.dom.customerBtn.addEventListener('click', () => {
+            this.dom.customerModal.show();
+            this.fetchCustomers();
+        });
+
+        this.dom.customerSearchInput.addEventListener('input', (e) => this.fetchCustomers(e.target.value));
+        this.dom.addNewCustomerBtn.addEventListener('click', () => this.handleAddNewCustomer());
+        this.dom.saveNewCustomerBtn.addEventListener('click', () => this.handleSaveNewCustomer());
+
+        this.dom.paymentBtn.addEventListener('click', () => {
+            if (!this.state.selectedCustomer) {
+                alert('Please select a customer before proceeding to payment.');
+                return;
+            }
+            this.dom.paymentModal.show();
+            this.openPaymentModal();
+        });
+
+        this.dom.addPaymentBtn.addEventListener('click', () => this.handleAddPayment());
+        this.dom.finalizePaymentBtn.addEventListener('click', () => this.finalizeSale(false));
+        this.dom.creditSaleBtn.addEventListener('click', () => this.finalizeSale(true));
+
+        this.dom.paymentLinesListEl.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-danger')) {
+                const index = parseInt(e.target.dataset.index);
+                this.state.currentPayments.splice(index, 1);
+                this.renderPaymentLines();
+                this.updatePaymentTotals();
+            }
+        });
+    },
 
     // --- API FUNCTIONS ---
-    async function fetchProducts(search = '', category = '') {
+    fetchProducts: async function(search = '', category = '') {
         try {
             const url = JSON.parse(document.getElementById('product_list_api_url').textContent);
             const response = await fetch(`${url}?search=${search}&category=${category}`);
             const data = await response.json();
-            state.products = data.products;
-            renderProducts(state.products);
+            this.state.products = data.products;
+            this.renderProducts(this.state.products);
         } catch (error) {
             console.error('Error fetching products:', error);
         }
-    }
+    },
 
-    async function fetchCategories() {
+    fetchCategories: async function() {
         try {
             const url = JSON.parse(document.getElementById('categories_list_api_url').textContent);
             const response = await fetch(url);
             const categories = await response.json();
-            renderCategories(categories);
+            this.renderCategories(categories);
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
-    }
+    },
 
-    async function fetchCustomers(search = '') {
+    fetchCustomers: async function(search = '') {
         try {
             const url = JSON.parse(document.getElementById('get_customers_api_url').textContent);
             const response = await fetch(`${url}?search=${search}`);
             const customers = await response.json();
-            renderCustomers(customers);
+            this.renderCustomers(customers);
         } catch (error) {
             console.error('Error fetching customers:', error);
         }
-    }
+    },
 
-    async function createCustomer(customerData) {
+    createCustomer: async function(customerData) {
         try {
             const url = JSON.parse(document.getElementById('create_customer_api_url').textContent);
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-CSRFToken': this.getCookie('csrftoken'),
                 },
                 body: JSON.stringify(customerData),
             });
             const data = await response.json();
             if (data.status === 'success') {
-                handleCustomerSelect(data.customer);
-                newCustomerModal.hide();
+                this.handleCustomerSelect(data.customer);
+                this.dom.newCustomerModal.hide();
             } else {
                 console.error('Error creating customer:', data.message);
             }
         } catch (error) {
             console.error('Error creating customer:', error);
         }
-    }
+    },
 
-    async function fetchPaymentMethods() {
+    fetchPaymentMethods: async function() {
         try {
             const url = JSON.parse(document.getElementById('payment_methods_list_api_url').textContent);
             const response = await fetch(url);
             const data = await response.json();
-            state.paymentMethods = data;
-            renderPaymentMethods();
+            this.state.paymentMethods = data;
+            this.renderPaymentMethods();
         } catch (error) {
             console.error('Error fetching payment methods:', error);
         }
-    }
+    },
 
     // --- CART LOGIC ---
-    function addToCart(productId) {
-        const existingItem = state.cart.find(item => item.id === productId);
+    addToCart: function(productId) {
+        const existingItem = this.state.cart.find(item => item.id === productId);
         if (existingItem) {
             existingItem.quantity++;
         } else {
-            const product = state.products.find(p => p.id === productId);
+            const product = this.state.products.find(p => p.id === productId);
             if (product) {
-                state.cart.push({
+                this.state.cart.push({
                     id: product.id,
                     name: product.name,
                     quantity: 1,
@@ -136,55 +253,55 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
         }
-        renderCart();
-    }
+        this.renderCart();
+    },
 
-    function updateCartItem(productId, newValues) {
-        const item = state.cart.find(i => i.id === productId);
+    updateCartItem: function(productId, newValues) {
+        const item = this.state.cart.find(i => i.id === productId);
         if (!item) return;
 
         Object.assign(item, newValues);
-        renderCart();
-    }
+        this.renderCart();
+    },
 
-    function handleQuantityChange(productId, newQuantity) {
+    handleQuantityChange: function(productId, newQuantity) {
         const quantity = parseFloat(newQuantity) || 0;
-        updateCartItem(productId, { quantity });
-    }
+        this.updateCartItem(productId, { quantity });
+    },
 
-    function handlePriceChange(productId, newPrice) {
+    handlePriceChange: function(productId, newPrice) {
         const price_usd = parseFloat(newPrice) || 0;
-        const item = state.cart.find(i => i.id === productId);
+        const item = this.state.cart.find(i => i.id === productId);
         if (!item) return;
 
         const discount_percent = ((item.original_price_usd - price_usd) / item.original_price_usd) * 100;
-        updateCartItem(productId, { price_usd, discount_percent: discount_percent });
-    }
+        this.updateCartItem(productId, { price_usd, discount_percent: discount_percent });
+    },
 
-    function handleDiscountChange(productId, newDiscount) {
+    handleDiscountChange: function(productId, newDiscount) {
         const discount_percent = parseFloat(newDiscount) || 0;
-        const item = state.cart.find(i => i.id === productId);
+        const item = this.state.cart.find(i => i.id === productId);
         if (!item) return;
 
         const price_usd = item.original_price_usd * (1 - (discount_percent / 100));
-        updateCartItem(productId, { price_usd, discount_percent });
-    }
+        this.updateCartItem(productId, { price_usd, discount_percent });
+    },
 
-    function handleRemoveItem(productId) {
-        state.cart = state.cart.filter(item => item.id !== productId);
-        renderCart();
-    }
+    handleRemoveItem: function(productId) {
+        this.state.cart = this.state.cart.filter(item => item.id !== productId);
+        this.renderCart();
+    },
 
     // --- RENDER & CALCULATION ---
-    function renderCart() {
-        orderlinesBodyEl.innerHTML = '';
-        if (state.cart.length === 0) {
-            orderlinesBodyEl.innerHTML = '<div class="orderline empty">No products in order</div>';
+    renderCart: function() {
+        this.dom.orderlinesBodyEl.innerHTML = '';
+        if (this.state.cart.length === 0) {
+            this.dom.orderlinesBodyEl.innerHTML = '<div class="orderline empty">No products in order</div>';
         }
 
-        state.cart.forEach(item => {
+        this.state.cart.forEach(item => {
             const totalUsd = item.quantity * item.price_usd;
-            const priceVes = item.price_usd * state.exchangeRate;
+            const priceVes = item.price_usd * this.state.exchangeRate;
             const orderLine = document.createElement('div');
             orderLine.className = 'orderline';
             orderLine.innerHTML = `
@@ -197,72 +314,72 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="col-discount"><input type="number" class="line-input" value="${item.discount_percent.toFixed(0)}" data-id="${item.id}" data-type="discount"></div>
                 <div class="col-total">
                     <span class="price-usd">$ ${totalUsd.toFixed(2)}</span>
-                    <span class="price-ves">Bs. ${(totalUsd * state.exchangeRate).toFixed(2)}</span>
+                    <span class="price-ves">Bs. ${(totalUsd * this.state.exchangeRate).toFixed(2)}</span>
                 </div>
                 <div class="col-remove"><button class="btn-remove" data-id="${item.id}">&times;</button></div>
             `;
-            orderlinesBodyEl.appendChild(orderLine);
+            this.dom.orderlinesBodyEl.appendChild(orderLine);
         });
 
-        calculateTotals();
-    }
+        this.calculateTotals();
+    },
 
-    function calculateTotals() {
+    calculateTotals: function() {
         let totalUsd = 0;
-        state.cart.forEach(item => {
+        this.state.cart.forEach(item => {
             totalUsd += item.quantity * item.price_usd;
         });
 
-        const totalVes = totalUsd * state.exchangeRate;
+        const totalVes = totalUsd * this.state.exchangeRate;
 
-        totalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
-        totalVesEl.textContent = `Bs. ${totalVes.toFixed(2)}`;
-        updatePaymentButtonState();
-    }
+        this.dom.totalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
+        this.dom.totalVesEl.textContent = `Bs. ${totalVes.toFixed(2)}`;
+        this.updatePaymentButtonState();
+    },
 
-    function updatePaymentButtonState() {
-        if (state.selectedCustomer && state.cart.length > 0) {
-            paymentBtn.classList.remove('disabled');
+    updatePaymentButtonState: function() {
+        if (this.state.selectedCustomer && this.state.cart.length > 0) {
+            this.dom.paymentBtn.classList.remove('disabled');
         } else {
-            paymentBtn.classList.add('disabled');
+            this.dom.paymentBtn.classList.add('disabled');
         }
-    }
+    },
 
-    function renderProducts(productsToRender) {
-        productListEl.innerHTML = '';
+    renderProducts: function(productsToRender) {
+        this.dom.productListEl.innerHTML = '';
         productsToRender.forEach(product => {
             const card = document.createElement('div');
             card.className = 'product-card';
-            card.addEventListener('click', () => addToCart(product.id));
+            card.addEventListener('click', () => this.addToCart(product.id));
             card.innerHTML = `
                 <img src="${product.image_url || '/static/img/undraw_posting_photo.svg'}" alt="${product.name}">
                 <div class="product-card-details"><h5>${product.name}</h5></div>
             `;
-            productListEl.appendChild(card);
+            this.dom.productListEl.appendChild(card);
         });
-    }
+    },
 
-    function renderCategories(categoriesToRender) {
-        categoryButtonsEl.innerHTML = '';
+    renderCategories: function(categoriesToRender) {
+        this.dom.categoryButtonsEl.innerHTML = '';
         const allButton = document.createElement('button');
         allButton.className = 'btn btn-info active';
         allButton.textContent = 'All';
         allButton.dataset.categoryId = '';
-        allButton.addEventListener('click', () => handleCategoryFilterChange(''));
-        categoryButtonsEl.appendChild(allButton);
+        allButton.addEventListener('click', () => this.handleCategoryFilterChange(''));
+        this.dom.categoryButtonsEl.appendChild(allButton);
 
         categoriesToRender.forEach(category => {
             const button = document.createElement('button');
             button.className = 'btn btn-info';
             button.textContent = category.name;
             button.dataset.categoryId = category.id;
-            button.addEventListener('click', () => handleCategoryFilterChange(category.id));
-            categoryButtonsEl.appendChild(button);
+            button.addEventListener('click', () => this.handleCategoryFilterChange(category.id));
+            this.dom.categoryButtonsEl.appendChild(button);
         });
-    }
+    },
 
-    function renderCustomers(customersToRender) {
-        customerListEl.innerHTML = '';
+    renderCustomers: function(customersToRender) {
+        this.dom.customerListEl.innerHTML = '';
 
         const deselectButton = document.createElement('a');
         deselectButton.href = '#';
@@ -270,9 +387,9 @@ document.addEventListener('DOMContentLoaded', function () {
         deselectButton.textContent = 'Deselect Customer';
         deselectButton.addEventListener('click', (e) => {
             e.preventDefault();
-            handleDeselectCustomer();
+            this.handleDeselectCustomer();
         });
-        customerListEl.appendChild(deselectButton);
+        this.dom.customerListEl.appendChild(deselectButton);
 
         customersToRender.forEach(customer => {
             const customerItem = document.createElement('a');
@@ -281,29 +398,29 @@ document.addEventListener('DOMContentLoaded', function () {
             customerItem.textContent = customer.text;
             customerItem.addEventListener('click', (e) => {
                 e.preventDefault();
-                handleCustomerSelect(customer);
+                this.handleCustomerSelect(customer);
             });
-            customerListEl.appendChild(customerItem);
+            this.dom.customerListEl.appendChild(customerItem);
         });
-    }
+    },
 
-    function renderPaymentMethods() {
-        paymentMethodsButtonsEl.innerHTML = '';
-        state.paymentMethods.forEach(pm => {
+    renderPaymentMethods: function() {
+        this.dom.paymentMethodsButtonsEl.innerHTML = '';
+        this.state.paymentMethods.forEach(pm => {
             const button = document.createElement('button');
             button.className = 'btn btn-outline-secondary';
             button.textContent = pm.name;
             button.dataset.id = pm.id;
-            button.addEventListener('click', () => handlePaymentMethodSelect(pm));
-            paymentMethodsButtonsEl.appendChild(button);
+            button.addEventListener('click', () => this.handlePaymentMethodSelect(pm));
+            this.dom.paymentMethodsButtonsEl.appendChild(button);
         });
-    }
+    },
 
-    function renderCategorySummary() {
+    renderCategorySummary: function() {
         const summaryEl = document.getElementById('payment-summary-by-category');
         summaryEl.innerHTML = '';
 
-        const groupedByCategory = state.cart.reduce((acc, item) => {
+        const groupedByCategory = this.state.cart.reduce((acc, item) => {
             const categoryName = item.category_name || 'Uncategorized';
             if (!acc[categoryName]) {
                 acc[categoryName] = {
@@ -329,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         for (const categoryName in groupedByCategory) {
             const categoryData = groupedByCategory[categoryName];
-            const totalVes = categoryData.totalUsd * state.exchangeRate;
+            const totalVes = categoryData.totalUsd * this.state.exchangeRate;
             tableHtml += `
                 <tr>
                     <td>${categoryName}</td>
@@ -345,33 +462,33 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
 
         summaryEl.innerHTML = tableHtml;
-    }
+    },
 
     // --- EVENT HANDLERS ---
-    function handleCategoryFilterChange(categoryId) {
-        fetchProducts(searchInput.value, categoryId);
-    }
+    handleCategoryFilterChange: function(categoryId) {
+        this.fetchProducts(this.dom.searchInput.value, categoryId);
+    },
 
-    function handleCustomerSelect(customer) {
-        state.selectedCustomer = customer;
-        customerBtnText.textContent = customer.text;
-        customerModal.hide();
-        updatePaymentButtonState();
-    }
+    handleCustomerSelect: function(customer) {
+        this.state.selectedCustomer = customer;
+        this.dom.customerBtnText.textContent = customer.text;
+        this.dom.customerModal.hide();
+        this.updatePaymentButtonState();
+    },
 
-    function handleDeselectCustomer() {
-        state.selectedCustomer = null;
-        customerBtnText.textContent = 'Customer';
-        customerModal.hide();
-        updatePaymentButtonState();
-    }
+    handleDeselectCustomer: function() {
+        this.state.selectedCustomer = null;
+        this.dom.customerBtnText.textContent = 'Customer';
+        this.dom.customerModal.hide();
+        this.updatePaymentButtonState();
+    },
 
-    function handleAddNewCustomer() {
-        customerModal.hide();
-        newCustomerModal.show();
-    }
+    handleAddNewCustomer: function() {
+        this.dom.customerModal.hide();
+        this.dom.newCustomerModal.show();
+    },
 
-    function handleSaveNewCustomer() {
+    handleSaveNewCustomer: function() {
         const customerData = {
             first_name: document.getElementById('new-customer-first-name').value,
             last_name: document.getElementById('new-customer-last-name').value,
@@ -380,40 +497,40 @@ document.addEventListener('DOMContentLoaded', function () {
             phone: document.getElementById('new-customer-phone').value,
             address: document.getElementById('new-customer-address').value,
         };
-        createCustomer(customerData);
-    }
+        this.createCustomer(customerData);
+    },
 
-    function openPaymentModal() {
-        renderCategorySummary();
-        const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
-        paymentTotalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
-        paymentTotalVesEl.textContent = `Bs. ${(totalUsd * state.exchangeRate).toFixed(2)}`;
-        updatePaymentTotals();
-    }
+    openPaymentModal: function() {
+        this.renderCategorySummary();
+        const totalUsd = this.state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
+        this.dom.paymentTotalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
+        this.dom.paymentTotalVesEl.textContent = `Bs. ${(totalUsd * this.state.exchangeRate).toFixed(2)}`;
+        this.updatePaymentTotals();
+    },
 
-    function handlePaymentMethodSelect(paymentMethod) {
+    handlePaymentMethodSelect: function(paymentMethod) {
         // Prefill amount if it's the first payment
-        if (state.currentPayments.length === 0) {
-            const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
-            paymentAmountInput.value = totalUsd.toFixed(2);
+        if (this.state.currentPayments.length === 0) {
+            const totalUsd = this.state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
+            this.dom.paymentAmountInput.value = totalUsd.toFixed(2);
         }
         if (paymentMethod.requires_reference) {
-            paymentReferenceInput.style.display = 'block';
+            this.dom.paymentReferenceInput.style.display = 'block';
         } else {
-            paymentReferenceInput.style.display = 'none';
+            this.dom.paymentReferenceInput.style.display = 'none';
         }
-    }
+    },
 
-    function handleAddPayment() {
-        const amount = parseFloat(paymentAmountInput.value);
-        const selectedPmEl = paymentMethodsButtonsEl.querySelector('.active');
+    handleAddPayment: function() {
+        const amount = parseFloat(this.dom.paymentAmountInput.value);
+        const selectedPmEl = this.dom.paymentMethodsButtonsEl.querySelector('.active');
         if (!selectedPmEl || !amount || amount <= 0) {
             alert('Please select a payment method and enter a valid amount.');
             return;
         }
         const paymentMethodId = parseInt(selectedPmEl.dataset.id);
-        const paymentMethod = state.paymentMethods.find(pm => pm.id === paymentMethodId);
-        const reference = paymentReferenceInput.value;
+        const paymentMethod = this.state.paymentMethods.find(pm => pm.id === paymentMethodId);
+        const reference = this.dom.paymentReferenceInput.value;
 
         if (paymentMethod.requires_reference && !reference) {
             alert('This payment method requires a reference.');
@@ -422,32 +539,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let amountInUsd = amount;
         if (!paymentMethod.is_foreign_currency) {
-            amountInUsd = amount / state.exchangeRate;
+            amountInUsd = amount / this.state.exchangeRate;
         }
 
-        state.currentPayments.push({
+        this.state.currentPayments.push({
             payment_method_id: paymentMethodId,
             payment_method_name: paymentMethod.name,
             amount: amountInUsd,
             reference: reference,
         });
 
-        paymentAmountInput.value = '';
-        paymentReferenceInput.value = '';
-        updatePaymentTotals();
-        renderPaymentLines();
+        this.dom.paymentAmountInput.value = '';
+        this.dom.paymentReferenceInput.value = '';
+        this.updatePaymentTotals();
+        this.renderPaymentLines();
         selectedPmEl.classList.remove('active');
-    }
+    },
 
-    function updatePaymentTotals() {
-        const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
-        const paidAmount = state.currentPayments.reduce((acc, p) => acc + p.amount, 0);
+    updatePaymentTotals: function() {
+        const totalUsd = this.state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
+        const paidAmount = this.state.currentPayments.reduce((acc, p) => acc + p.amount, 0);
         const remaining = totalUsd - paidAmount;
         const change = paidAmount > totalUsd ? paidAmount - totalUsd : 0;
 
-        const totalVes = totalUsd * state.exchangeRate;
-        const remainingVes = remaining * state.exchangeRate;
-        const changeVes = change * state.exchangeRate;
+        const totalVes = totalUsd * this.state.exchangeRate;
+        const remainingVes = remaining * this.state.exchangeRate;
+        const changeVes = change * this.state.exchangeRate;
 
         document.getElementById('payment-total-usd').textContent = totalUsd.toFixed(2);
         document.getElementById('payment-total-ves').textContent = totalVes.toFixed(2);
@@ -458,33 +575,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         if (paidAmount >= totalUsd) {
-            finalizePaymentBtn.disabled = false;
+            this.dom.finalizePaymentBtn.disabled = false;
         } else {
-            finalizePaymentBtn.disabled = true;
+            this.dom.finalizePaymentBtn.disabled = true;
         }
-    }
+    },
 
-    function renderPaymentLines() {
-        paymentLinesListEl.innerHTML = '';
-        state.currentPayments.forEach((p, index) => {
+    renderPaymentLines: function() {
+        this.dom.paymentLinesListEl.innerHTML = '';
+        this.state.currentPayments.forEach((p, index) => {
             const line = document.createElement('li');
             line.className = 'list-group-item d-flex justify-content-between align-items-center';
             line.innerHTML = `
-                <span>${p.payment_method_name}: $${p.amount.toFixed(2)} ${p.reference ? `(${p.reference})` : ''}</span>
+                <span>${p.payment_method_name}: ${p.amount.toFixed(2)} ${p.reference ? `(${p.reference})` : ''}</span>
                 <button class="btn btn-danger btn-sm" data-index="${index}">&times;</button>
             `;
-            paymentLinesListEl.appendChild(line);
+            this.dom.paymentLinesListEl.appendChild(line);
         });
-    }
+    },
 
-    async function finalizeSale(isCredit = false) {
-        if (!state.selectedCustomer) {
+    finalizeSale: async function(isCredit = false) {
+        if (!this.state.selectedCustomer) {
             alert('Please select a customer.');
             return;
         }
 
-        const totalUsd = state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
-        const paidAmount = state.currentPayments.reduce((acc, p) => acc + p.amount, 0);
+        const totalUsd = this.state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
+        const paidAmount = this.state.currentPayments.reduce((acc, p) => acc + p.amount, 0);
 
         if (!isCredit && paidAmount < totalUsd) {
             alert('The paid amount is less than the total.');
@@ -492,22 +609,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const saleData = {
-            customer: state.selectedCustomer.id,
+            customer: this.state.selectedCustomer.id,
             sub_total: totalUsd, // Assuming sub_total is the same as grand_total for now
             grand_total: totalUsd,
             tax_amount: 0, // Add tax calculation if needed
             tax_percentage: 0,
             amount_change: paidAmount > totalUsd ? paidAmount - totalUsd : 0,
-            total_ves: totalUsd * state.exchangeRate,
+            total_ves: totalUsd * this.state.exchangeRate,
             igtf_amount: 0, // Add IGTF calculation if needed
             is_credit: isCredit,
-            products: state.cart.map(item => ({
+            products: this.state.cart.map(item => ({
                 id: item.id,
                 quantity: item.quantity,
                 price: item.price_usd,
                 total_product: item.quantity * item.price_usd,
             })),
-            payments: state.currentPayments,
+            payments: this.state.currentPayments,
         };
 
         try {
@@ -515,7 +632,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-CSRFToken': this.getCookie('csrftoken'),
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify(saleData),
@@ -531,8 +648,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     timer: 1500,
                     showConfirmButton: false
                 });
-                resetPOS();
-                paymentModal.hide();
+                this.resetPOS();
+                this.dom.paymentModal.hide();
             } else {
                 Swal.fire({
                     title: 'Error',
@@ -548,97 +665,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'error'
             });
         }
-    }
+    },
 
-    function resetPOS() {
-        state.cart = [];
-        state.currentPayments = [];
-        state.selectedCustomer = null;
-        customerBtnText.textContent = 'Customer';
-        renderCart();
-        renderPaymentLines();
-        updatePaymentTotals();
-    }
+    resetPOS: function() {
+        this.state.cart = [];
+        this.state.currentPayments = [];
+        this.state.selectedCustomer = null;
+        this.dom.customerBtnText.textContent = 'Customer';
+        this.renderCart();
+        this.renderPaymentLines();
+        this.updatePaymentTotals();
+    },
 
-    function togglePanels() {
-        state.isLeftPanelActive = !state.isLeftPanelActive;
-        if (state.isLeftPanelActive) {
-            leftPane.classList.add('is-active');
-            rightPane.classList.add('is-hidden');
-            if(switcherIcon) switcherIcon.className = 'fas fa-th-large'; // Icon for products view
+    togglePanels: function() {
+        this.state.isLeftPanelActive = !this.state.isLeftPanelActive;
+        if (this.state.isLeftPanelActive) {
+            this.dom.leftPane.classList.add('is-active');
+            this.dom.rightPane.classList.add('is-hidden');
+            if(this.dom.switcherIcon) this.dom.switcherIcon.className = 'fas fa-th-large'; // Icon for products view
         } else {
-            leftPane.classList.remove('is-active');
-            rightPane.classList.remove('is-hidden');
-            if(switcherIcon) switcherIcon.className = 'fas fa-list-alt'; // Icon for order/cart view
+            this.dom.leftPane.classList.remove('is-active');
+            this.dom.rightPane.classList.remove('is-hidden');
+            if(this.dom.switcherIcon) this.dom.switcherIcon.className = 'fas fa-list-alt'; // Icon for order/cart view
         }
-    }
-
-    orderlinesBodyEl.addEventListener('change', function(e) {
-        if (e.target.classList.contains('line-input')) {
-            const productId = parseInt(e.target.dataset.id);
-            const type = e.target.dataset.type;
-            const value = e.target.value;
-
-            if (type === 'qty') handleQuantityChange(productId, value);
-            else if (type === 'price') handlePriceChange(productId, value);
-            else if (type === 'discount') handleDiscountChange(productId, value);
-        }
-    });
-
-    orderlinesBodyEl.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-remove')) {
-            const productId = parseInt(e.target.dataset.id);
-            handleRemoveItem(productId);
-        }
-    });
-
-    searchInput.addEventListener('input', (e) => fetchProducts(e.target.value, ''));
-
-    if (panelSwitcherBtn) {
-        panelSwitcherBtn.addEventListener('click', togglePanels);
-    }
-
-    if (categoryDropdownEl) {
-        categoryDropdownEl.addEventListener('change', (e) => handleCategoryFilterChange(e.target.value));
-    }
-
-    customerBtn.addEventListener('click', () => {
-        customerModal.show();
-        fetchCustomers();
-    });
-
-    customerSearchInput.addEventListener('input', (e) => fetchCustomers(e.target.value));
-
-    addNewCustomerBtn.addEventListener('click', handleAddNewCustomer);
-
-    saveNewCustomerBtn.addEventListener('click', handleSaveNewCustomer);
-
-    paymentBtn.addEventListener('click', () => {
-        if (!state.selectedCustomer) {
-            alert('Please select a customer before proceeding to payment.');
-            return;
-        }
-        paymentModal.show();
-        openPaymentModal();
-    });
-
-    addPaymentBtn.addEventListener('click', handleAddPayment);
-
-    finalizePaymentBtn.addEventListener('click', () => finalizeSale(false));
-
-    creditSaleBtn.addEventListener('click', () => finalizeSale(true));
-
-    paymentLinesListEl.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-danger')) {
-            const index = parseInt(e.target.dataset.index);
-            state.currentPayments.splice(index, 1);
-            renderPaymentLines();
-            updatePaymentTotals();
-        }
-    });
+    },
 
     // --- UTILS ---
-    function getCookie(name) {
+    getCookie: function(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
             const cookies = document.cookie.split(';');
@@ -652,16 +705,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         return cookieValue;
     }
+};
 
-    // --- INITIALIZATION ---
-    function init() {
-        state.exchangeRate = parseFloat(JSON.parse(document.getElementById('exchange_rate').textContent)) || 0;
-        fetchProducts();
-        fetchCategories();
-        fetchPaymentMethods();
-        renderCart();
-        updatePaymentButtonState();
-    }
-
-    init();
+document.addEventListener('DOMContentLoaded', function () {
+    PosApp.init();
 });
