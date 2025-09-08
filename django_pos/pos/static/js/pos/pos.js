@@ -45,6 +45,7 @@ const PosApp = {
         paymentChangeUsdEl: null,
         creditSaleBtn: null,
         finalizePaymentBtn: null,
+        btnSaveOrder: null,
     },
 
     // --- INITIALIZATION ---
@@ -84,6 +85,7 @@ const PosApp = {
         this.dom.paymentChangeUsdEl = document.getElementById('payment-change-usd');
         this.dom.creditSaleBtn = document.getElementById('credit-sale-btn');
         this.dom.finalizePaymentBtn = document.getElementById('finalize-payment-btn');
+        this.dom.btnSaveOrder = document.getElementById('btn-save-order');
 
         // Set initial state
         this.state.exchangeRate = parseFloat(JSON.parse(document.getElementById('exchange_rate').textContent)) || 0;
@@ -153,6 +155,13 @@ const PosApp = {
         this.dom.addPaymentBtn.addEventListener('click', () => this.handleAddPayment());
         this.dom.finalizePaymentBtn.addEventListener('click', () => this.finalizeSale(false));
         this.dom.creditSaleBtn.addEventListener('click', () => this.finalizeSale(true));
+
+        if (this.dom.btnSaveOrder) {
+            console.log('Binding saveOrder event to:', this.dom.btnSaveOrder);
+            this.dom.btnSaveOrder.addEventListener('click', () => this.saveOrder());
+        } else {
+            console.error('Save Order button not found!');
+        }
 
         this.dom.paymentLinesListEl.addEventListener('click', (e) => {
             if (e.target.classList.contains('btn-danger')) {
@@ -231,6 +240,111 @@ const PosApp = {
             this.renderPaymentMethods();
         } catch (error) {
             console.error('Error fetching payment methods:', error);
+        }
+    },
+
+    saveOrder: async function() {
+        console.log('saveOrder function called!');
+        if (!this.state.selectedCustomer) {
+            Swal.fire('No Customer Selected', 'Please select a customer before saving an order.', 'warning');
+            return;
+        }
+        if (this.state.cart.length === 0) {
+            Swal.fire('Cart is Empty', 'Cannot save an empty order.', 'warning');
+            return;
+        }
+
+        const orderData = {
+            customer: this.state.selectedCustomer.id,
+            products: this.state.cart.map(item => ({
+                id: item.id,
+                quantity: item.quantity,
+                price: item.price_usd,
+                discount_percent: item.discount_percent,
+            })),
+        };
+
+        try {
+            const url = JSON.parse(document.getElementById('save_order_url').textContent);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify(orderData),
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                Swal.fire({
+                    title: 'Order Saved!',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                this.resetPOS();
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error saving order:', error);
+            Swal.fire('Unexpected Error', 'An unexpected error occurred.', 'error');
+        }
+    },
+
+    saveOrder: async function() {
+        if (!this.state.selectedCustomer) {
+            Swal.fire('No Customer Selected', 'Please select a customer before saving an order.', 'warning');
+            return;
+        }
+        if (this.state.cart.length === 0) {
+            Swal.fire('Cart is Empty', 'Cannot save an empty order.', 'warning');
+            return;
+        }
+
+        const orderData = {
+            customer: this.state.selectedCustomer.id,
+            products: this.state.cart.map(item => ({
+                id: item.id,
+                quantity: item.quantity,
+                price: item.price_usd,
+                discount_percent: item.discount_percent,
+            })),
+        };
+
+        try {
+            const url = JSON.parse(document.getElementById('save_order_url').textContent);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify(orderData),
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                Swal.fire({
+                    title: 'Order Saved!',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                this.resetPOS();
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error saving order:', error);
+            Swal.fire('Unexpected Error', 'An unexpected error occurred.', 'error');
         }
     },
 

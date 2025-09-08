@@ -8,11 +8,14 @@ from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.views.decorators.http import require_POST
+
 from products.models import Product, Category, InventoryMovement
 from sales.models import Sale, SaleDetail, Payment
 from customers.models import Customer
 from core.models import PaymentMethod, ExchangeRate, Company
 from authentication.decorators import role_required
+from .models import Order, OrderDetail
 
 @role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
@@ -205,6 +208,7 @@ def pos_view(request, sale_id=None):
         "get_customers_api_url": reverse('customers:get_customers_api'),
         "create_customer_api_url": reverse('customers:create_customer_api'),
         "payment_methods_list_api_url": reverse('core:payment_method_list_api'),
+        "save_order_url": reverse('pos:save_order'),
         "exchange_rate": exchange_rate,
         "clean_view": True,
     }

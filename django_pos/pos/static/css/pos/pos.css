@@ -489,23 +489,35 @@
 
 /* Customer Bar */
 .order-customer-bar {
+    display: flex;
+    gap: 8px;
     padding: 8px;
     background-color: #f8f9fa;
 }
 
-.order-customer-bar .btn-customer {
-    width: 100%;
-    text-align: center;
+.order-customer-bar .btn {
     padding: 12px;
     font-size: 1.1rem;
-    background-color: #e9ecef;
-    border: 1px solid #dcdcdc;
-    color: #5a5c69;
-    border-radius: 3px;
 }
 
-.order-customer-bar .btn-customer i {
+/* Save button is just an icon, so it shouldn't grow */
+#btn-save-order {
+    flex-grow: 0;
+    flex-basis: 60px;
+}
+
+/* Customer button should take the remaining space */
+#btn-customer {
+    flex-grow: 1;
+}
+
+.order-customer-bar .btn i {
     margin-right: 8px;
+}
+
+/* Icon-only button shouldn't have a right margin on its icon */
+#btn-save-order i {
+    margin-right: 0;
 }
 
 /* Actions */
