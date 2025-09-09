@@ -148,6 +148,16 @@ def _process_sale_data(request, data, sale_id=None):
                 reason=f'Sale {current_sale.id}'
             )
         message = 'Sale finalized and stock updated successfully!'
+
+    # If the sale was created from a saved order, delete the order
+    loaded_order_id = data.get('loaded_order_id')
+    if loaded_order_id:
+        try:
+            Order.objects.get(id=int(loaded_order_id)).delete()
+        except Order.DoesNotExist:
+            # This case is not critical, so we can just log it or ignore it
+            print(f"Warning: Tried to delete order ID {loaded_order_id} after sale, but it was not found.")
+            pass
     
     return message
 
@@ -295,6 +305,47 @@ def delete_order_view(request, order_id):
         order = Order.objects.get(id=order_id)
         order.delete()
         return JsonResponse({'status': 'success', 'message': f'Order #{order_id} has been deleted.'})
+    except Order.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Order not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+def order_detail_view(request, order_id):
+    if not is_ajax(request):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    try:
+        order = Order.objects.get(id=order_id)
+        details = order.details.all()
+
+        product_list = []
+        for detail in details:
+            product_list.append({
+                'id': detail.product.id,
+                'name': detail.product.name,
+                'quantity': detail.quantity,
+                'price_usd': str(detail.price_usd),
+                'discount_percent': str(detail.discount_percent),
+                'category_name': detail.product.category.name,
+                'original_price_usd': str(detail.product.price_usd) # Assuming you want to load the original price too
+            })
+
+        customer_data = None
+        if order.customer:
+            customer_data = {
+                'id': order.customer.id,
+                'text': order.customer.get_full_name() # Match the format from customer search
+            }
+
+        response_data = {
+            'status': 'success',
+            'customer': customer_data,
+            'products': product_list
+        }
+        return JsonResponse(response_data)
+
     except Order.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Order not found.'}, status=404)
     except Exception as e:

@@ -8,6 +8,7 @@ const PosApp = {
         selectedCustomer: null,
         paymentMethods: [],
         currentPayments: [],
+        loadedOrderId: null,
     },
 
     // --- DOM ELEMENTS ---
@@ -169,13 +170,18 @@ const PosApp = {
             this.fetchOrders();
         });
 
-        // Use event delegation for delete buttons
+        // Use event delegation for order list container
         this.dom.ordersListContainerEl.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.btn-delete-order');
+            const orderInfo = e.target.closest('.order-info');
+
             if (deleteButton) {
                 e.stopPropagation();
                 const orderId = deleteButton.dataset.orderId;
                 this.deleteOrder(orderId);
+            } else if (orderInfo) {
+                const orderId = orderInfo.dataset.orderId;
+                this.loadOrder(orderId);
             }
         });
     },
@@ -332,7 +338,7 @@ const PosApp = {
     deleteOrder: async function(orderId) {
         const result = await Swal.fire({
             title: 'Are you sure?',
-            text: `You are about to delete Order #${orderId}. You won\'t be able to revert this!`, 
+            text: `You are about to delete Order #${orderId}. You won\'t be able to revert this!`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -341,7 +347,7 @@ const PosApp = {
         });
 
         if (result.isConfirmed) {
-            const url = `/orders/${orderId}/delete/`; // Construct the URL dynamically
+            const url = `/orders/${orderId}/delete/`;
             try {
                 const response = await fetch(url, {
                     method: 'POST',
@@ -354,27 +360,59 @@ const PosApp = {
                 const data = await response.json();
 
                 if (response.ok && data.status === 'success') {
-                    Swal.fire(
-                        'Deleted!',
-                        data.message,
-                        'success'
-                    );
+                    Swal.fire('Deleted!', data.message, 'success');
                     this.fetchOrders(); // Refresh the list
                 } else {
-                    Swal.fire(
-                        'Error!',
-                        data.message || 'Could not delete the order.',
-                        'error'
-                    );
+                    Swal.fire('Error!', data.message || 'Could not delete the order.', 'error');
                 }
             } catch (error) {
                 console.error('Error deleting order:', error);
-                Swal.fire(
-                    'Request Failed!',
-                    'An unexpected error occurred.',
-                    'error'
-                );
+                Swal.fire('Request Failed!', 'An unexpected error occurred.', 'error');
             }
+        }
+    },
+
+    loadOrder: async function(orderId) {
+        const url = `/orders/${orderId}/detail/`;
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                this.resetPOS();
+                if (data.customer) {
+                    this.handleCustomerSelect(data.customer);
+                }
+                
+                this.state.cart = data.products.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    quantity: parseInt(p.quantity, 10),
+                    price_usd: parseFloat(p.price_usd),
+                    original_price_usd: parseFloat(p.original_price_usd),
+                    discount_percent: parseFloat(p.discount_percent),
+                    category_name: p.category_name,
+                }));
+
+                this.state.loadedOrderId = orderId;
+
+                this.renderCart();
+                $('#orders-modal').modal('hide');
+            } else {
+                Swal.fire('Error loading order', data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error loading order:', error);
+            Swal.fire('Request Failed!', 'An unexpected error occurred while loading the order.', 'error');
         }
     },
 
@@ -577,11 +615,11 @@ const PosApp = {
         }, {});
 
         let tableHtml = `
-            <table class="table category-summary-table">
+            <table class="category-summary-table">
                 <thead>
                     <tr>
                         <th>Categoria</th>
-                        <th class="text-right">$</th>
+                        <th class="text-right">$
                         <th class="text-right">VES</th>
                     </tr>
                 </thead>
@@ -648,7 +686,9 @@ const PosApp = {
     handleCustomerSelect: function(customer) {
         this.state.selectedCustomer = customer;
         this.dom.customerBtnText.textContent = customer.text;
-        $('#customer-modal').modal('hide');
+        if ($('#customer-modal').is(':visible')) {
+            $('#customer-modal').modal('hide');
+        }
         this.updatePaymentButtonState();
     },
 
@@ -786,13 +826,13 @@ const PosApp = {
 
         const saleData = {
             customer: this.state.selectedCustomer.id,
-            sub_total: totalUsd, // Assuming sub_total is the same as grand_total for now
+            sub_total: totalUsd,
             grand_total: totalUsd,
-            tax_amount: 0, // Add tax calculation if needed
+            tax_amount: 0,
             tax_percentage: 0,
             amount_change: paidAmount > totalUsd ? paidAmount - totalUsd : 0,
             total_ves: totalUsd * this.state.exchangeRate,
-            igtf_amount: 0, // Add IGTF calculation if needed
+            igtf_amount: 0,
             is_credit: isCredit,
             products: this.state.cart.map(item => ({
                 id: item.id,
@@ -801,6 +841,7 @@ const PosApp = {
                 total_product: item.quantity * item.price_usd,
             })),
             payments: this.state.currentPayments,
+            loaded_order_id: this.state.loadedOrderId,
         };
 
         try {
@@ -847,6 +888,7 @@ const PosApp = {
         this.state.cart = [];
         this.state.currentPayments = [];
         this.state.selectedCustomer = null;
+        this.state.loadedOrderId = null;
         this.dom.customerBtnText.textContent = 'Customer';
         this.renderCart();
         this.renderPaymentLines();
