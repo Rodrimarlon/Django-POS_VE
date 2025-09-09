@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, FloatField, F
+from django.db.models import Sum, FloatField, F, Count, DecimalField
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -49,9 +49,6 @@ def index(request):
     for p in top_products:
         top_products_names.append(p.name)
         top_products_quantity.append(p.quantity_sum)
-
-    print(top_products_names)
-    print(top_products_quantity)
 
     context = {
         "active_icon": "dashboard",
@@ -209,6 +206,7 @@ def pos_view(request, sale_id=None):
         "create_customer_api_url": reverse('customers:create_customer_api'),
         "payment_methods_list_api_url": reverse('core:payment_method_list_api'),
         "save_order_url": reverse('pos:save_order'),
+        "order_list_api_url": reverse('pos:order_list'),
         "exchange_rate": exchange_rate,
         "clean_view": True,
     }
@@ -263,3 +261,41 @@ def save_order_view(request):
 
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@role_required(allowed_roles=['admin', 'cashier'])
+@login_required
+def order_list_view(request):
+    if not is_ajax(request):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    orders = Order.objects.annotate(
+        total=Coalesce(Sum(F('details__price_usd') * F('details__quantity'), output_field=DecimalField()), Decimal('0.00'))
+    ).order_by('-created_at')
+
+    order_list = []
+    for order in orders:
+        order_list.append({
+            'id': order.id,
+            'customer_name': order.customer.get_full_name() if order.customer else 'Walk-in Customer',
+            'total': order.total or 0,
+            'created_at': order.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    
+    return JsonResponse(order_list, safe=False)
+
+
+@login_required
+@require_POST
+def delete_order_view(request, order_id):
+    if not is_ajax(request):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    try:
+        order = Order.objects.get(id=order_id)
+        order.delete()
+        return JsonResponse({'status': 'success', 'message': f'Order #{order_id} has been deleted.'})
+    except Order.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Order not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

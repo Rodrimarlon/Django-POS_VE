@@ -9,4 +9,6 @@ urlpatterns = [
     path('add/<int:sale_id>/', views.pos_view, name='pos_add_with_id'),
     path('add/', views.pos_view, name='pos'),
     path('orders/save/', views.save_order_view, name='save_order'),
+    path('orders/list/', views.order_list_view, name='order_list'),
+    path('orders/<int:order_id>/delete/', views.delete_order_view, name='delete_order'),
 ]

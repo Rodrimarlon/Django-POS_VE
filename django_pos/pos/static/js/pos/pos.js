@@ -25,14 +25,11 @@ const PosApp = {
         switcherIcon: null,
         customerBtn: null,
         customerBtnText: null,
-        customerModal: null,
-        newCustomerModal: null,
         customerSearchInput: null,
         customerListEl: null,
         addNewCustomerBtn: null,
         saveNewCustomerBtn: null,
         newCustomerForm: null,
-        paymentModal: null,
         paymentBtn: null,
         paymentTotalUsdEl: null,
         paymentTotalVesEl: null,
@@ -46,11 +43,11 @@ const PosApp = {
         creditSaleBtn: null,
         finalizePaymentBtn: null,
         btnSaveOrder: null,
+        ordersListContainerEl: null,
     },
 
     // --- INITIALIZATION ---
     init: function() {
-        console.log("Advanced POS JavaScript loaded!");
         // Bind DOM elements
         this.dom.productListEl = document.getElementById('product-list');
         this.dom.categoryButtonsEl = document.getElementById('category-buttons');
@@ -65,14 +62,11 @@ const PosApp = {
         this.dom.switcherIcon = this.dom.panelSwitcherBtn ? this.dom.panelSwitcherBtn.querySelector('i') : null;
         this.dom.customerBtn = document.getElementById('btn-customer');
         this.dom.customerBtnText = this.dom.customerBtn.querySelector('span');
-        this.dom.customerModal = new bootstrap.Modal(document.getElementById('customer-modal'));
-        this.dom.newCustomerModal = new bootstrap.Modal(document.getElementById('new-customer-modal'));
         this.dom.customerSearchInput = document.getElementById('customer-search-input');
         this.dom.customerListEl = document.getElementById('customer-list');
         this.dom.addNewCustomerBtn = document.getElementById('add-new-customer-btn');
         this.dom.saveNewCustomerBtn = document.getElementById('save-new-customer-btn');
         this.dom.newCustomerForm = document.getElementById('new-customer-form');
-        this.dom.paymentModal = new bootstrap.Modal(document.getElementById('payment-modal'));
         this.dom.paymentBtn = document.querySelector('.btn-payment');
         this.dom.paymentTotalUsdEl = document.getElementById('payment-total-usd');
         this.dom.paymentTotalVesEl = document.getElementById('payment-total-ves');
@@ -86,6 +80,7 @@ const PosApp = {
         this.dom.creditSaleBtn = document.getElementById('credit-sale-btn');
         this.dom.finalizePaymentBtn = document.getElementById('finalize-payment-btn');
         this.dom.btnSaveOrder = document.getElementById('btn-save-order');
+        this.dom.ordersListContainerEl = document.getElementById('orders-list-container');
 
         // Set initial state
         this.state.exchangeRate = parseFloat(JSON.parse(document.getElementById('exchange_rate').textContent)) || 0;
@@ -135,7 +130,7 @@ const PosApp = {
         }
 
         this.dom.customerBtn.addEventListener('click', () => {
-            this.dom.customerModal.show();
+            $('#customer-modal').modal('show');
             this.fetchCustomers();
         });
 
@@ -148,7 +143,7 @@ const PosApp = {
                 alert('Please select a customer before proceeding to payment.');
                 return;
             }
-            this.dom.paymentModal.show();
+            $('#payment-modal').modal('show');
             this.openPaymentModal();
         });
 
@@ -157,10 +152,7 @@ const PosApp = {
         this.dom.creditSaleBtn.addEventListener('click', () => this.finalizeSale(true));
 
         if (this.dom.btnSaveOrder) {
-            console.log('Binding saveOrder event to:', this.dom.btnSaveOrder);
             this.dom.btnSaveOrder.addEventListener('click', () => this.saveOrder());
-        } else {
-            console.error('Save Order button not found!');
         }
 
         this.dom.paymentLinesListEl.addEventListener('click', (e) => {
@@ -169,6 +161,21 @@ const PosApp = {
                 this.state.currentPayments.splice(index, 1);
                 this.renderPaymentLines();
                 this.updatePaymentTotals();
+            }
+        });
+
+        // Use jQuery for Bootstrap 4 event binding
+        $('#orders-modal').on('show.bs.modal', () => {
+            this.fetchOrders();
+        });
+
+        // Use event delegation for delete buttons
+        this.dom.ordersListContainerEl.addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.btn-delete-order');
+            if (deleteButton) {
+                e.stopPropagation();
+                const orderId = deleteButton.dataset.orderId;
+                this.deleteOrder(orderId);
             }
         });
     },
@@ -222,7 +229,7 @@ const PosApp = {
             const data = await response.json();
             if (data.status === 'success') {
                 this.handleCustomerSelect(data.customer);
-                this.dom.newCustomerModal.hide();
+                $('#new-customer-modal').modal('hide');
             } else {
                 console.error('Error creating customer:', data.message);
             }
@@ -244,7 +251,6 @@ const PosApp = {
     },
 
     saveOrder: async function() {
-        console.log('saveOrder function called!');
         if (!this.state.selectedCustomer) {
             Swal.fire('No Customer Selected', 'Please select a customer before saving an order.', 'warning');
             return;
@@ -296,55 +302,79 @@ const PosApp = {
         }
     },
 
-    saveOrder: async function() {
-        if (!this.state.selectedCustomer) {
-            Swal.fire('No Customer Selected', 'Please select a customer before saving an order.', 'warning');
-            return;
-        }
-        if (this.state.cart.length === 0) {
-            Swal.fire('Cart is Empty', 'Cannot save an empty order.', 'warning');
-            return;
-        }
-
-        const orderData = {
-            customer: this.state.selectedCustomer.id,
-            products: this.state.cart.map(item => ({
-                id: item.id,
-                quantity: item.quantity,
-                price: item.price_usd,
-                discount_percent: item.discount_percent,
-            })),
-        };
-
+    fetchOrders: async function() {
+        this.dom.ordersListContainerEl.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>';
         try {
-            const url = JSON.parse(document.getElementById('save_order_url').textContent);
+            const urlElement = document.getElementById('order_list_api_url');
+            if (!urlElement) {
+                throw new Error('URL element #order_list_api_url not found!');
+            }
+            const url = JSON.parse(urlElement.textContent);
+            
             const response = await fetch(url, {
-                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCookie('csrftoken'),
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify(orderData),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
 
-            const data = await response.json();
-
-            if (data.status === 'success') {
-                Swal.fire({
-                    title: 'Order Saved!',
-                    text: data.message,
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                this.resetPOS();
-            } else {
-                Swal.fire('Error', data.message, 'error');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            const orders = await response.json();
+
+            this.renderOrders(orders);
         } catch (error) {
-            console.error('Error saving order:', error);
-            Swal.fire('Unexpected Error', 'An unexpected error occurred.', 'error');
+            console.error('Error in fetchOrders:', error);
+            this.dom.ordersListContainerEl.innerHTML = '<div class="alert alert-danger">Could not load orders. See console for details.</div>';
+        }
+    },
+
+    deleteOrder: async function(orderId) {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: `You are about to delete Order #${orderId}. You won\'t be able to revert this!`, 
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            const url = `/orders/${orderId}/delete/`; // Construct the URL dynamically
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.getCookie('csrftoken'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success') {
+                    Swal.fire(
+                        'Deleted!',
+                        data.message,
+                        'success'
+                    );
+                    this.fetchOrders(); // Refresh the list
+                } else {
+                    Swal.fire(
+                        'Error!',
+                        data.message || 'Could not delete the order.',
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                Swal.fire(
+                    'Request Failed!',
+                    'An unexpected error occurred.',
+                    'error'
+                );
+            }
         }
     },
 
@@ -578,6 +608,38 @@ const PosApp = {
         summaryEl.innerHTML = tableHtml;
     },
 
+    renderOrders: function(orders) {
+        this.dom.ordersListContainerEl.innerHTML = '';
+
+        if (!orders || orders.length === 0) {
+            this.dom.ordersListContainerEl.innerHTML = '<div class="alert alert-info">No saved orders found.</div>';
+            return;
+        }
+
+        orders.forEach(order => {
+            const orderItem = document.createElement('a');
+            orderItem.href = '#';
+            orderItem.className = 'list-group-item list-group-item-action';
+            
+            const createdDate = new Date(order.created_at).toLocaleString();
+
+            orderItem.innerHTML = `
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="order-info" style="flex-grow: 1; cursor: pointer;" data-order-id="${order.id}">
+                        <h5 class="mb-1">Order #${order.id}</h5>
+                        <p class="mb-1">Customer: <strong>${order.customer_name}</strong></p>
+                        <small>Total: <strong>$${parseFloat(order.total).toFixed(2)}</strong></small>
+                        <br>
+                        <small class="text-muted">${createdDate}</small>
+                    </div>
+                    <button class="btn btn-danger btn-sm btn-delete-order" data-order-id="${order.id}" style="flex-shrink: 0;">&times;</button>
+                </div>
+            `;
+
+            this.dom.ordersListContainerEl.appendChild(orderItem);
+        });
+    },
+
     // --- EVENT HANDLERS ---
     handleCategoryFilterChange: function(categoryId) {
         this.fetchProducts(this.dom.searchInput.value, categoryId);
@@ -586,20 +648,20 @@ const PosApp = {
     handleCustomerSelect: function(customer) {
         this.state.selectedCustomer = customer;
         this.dom.customerBtnText.textContent = customer.text;
-        this.dom.customerModal.hide();
+        $('#customer-modal').modal('hide');
         this.updatePaymentButtonState();
     },
 
     handleDeselectCustomer: function() {
         this.state.selectedCustomer = null;
         this.dom.customerBtnText.textContent = 'Customer';
-        this.dom.customerModal.hide();
+        $('#customer-modal').modal('hide');
         this.updatePaymentButtonState();
     },
 
     handleAddNewCustomer: function() {
-        this.dom.customerModal.hide();
-        this.dom.newCustomerModal.show();
+        $('#customer-modal').modal('hide');
+        $('#new-customer-modal').modal('show');
     },
 
     handleSaveNewCustomer: function() {
@@ -763,7 +825,7 @@ const PosApp = {
                     showConfirmButton: false
                 });
                 this.resetPOS();
-                this.dom.paymentModal.hide();
+                $('#payment-modal').modal('hide');
             } else {
                 Swal.fire({
                     title: 'Error',
