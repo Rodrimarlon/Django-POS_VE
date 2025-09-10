@@ -7,7 +7,7 @@ urlpatterns = [
     # List sales
     path('', views.sales_list_view, name='sales_list'),
     # Details sale
-    path('details/<str:sale_id>',
+    path('details/<int:sale_id>/',
          views.sales_details_view, name='sales_details'),
     # Sale receipt PDF
     path("pdf/<str:sale_id>",

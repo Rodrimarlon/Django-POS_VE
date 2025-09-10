@@ -22,7 +22,7 @@ def is_ajax(request):
 def sales_list_view(request):
     context = {
         "active_icon": "sales",
-        "sales": Sale.objects.all()
+        "sales": Sale.objects.all().order_by('-date_added')
     }
     return render(request, "sales/sales.html", context=context)
 
@@ -40,7 +40,6 @@ def sales_details_view(request, sale_id):
     """
     try:
         sale = Sale.objects.get(id=sale_id)
-
         details = SaleDetail.objects.filter(sale=sale)
 
         context = {
@@ -49,9 +48,11 @@ def sales_details_view(request, sale_id):
             "details": details,
         }
         return render(request, "sales/sales_details.html", context=context)
+    except Sale.DoesNotExist:
+        messages.error(request, f"Sale with ID {sale_id} not found.", extra_tags="danger")
+        return redirect('sales:sales_list')
     except Exception as e:
-        messages.success(
-            request, 'There was an error getting the sale!', extra_tags="danger")
+        messages.error(request, 'There was an error getting the sale!', extra_tags="danger")
         print(e)
         return redirect('sales:sales_list')
 
@@ -114,7 +115,7 @@ def daily_cash_close_report_view(request):
 @admin_required
 @login_required(login_url="/accounts/login/")
 def pending_sales_list_view(request):
-    pending_sales = Sale.objects.filter(is_credit=True, credit_paid=False)
+    pending_sales = Sale.objects.filter(is_credit=True, credit_paid=False).order_by('-date_added')
     context = {
         "active_icon": "sales",
         "pending_sales": pending_sales
