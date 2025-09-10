@@ -17,20 +17,18 @@
 <!-- Page content  -->
 {% block content %}
 
-    <!--Create new sale-->
-    <div class="row ml-0 mb-3">
-        <a href="{% url 'pos:pos' %}">
-            <button type="button" class="btn btn-success font-weight-bold">
-                    <i class="fas fa-plus mr-2"></i>
-                    {% trans "Create new sale" %}
-            </button>
-        </a>
-    </div>
-
     <!-- DataTable -->
     <div class="card shadow mb-12">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">{% trans "Customers" %}</h6>
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Sales" %}</h6>
+            <div>
+                <a href="{% url 'sales:pending_sales_list' %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-clock mr-2"></i> {% trans "Pending Sales" %}
+                </a>
+                <a href="{% url 'pos:pos' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus mr-2"></i> {% trans "New sale" %}
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
