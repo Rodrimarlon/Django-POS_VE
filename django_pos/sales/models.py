@@ -13,6 +13,7 @@ class Sale(models.Model):
     SALE_STATUS_CHOICES = (
         ('completed', 'Completed'),
         ('pending_credit', 'Pending Credit'),
+        ('partially_paid', 'Partially Paid'),
     )
     date_added = models.DateTimeField(default=django.utils.timezone.now)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
@@ -26,11 +27,14 @@ class Sale(models.Model):
     total_ves = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     igtf_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_credit = models.BooleanField(default=False)
-    credit_paid = models.BooleanField(default=False)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=SALE_STATUS_CHOICES, default='completed')
 
     def __str__(self) -> str:
         return f"Sale ID: {self.id} | Grand Total: {self.grand_total} | Datetime: {self.date_added}"
+
+    def get_balance(self):
+        return (self.grand_total + self.igtf_amount) - self.amount_paid
 
     def sum_items(self):
         details = SaleDetail.objects.filter(sale=self.id)
@@ -66,6 +70,7 @@ class CreditPayment(models.Model):
     payment_date = models.DateTimeField(default=django.utils.timezone.now)
     amount_usd = models.DecimalField(max_digits=10, decimal_places=2)
     amount_ves = models.DecimalField(max_digits=10, decimal_places=2)
+    igtf_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     exchange_rate = models.ForeignKey(ExchangeRate, on_delete=models.CASCADE)
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE)
     reference = models.CharField(max_length=100, blank=True, null=True)
