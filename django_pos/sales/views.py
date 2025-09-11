@@ -41,11 +41,13 @@ def sales_details_view(request, sale_id):
     try:
         sale = Sale.objects.get(id=sale_id)
         details = SaleDetail.objects.filter(sale=sale)
+        payment_methods = PaymentMethod.objects.all()
 
         context = {
             "active_icon": "sales",
             "sale": sale,
             "details": details,
+            "payment_methods": payment_methods,
         }
         return render(request, "sales/sales_details.html", context=context)
     except Sale.DoesNotExist:

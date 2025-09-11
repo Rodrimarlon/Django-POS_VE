@@ -31,102 +31,149 @@
 </div>
 
 <!--Sale products and details-->
-<form class="saleForm" method="post">
-    <div class="row mt-3">
-        <div class="card col-md-12">
-            <div class="card-body ml-0">
-                <div class="row">
-                    <!--Left column-->
-                    <div class="col-md-9 pl-0">
-                        <div class="card card-secondary">
-                            <div class="card-header">{% trans "Sale products" %}</div>
-                            
-                            <div class="card-body">
-                                <!--Products table-->
-                                <div class="card-body table-responsive p-0">
-                                    <table class="table table-hover text-nowrap" id="table_products">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>{% trans "Name" %}</th>
-                                                <th>{% trans "Price" %}</th>
-                                                <th>{% trans "Quantity" %}</th>
-                                                <th>{% trans "Total" %}</th>
-                                                </tr>
-                                            </thead>
-                                        <tbody>
-                                            {% for detail in details %}
-                                            <tr>
-                                                <td>{{forloop.counter}}</td>
-                                                <td>{{detail.product.name}}</td>
-                                                <td>{{detail.price}}</td>
-                                                <td class="text-center">{{detail.quantity}}</td>
-                                                <td>{{detail.total_detail}}</td>
+<div class="row mt-3">
+    <div class="card col-md-12">
+        <div class="card-body ml-0">
+            <div class="row">
+                <!--Left column-->
+                <div class="col-md-9 pl-0">
+                    <div class="card card-secondary">
+                        <div class="card-header">{% trans "Sale products" %}</div>
+                        
+                        <div class="card-body">
+                            <!--Products table-->
+                            <div class="card-body table-responsive p-0">
+                                <table class="table table-hover text-nowrap" id="table_products">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>{% trans "Name" %}</th>
+                                            <th>{% trans "Price" %}</th>
+                                            <th>{% trans "Quantity" %}</th>
+                                            <th>{% trans "Total" %}</th>
                                             </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <!--End Products table-->
+                                        </thead>
+                                    <tbody>
+                                        {% for detail in details %}
+                                        <tr>
+                                            <td>{{forloop.counter}}</td>
+                                            <td>{{detail.product.name}}</td>
+                                            <td>{{detail.price}}</td>
+                                            <td class="text-center">{{detail.quantity}}</td>
+                                            <td>{{detail.total_detail}}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
+                            <!--End Products table-->
                         </div>
                     </div>
-                    <!--End Left column-->
-
-                    <!--Righ column-->
-                    <div class="col-md-3 pr-0">
-                        <div class="card card-secondary">
-                            <div class="card-header">{% trans "Sale details" %}</div>
-                            <div class="card-body">
-                                {% csrf_token %}
-                                <div class="form-group">
-                                    <label for="customer">{% trans "Customer" %}</label>
-                                    <select name="customer" class="form-control" id="searchbox_customers" disabled readonly>
-                                        <option value="{{sale.customer.id}}">{{sale.customer.get_full_name}}</option>
-                                    </select>
-                                <div class="form-group mt-4">
-                                    <label>{% trans "Subtotal" %}</label>
-                                    <div class="input-group">
-                                        <input name="sub_total" class="form-control" value="{{sale.sub_total}}" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Tax Inclusive (%)" %}</label>
-                                    <div class="input-group">
-                                        <input name="tax_percentage" class="form-control" value="{{sale.tax_percentage}}" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Tax Amount" %}</label>
-                                    <div class="input-group">
-                                        <input name="tax_amount" class="form-control" value="{{sale.tax_amount}}" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Grand Total" %}</label>
-                                    <div class="input-group">
-                                        <input name="grand_total" class="form-control" value="{{sale.grand_total}}" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>{% trans "Amount payed" %}</label>
-                                    <div class="input-group">
-                                        <input name="amount_payed" class="form-control" value="{{sale.amount_payed}}" readonly>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <!--End card-body-->
-                    </div>
-                    <!--End Right column-->
                 </div>
-                <!--End row-->
-            </div>
-            <!--End card-body-->
-        </div>
+                <!--End Left column-->
 
+                <!--Righ column-->
+                <div class="col-md-3 pr-0">
+                    <div class="card card-secondary">
+                        <div class="card-header">{% trans "Sale details" %}</div>
+                        <div class="card-body">
+
+                            {% if sale.status == 'pending_credit' %}
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary btn-block font-weight-bold" data-toggle="modal" data-target="#paymentModal">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    {% trans "Add Payment" %}
+                                </button>
+                            </div>
+                            <hr>
+                            {% endif %}
+
+                            <div class="form-group">
+                                <label for="customer">{% trans "Customer" %}</label>
+                                <input class="form-control" value="{{sale.customer.get_full_name}}" readonly>
+                            </div>
+                            <div class="form-group mt-4">
+                                <label>{% trans "Subtotal" %}</label>
+                                <div class="input-group">
+                                    <input name="sub_total" class="form-control" value="{{sale.sub_total}}" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Tax Inclusive (%)" %}</label>
+                                <div class="input-group">
+                                    <input name="tax_percentage" class="form-control" value="{{sale.tax_percentage}}" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Tax Amount" %}</label>
+                                <div class="input-group">
+                                    <input name="tax_amount" class="form-control" value="{{sale.tax_amount}}" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Grand Total" %}</label>
+                                <div class="input-group">
+                                    <input name="grand_total" class="form-control" value="{{sale.grand_total}}" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Amount payed" %}</label>
+                                <div class="input-group">
+                                    <input name="amount_payed" class="form-control" value="{{sale.amount_payed}}" readonly>
+                                </div>
+                            </div>
+
+                        </div>
+                        <!--End card-body-->
+                </div>
+                <!--End Right column-->
+            </div>
+            <!--End row-->
+        </div>
+        <!--End card-body-->
     </div>
-</form>
+
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="{% url 'sales:pay_credit_sale' sale.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Add Payment for Sale #{{ sale.id }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="payment_method">{% trans "Payment Method" %}</label>
+                        <select class="form-control" id="payment_method" name="payment_method" required>
+                            {% for pm in payment_methods %}
+                                <option value="{{ pm.id }}">{{ pm.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">{% trans "Amount" %}</label>
+                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reference">{% trans "Reference" %}</label>
+                        <input type="text" class="form-control" id="reference" name="reference">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Close" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Save Payment" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
