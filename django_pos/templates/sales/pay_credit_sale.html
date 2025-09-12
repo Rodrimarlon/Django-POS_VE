@@ -7,14 +7,15 @@
 {% block content %}
 <div class="container-fluid">
     <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">{% trans "Pay Credit Sale" %} #{{ sale.id }}</h4>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">{% trans "Pay Credit Sale" %} #{{ sale.id }}</h4>
+            <a href="{% url 'sales:pending_sales_list' %}" class="btn btn-secondary">{% trans "Back" %}</a>
         </div>
         <div class="card-body">
             <!-- Sale Summary -->
             <div class="row mb-4">
                 <div class="col-md-4">
-                    <p><strong>{% trans "Customer" %}:</strong> {{ sale.customer.get_full_name }}</p>
+                    <h5><strong>{% trans "Customer" %}:</strong> {{ sale.customer.get_full_name }}</h5>
                 </div>
                 <div class="col-md-8">
                     <div class="row text-right">
@@ -26,6 +27,7 @@
                         </div>
                         <div class="col">
                             <p class="h5 text-danger"><strong>{% trans "Balance" %}: <span id="sale-balance-usd">{{ sale.get_balance|stringformat:".2f" }}</span> USD</strong></p>
+                            <p class="h6 text-danger"><strong><span id="sale-balance-ves"></span></strong></p>
                         </div>
                     </div>
                 </div>
@@ -44,6 +46,8 @@
                                 <th>{% trans "Date" %}</th>
                                 <th>{% trans "Payment Method" %}</th>
                                 <th class="text-right">{% trans "Amount (USD)" %}</th>
+                                <th class="text-right">{% trans "Amount (VES)" %}</th>
+                                <th class="text-right">{% trans "Exchange Rate" %}</th>
                                 <th>{% trans "Reference" %}</th>
                             </tr>
                         </thead>
@@ -53,6 +57,8 @@
                                 <td>{{ payment.payment_date|date:"Y-m-d H:i" }}</td>
                                 <td>{{ payment.payment_method.name }}</td>
                                 <td class="text-right">{{ payment.amount_usd|stringformat:".2f" }}</td>
+                                <td class="text-right">{{ payment.amount_ves|stringformat:".2f" }}</td>
+                                <td class="text-right">{{ payment.exchange_rate.rate_usd_ves|stringformat:".2f" }}</td>
                                 <td>{{ payment.reference }}</td>
                             </tr>
                             {% endfor %}
@@ -63,13 +69,13 @@
             {% endif %}
 
             <!-- Payment Form -->
-            <form id="payment-form" method="post" data-exchange-rate="{{ exchange_rate }}" data-igtf-percentage="{{ igtf_percentage }}">
+            <form id="payment-form" method="post" data-exchange-rate="{{ exchange_rate|stringformat:".2f" }}" data-igtf-percentage="{{ igtf_percentage }}">
                 {% csrf_token %}
                 <input type="hidden" name="payments_json" id="payments-json-input">
 
                 <!-- Payment Methods Section -->
                 <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-12">
                         <h5>{% trans "Register Payment" %}</h5>
                         <div id="payment-lines-container">
                             <!-- Payment lines will be injected here by JavaScript -->
@@ -78,39 +84,12 @@
                             <i class="fas fa-plus"></i> {% trans "Add Payment" %}
                         </button>
                     </div>
-
-                    <!-- Totals Section -->
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{% trans "Summary" %}</h5>
-                                <div class="d-flex justify-content-between">
-                                    <span>{% trans "Amount to Pay (USD)" %}</span>
-                                    <strong id="summary-amount-to-pay">{{ sale.get_balance|stringformat:".2f" }}</strong>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>{% trans "Total Paid (USD)" %}</span>
-                                    <strong id="summary-total-paid">0.00</strong>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>{% trans "IGTF (USD)" %}</span>
-                                    <strong id="summary-igtf">0.00</strong>
-                                </div>
-                                <hr>
-                                <div class="d-flex justify-content-between h4 text-success">
-                                    <span>{% trans "Change (USD)" %}</span>
-                                    <strong id="summary-change">0.00</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="mt-4">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="fas fa-save"></i> {% trans "Save Payment" %}
                     </button>
-                    <a href="{% url 'sales:pending_sales_list' %}" class="btn btn-secondary btn-lg">{% trans "Cancel" %}</a>
                 </div>
             </form>
         </div>
@@ -120,17 +99,23 @@
 <!-- Payment Line Template -->
 <template id="payment-line-template">
     <div class="payment-line row align-items-center mb-2">
-        <div class="col-md-4">
+        <div class="col-md-2">
+            <input type="date" class="form-control payment-date" name="payment_date">
+        </div>
+        <div class="col-md-3">
             <select class="form-control payment-method-select" name="payment_method">
                 {% for method in payment_methods %}
                     <option value="{{ method.id }}" data-is-foreign="{{ method.is_foreign_currency|yesno:'true,false' }}">{{ method.name }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-2">
             <input type="number" class="form-control payment-amount" name="amount" placeholder="0.00" step="0.01">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <input type="number" class="form-control payment-exchange-rate" name="exchange_rate" placeholder="Rate" step="0.01">
+        </div>
+        <div class="col-md-2">
             <input type="text" class="form-control payment-reference" name="reference" placeholder="{% trans "Reference" %}">
         </div>
         <div class="col-md-1">

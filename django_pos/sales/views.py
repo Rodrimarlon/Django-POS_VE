@@ -134,14 +134,20 @@ def pay_credit_sale_view(request, sale_id):
             with transaction.atomic():
                 total_paid_in_usd = Decimal(0)
                 total_igtf = Decimal(0)
-                exchange_rate_obj = ExchangeRate.objects.latest('date')
-                rate = exchange_rate_obj.rate_usd_ves
+                
                 igtf_percentage = Company.objects.first().igtf_percentage
 
                 for payment_data in payments:
                     amount = Decimal(payment_data['amount'])
                     is_foreign = payment_data['is_foreign']
                     payment_method = PaymentMethod.objects.get(id=payment_data['payment_method_id'])
+                    line_exchange_rate = Decimal(payment_data['exchange_rate'])
+
+                    # Get or create the exchange rate object
+                    exchange_rate_obj, created = ExchangeRate.objects.get_or_create(
+                        rate_usd_ves=line_exchange_rate,
+                        defaults={'date': date.today()} # default date if created
+                    )
 
                     amount_usd = Decimal(0)
                     amount_ves = Decimal(0)
@@ -149,12 +155,12 @@ def pay_credit_sale_view(request, sale_id):
 
                     if is_foreign:
                         amount_usd = amount
-                        amount_ves = amount * rate
+                        amount_ves = amount * line_exchange_rate
                         igtf_for_payment = amount_usd * (igtf_percentage / 100)
                         total_igtf += igtf_for_payment
                     else:
                         amount_ves = amount
-                        amount_usd = amount / rate if rate > 0 else 0
+                        amount_usd = amount / line_exchange_rate if line_exchange_rate > 0 else 0
                     
                     total_paid_in_usd += amount_usd
 
@@ -165,7 +171,8 @@ def pay_credit_sale_view(request, sale_id):
                         igtf_amount=igtf_for_payment,
                         exchange_rate=exchange_rate_obj,
                         payment_method=payment_method,
-                        reference=payment_data.get('reference', '')
+                        reference=payment_data.get('reference', ''),
+                        payment_date=payment_data.get('payment_date')
                     )
 
                 # Update Sale object
