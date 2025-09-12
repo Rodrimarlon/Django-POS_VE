@@ -80,47 +80,59 @@
 
                             {% if sale.status == 'pending_credit' %}
                             <div class="mb-3">
-                                <button type="button" class="btn btn-primary btn-block font-weight-bold" data-toggle="modal" data-target="#paymentModal">
+                                <a href="{% url 'sales:pay_credit_sale' sale.id %}" class="btn btn-primary btn-block font-weight-bold">
                                     <i class="fas fa-plus mr-2"></i>
                                     {% trans "Add Payment" %}
-                                </button>
+                                </a>
                             </div>
                             <hr>
                             {% endif %}
 
                             <div class="form-group">
                                 <label for="customer">{% trans "Customer" %}</label>
-                                <input class="form-control" value="{{sale.customer.get_full_name}}" readonly>
+                                <p>{{sale.customer.get_full_name}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Status" %}</label>
+                                <p>
+                                    {% if sale.status == 'completed' %}
+                                        <span class="badge badge-success">{{ sale.get_status_display }}</span>
+                                    {% elif sale.status == 'pending_credit' %}
+                                        <span class="badge badge-warning">{{ sale.get_status_display }}</span>
+                                    {% elif sale.status == 'partially_paid' %}
+                                        <span class="badge badge-info">{{ sale.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ sale.get_status_display }}</span>
+                                    {% endif %}
+                                </p>
                             </div>
                             <div class="form-group mt-4">
                                 <label>{% trans "Subtotal" %}</label>
-                                <div class="input-group">
-                                    <input name="sub_total" class="form-control" value="{{sale.sub_total}}" readonly>
-                                </div>
+                                <p>{{sale.sub_total}}</p>
                             </div>
                             <div class="form-group">
                                 <label>{% trans "Tax Inclusive (%)" %}</label>
-                                <div class="input-group">
-                                    <input name="tax_percentage" class="form-control" value="{{sale.tax_percentage}}" readonly>
-                                </div>
+                                <p>{{sale.tax_percentage}}</p>
                             </div>
                             <div class="form-group">
                                 <label>{% trans "Tax Amount" %}</label>
-                                <div class="input-group">
-                                    <input name="tax_amount" class="form-control" value="{{sale.tax_amount}}" readonly>
-                                </div>
+                                <p>{{sale.tax_amount}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "IGTF Amount" %}</label>
+                                <p>{{sale.igtf_amount}}</p>
                             </div>
                             <div class="form-group">
                                 <label>{% trans "Grand Total" %}</label>
-                                <div class="input-group">
-                                    <input name="grand_total" class="form-control" value="{{sale.grand_total}}" readonly>
-                                </div>
+                                <p>{{sale.grand_total}}</p>
                             </div>
                             <div class="form-group">
-                                <label>{% trans "Amount payed" %}</label>
-                                <div class="input-group">
-                                    <input name="amount_payed" class="form-control" value="{{sale.amount_payed}}" readonly>
-                                </div>
+                                <label>{% trans "Amount paid" %}</label>
+                                <p>{{sale.amount_paid}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Balance" %}</label>
+                                <p>{{sale.get_balance}}</p>
                             </div>
 
                         </div>
@@ -135,44 +147,7 @@
 
 </div>
 
-<!-- Payment Modal -->
-<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form action="{% url 'sales:pay_credit_sale' sale.id %}" method="post">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title" id="paymentModalLabel">Add Payment for Sale #{{ sale.id }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="payment_method">{% trans "Payment Method" %}</label>
-                        <select class="form-control" id="payment_method" name="payment_method" required>
-                            {% for pm in payment_methods %}
-                                <option value="{{ pm.id }}">{{ pm.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="amount">{% trans "Amount" %}</label>
-                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reference">{% trans "Reference" %}</label>
-                        <input type="text" class="form-control" id="reference" name="reference">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Close" %}</button>
-                    <button type="submit" class="btn btn-primary">{% trans "Save Payment" %}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 {% endblock content %}
 
@@ -193,6 +168,8 @@
 // Products datatable
 
 tblProducts = $('#table_products').DataTable({
+    "dom": 't',
+    "paging": false
 });
                     
 </script>

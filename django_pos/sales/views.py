@@ -143,10 +143,9 @@ def pay_credit_sale_view(request, sale_id):
                     payment_method = PaymentMethod.objects.get(id=payment_data['payment_method_id'])
                     line_exchange_rate = Decimal(payment_data['exchange_rate'])
 
-                    # Get or create the exchange rate object
-                    exchange_rate_obj, created = ExchangeRate.objects.get_or_create(
-                        rate_usd_ves=line_exchange_rate,
-                        defaults={'date': date.today()} # default date if created
+                    exchange_rate_obj, created = ExchangeRate.objects.update_or_create(
+                        date=payment_data.get('payment_date'),
+                        defaults={'rate_usd_ves': line_exchange_rate, 'user': request.user}
                     )
 
                     amount_usd = Decimal(0)

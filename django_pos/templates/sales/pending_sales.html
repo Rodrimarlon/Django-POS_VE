@@ -39,7 +39,7 @@
                         {% for s in pending_sales %}
                         <tr>
                             <td>{{s.id}}</td>
-                            <td>{{s.date_added}}</td>
+                            <td>{{s.date_added|date:"Y-m-d H:i"}}</td>
                             <td>{{s.customer.get_full_name}}</td>
                             <td class="text-right" >{{s.grand_total}}</td>
                             <td class="text-center" >{{s.sum_items}}</td>
