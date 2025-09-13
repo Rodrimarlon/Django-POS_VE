@@ -66,7 +66,7 @@ def receipt_pdf_view(request, sale_id):
         "details": details
     }
     html_template = template.render(context)
-    css_url = os.path.join(settings.BASE_DIR, 'static/css/receipt_pdf/bootstrap.min.css')
+    css_url = os.path.join(settings.BASE_DIR, 'sales/static/css/receipt_pdf/bootstrap.min.css')
     pdf = HTML(string=html_template).write_pdf(stylesheets=[CSS(css_url)])
     return HttpResponse(pdf, content_type="application/pdf")
 
