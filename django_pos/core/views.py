@@ -29,10 +29,10 @@ def company_update_view(request):
         form = CompanyForm(request.POST, request.FILES, instance=company)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Company details updated successfully!', extra_tags="success")
+            messages.success(request, _('Company details updated successfully!'), extra_tags="success")
             return redirect('core:company_view')
         else:
-            messages.error(request, 'Please correct the errors below.', extra_tags="danger")
+            messages.error(request, _('Please correct the errors below.'), extra_tags="danger")
     else:
         form = CompanyForm(instance=company)
 

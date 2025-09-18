@@ -54,7 +54,7 @@
                     </button>
                     <button class="btn btn-light" id="btn-customer">
                         <i class="fas fa-user"></i>
-                        <span>Customer</span>
+                        <span>{% trans "Customer" %}</span>
                     </button>
                 </div>
                 <div class="order-body">
@@ -82,7 +82,7 @@
                     <div class="actions">
                         <button class="btn-payment">
                             <i class="fas fa-money-bill-wave"></i>
-                            Payment
+                            {% trans "Payment" %}
                         </button>
                     </div>
                 </div>
@@ -133,22 +133,22 @@ aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="customerModalLabel">Select Customer</h5>
+                <h5 class="modal-title" id="customerModalLabel">{% trans "Select Customer" %}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="customer-search-container">
-                    <input type="text" id="customer-search-input" class="form-control" placeholder="Search by name or tax ID...">
+                    <input type="text" id="customer-search-input" class="form-control" placeholder="{% trans 'Search by name or tax ID...' %}">
                 </div>
                 <div id="customer-list" class="list-group mt-3">
                     <!-- Customer list will be populated by JS -->
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="add-new-customer-btn">Add New Customer</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Close" %}</button>
+                <button type="button" class="btn btn-primary" id="add-new-customer-btn">{% trans "Add New Customer" %}</button>
             </div>
         </div>
     </div>
@@ -209,7 +209,7 @@ aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="paymentModalLabel">Payment</h5>
+                <h5 class="modal-title" id="paymentModalLabel">{% trans "Payment" %}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -225,7 +225,7 @@ aria-hidden="true">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Pago</th>
+                                        <th>{% trans "Pago" %}</th>
                                         <th class="text-right">$
                                         <th class="text-right">VES
                                     </tr>
@@ -237,12 +237,12 @@ aria-hidden="true">
                                         <td class="text-right text-primary" id="payment-total-ves">0.00</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Remaining:</strong></td>
+                                        <td><strong>{% trans "Remaining:" %}</strong></td>
                                         <td class="text-right" id="payment-remaining-usd">0.00</td>
                                         <td class="text-right text-primary" id="payment-remaining-ves">0.00</td>
                                     </tr>
                                     <tr class="text-success">
-                                        <td><strong>Change:</strong></td>
+                                        <td><strong>{% trans "Change:" %}</strong></td>
                                         <td class="text-right" id="payment-change-usd">0.00</td>
                                         <td class="text-right text-primary" id="payment-change-ves">0.00</td>
                                     </tr>
@@ -253,7 +253,7 @@ aria-hidden="true">
                     <!-- Right Column: Payment Methods -->
                     <div class="col-md-6">
                         <div class="payment-methods">
-                            <h6>Payment Methods</h6>
+                            <h6>{% trans "Payment Methods" %}</h6>
                             <div id="payment-methods-buttons" class="btn-group-toggle" data-toggle="buttons">
                                 <!-- Payment method buttons will be injected by JS -->
                             </div>
@@ -262,21 +262,21 @@ aria-hidden="true">
                             <div class="row">
                                 <div class="col-md-7">
                                     <div class="form-group">
-                                        <label for="payment-amount">Amount</label>
-                                        <input type="number" class="form-control" id="payment-amount" placeholder="Enter amount">
+                                        <label for="payment-amount">{% trans "Amount" %}</label>
+                                        <input type="number" class="form-control" id="payment-amount" placeholder="{% trans 'Enter amount' %}">
                                     </div>
                                 </div>
                                 <div class="col-md-5">
                                     <div class="form-group">
-                                        <label for="payment-reference">Reference</label>
-                                        <input type="text" class="form-control" id="payment-reference" placeholder="Enter reference" maxlength="8">
+                                        <label for="payment-reference">{% trans "Reference" %}</label>
+                                        <input type="text" class="form-control" id="payment-reference" placeholder="{% trans 'Enter reference' %}" maxlength="8">
                                     </div>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-primary btn-block" id="add-payment-btn">Add Payment</button>
+                            <button type="button" class="btn btn-primary btn-block" id="add-payment-btn">{% trans "Add Payment" %}</button>
                         </div>
                         <div class="payment-lines mt-3">
-                            <h6>Payments</h6>
+                            <h6>{% trans "Payments" %}</h6>
                             <ul id="payment-lines-list" class="list-group">
                                 <!-- Payment lines will be populated by JS -->
                             </ul>
@@ -285,9 +285,9 @@ aria-hidden="true">
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-warning" id="credit-sale-btn">Credit Sale</button>
-                <button type="button" class="btn btn-success" id="finalize-payment-btn">Finalize Payment</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Close" %}</button>
+                <button type="button" class="btn btn-warning" id="credit-sale-btn">{% trans "Credit Sale" %}</button>
+                <button type="button" class="btn btn-success" id="finalize-payment-btn">{% trans "Finalize Payment" %}</button>
             </div>
         </div>
     </div>
@@ -309,7 +309,7 @@ aria-hidden="true">
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cerrar" %}</button>
             </div>
         </div>
     </div>

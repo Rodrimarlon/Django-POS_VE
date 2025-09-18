@@ -274,10 +274,26 @@ msgstr "Productos"
 msgid "Categories"
 msgstr "Categorías"
 
+#: templates/pos/sidebar.html:31
+msgid "POS"
+msgstr "Punto de Venta"
+
+#: templates/pos/sidebar.html:41
+msgid "Inventory"
+msgstr "Inventario"
+
+#: templates/pos/sidebar.html:66
+msgid "Company"
+msgstr "Empresa"
+
+#: templates/pos/sidebar.html:76
+msgid "Exchange Rates"
+msgstr "Tasas de Cambio"
+
 #: templates/pos/sidebar.html:59 templates/suppliers/suppliers.html:4
 #: templates/suppliers/suppliers.html:8 templates/suppliers/suppliers.html:15
 msgid "Suppliers"
-msgstr ""
+msgstr "Proveedores"
 
 #: templates/pos/sidebar.html:69 templates/sales/sales.html:5
 #: templates/sales/sales.html:15
@@ -395,11 +411,6 @@ msgstr "Crear nueva venta"
 #: templates/sales/sales.html:42
 msgid "Date"
 msgstr "Fecha"
-
-#: templates/sales/sales.html:43 templates/sales/sales_add.html:90
-#: templates/sales/sales_details.html:83
-msgid "Customer"
-msgstr "Cliente"
 
 #: templates/sales/sales.html:44 templates/sales/sales_add.html:69
 #: templates/sales/sales_details.html:54
@@ -564,6 +575,240 @@ msgstr "Cambio"
 #: templates/sales/sales_receipt_pdf.html:115
 msgid "Thank you for your preference!"
 msgstr "¡Gracias por tu preferencia!"
+
+#: templates/sales/pending_sales.html
+msgid "Pay Credit"
+msgstr "Pagar Crédito"
+
+#: templates/sales/pending_sales.html
+msgid "View Sale"
+msgstr "Ver Venta"
+
+#: templates/pos/pos.html
+msgid "Orders"
+msgstr "Órdenes"
+
+#: templates/pos/pos.html
+msgid "Search products..."
+msgstr "Buscar productos..."
+
+#: templates/pos/pos.html
+msgid "Customer"
+msgstr "Cliente"
+
+#: templates/pos/pos.html
+msgid "Producto"
+msgstr "Producto"
+
+#: templates/pos/pos.html
+msgid "Cant."
+msgstr "Cant."
+
+#: templates/pos/pos.html
+msgid "Precio"
+msgstr "Precio"
+
+#: templates/pos/pos.html
+msgid "%"
+msgstr "%"
+
+
+#: templates/pos/pos.html
+msgid "Payment"
+msgstr "Pago"
+
+#: templates/pos/pos.html
+msgid "Select Customer"
+msgstr "Seleccionar Cliente"
+
+#: templates/pos/pos.html
+msgid "Search by name or tax ID..."
+msgstr "Buscar por nombre o RIF..."
+
+#: templates/pos/pos.html
+msgid "Close"
+msgstr "Cerrar"
+
+#: templates/pos/pos.html
+msgid "Add New Customer"
+msgstr "Añadir Nuevo Cliente"
+
+#: templates/pos/pos.html
+msgid "Save Customer"
+msgstr "Guardar Cliente"
+
+#: templates/pos/pos.html
+msgid "Pago"
+msgstr "Pago"
+
+#: templates/pos/pos.html
+msgid "Payment Methods"
+msgstr "Métodos de Pago"
+
+#: templates/pos/pos.html
+msgid "Amount"
+msgstr "Monto"
+
+#: templates/pos/pos.html
+msgid "Enter amount"
+msgstr "Ingrese monto"
+
+#: templates/pos/pos.html
+msgid "Reference"
+msgstr "Referencia"
+
+#: templates/pos/pos.html
+msgid "Enter reference"
+msgstr "Ingrese referencia"
+
+#: templates/pos/pos.html
+msgid "Add Payment"
+msgstr "Añadir Pago"
+
+#: templates/pos/pos.html
+msgid "Payments"
+msgstr "Pagos"
+
+#: templates/pos/pos.html
+msgid "Credit Sale"
+msgstr "Venta a Crédito"
+
+#: templates/pos/pos.html
+msgid "Finalize Payment"
+msgstr "Finalizar Pago"
+
+#: templates/pos/pos.html
+msgid "Órdenes en Espera"
+msgstr "Órdenes en Espera"
+
+#: templates/pos/pos.html
+msgid "Cerrar"
+msgstr "Cerrar"
+
+#: templates/pos/pos.html
+msgid "Categoria"
+msgstr "Categoría"
+
+#: templates/pos/pos.html
+msgid "Remaining:"
+msgstr "Restante:"
+
+#: templates/pos/pos.html
+msgid "Change:"
+msgstr "Cambio:"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Please select a customer before proceeding to payment."
+msgstr "Por favor seleccione un cliente antes de proceder al pago."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "No Customer Selected"
+msgstr "No se ha seleccionado cliente"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Please select a customer before saving an order."
+msgstr "Por favor seleccione un cliente antes de guardar la orden."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Cart is Empty"
+msgstr "El carrito está vacío"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Cannot save an empty order."
+msgstr "No se puede guardar una orden vacía."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Order Saved!"
+msgstr "¡Orden guardada!"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Unexpected Error"
+msgstr "Error inesperado"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "An unexpected error occurred."
+msgstr "Ocurrió un error inesperado."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Could not load orders. See console for details."
+msgstr "No se pudieron cargar las órdenes. Ver detalles en la consola."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Are you sure?"
+msgstr "¿Está seguro?"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "You are about to delete Order #"
+msgstr "Está a punto de eliminar la Orden #"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "You won't be able to revert this!"
+msgstr "¡No podrá revertir esto!"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Yes, delete it!"
+msgstr "¡Sí, eliminar!"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Deleted!"
+msgstr "¡Eliminado!"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Could not delete the order."
+msgstr "No se pudo eliminar la orden."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Request Failed!"
+msgstr "¡Solicitud fallida!"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "An unexpected error occurred while loading the order."
+msgstr "Ocurrió un error inesperado al cargar la orden."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "No products in order"
+msgstr "No hay productos en la orden"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "All"
+msgstr "Todos"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Deselect Customer"
+msgstr "Deseleccionar Cliente"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "No saved orders found."
+msgstr "No se encontraron órdenes guardadas."
+
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Total:"
+msgstr "Total:"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Please select a payment method and enter a valid amount."
+msgstr "Por favor seleccione un método de pago e ingrese un monto válido."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "This payment method requires a reference."
+msgstr "Este método de pago requiere una referencia."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "The paid amount is less than the total."
+msgstr "El monto pagado es menor que el total."
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Venta Realizada!"
+msgstr "¡Venta realizada!"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Error Inesperado"
+msgstr "Error inesperado"
+
+#: django_pos/pos/static/js/pos/pos.js
+msgid "Ocurrió un error inesperado."
+msgstr "Ocurrió un error inesperado."
 
 #: templates/suppliers/suppliers.html:22
 #: templates/suppliers/suppliers_add.html:4

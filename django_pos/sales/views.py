@@ -11,7 +11,8 @@ from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template.loader import get_template
-from django_pos import settings
+from django.utils.translation import gettext as _
+from django_pos import settings
 from weasyprint import HTML, CSS
 
 from authentication.decorators import role_required, admin_required
@@ -48,10 +49,10 @@ def sales_details_view(request, sale_id):
         }
         return render(request, "sales/sales_details.html", context=context)
     except Sale.DoesNotExist:
-        messages.error(request, f"Sale with ID {sale_id} not found.", extra_tags="danger")
+        messages.error(request, _("Sale with ID {} not found.").format(sale_id), extra_tags="danger")
         return redirect('sales:sales_list')
     except Exception as e:
-        messages.error(request, 'There was an error getting the sale!', extra_tags="danger")
+        messages.error(request, _('There was an error getting the sale!'), extra_tags="danger")
         print(e)
         return redirect('sales:sales_list')
 
@@ -194,11 +195,14 @@ def pay_credit_sale_view(request, sale_id):
                     customer.outstanding_balance = 0
                 customer.save()
 
-            messages.success(request, f'Payment of ${total_paid_in_usd:.2f} (+ ${total_igtf:.2f} IGTF) registered successfully!', extra_tags='success')
+            messages.success(request, _('Payment of ${amount} (+ ${igtf} IGTF) registered successfully!').format(
+                amount=f'{total_paid_in_usd:.2f}',
+                igtf=f'{total_igtf:.2f}'
+            ), extra_tags='success')
             return redirect('sales:pending_sales_list')
 
         except Exception as e:
-            messages.error(request, f'An error occurred: {e}', extra_tags='danger')
+            messages.error(request, _('An error occurred: {}').format(e), extra_tags='danger')
             return redirect('sales:pay_credit_sale', sale_id=sale.id)
 
     payment_methods = PaymentMethod.objects.all()

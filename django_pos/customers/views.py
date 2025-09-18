@@ -48,7 +48,7 @@ def customers_update_view(request, customer_id):
     try:
         customer = Customer.objects.get(id=customer_id)
     except Customer.DoesNotExist:
-        messages.error(request, 'Customer not found!', extra_tags="danger")
+        messages.error(request, _('Customer not found!'), extra_tags="danger")
         return redirect('customers:customers_list')
 
     if request.method == 'POST':
@@ -145,8 +145,8 @@ def customer_purchase_history_view(request, customer_id):
         }
         return render(request, "customers/customer_purchase_history.html", context)
     except Customer.DoesNotExist:
-        messages.error(request, 'Customer not found!', extra_tags="danger")
+        messages.error(request, _('Customer not found!'), extra_tags="danger")
         return redirect('customers:customers_list')
     except Exception as e:
-        messages.error(request, f'An error occurred: {e}', extra_tags="danger")
+        messages.error(request, _('An error occurred: {}').format(e), extra_tags="danger")
         return redirect('customers:customers_list')
