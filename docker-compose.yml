@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: django_pos
+      POSTGRES_USER: pos_user
+      POSTGRES_PASSWORD: pos_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pos_user -d django_pos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: always
+    environment:
+      - DJANGO_SETTINGS_MODULE=django_pos.settings.production
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgresql://pos_user:pos_password@db:5432/django_pos
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - TIME_ZONE=${TIME_ZONE:-America/Caracas}
+      - LANGUAGE_CODE=${LANGUAGE_CODE:-es}
+    volumes:
+      - ./django_pos/media:/app/media
+      - ./django_pos/staticfiles:/app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py migrate &&
+             python manage.py compilemessages &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./django_pos/staticfiles:/app/staticfiles:ro
+      - ./django_pos/media:/app/media:ro
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:

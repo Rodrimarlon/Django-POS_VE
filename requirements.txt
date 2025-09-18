@@ -23,4 +23,6 @@ tzdata==2022.7
 weasyprint==57.2
 webencodings==0.5.1
 zopfli==0.2.2
+psycopg2-binary==2.9.7
+dj-database-url==2.1.0
 
