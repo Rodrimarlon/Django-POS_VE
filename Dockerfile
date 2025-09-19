@@ -19,22 +19,36 @@ RUN apt-get update && apt-get install -y \
     libpangocairo-1.0-0 \
     libgdk-pixbuf-2.0-0 \
     shared-mime-info \
+    gettext \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir gunicorn
 
-# Copy project
-COPY django_pos/ .
+# Copy entire project directory with correct structure
+COPY django_pos/ /app/
 
-# Create non-root user
-RUN useradd --create-home --shell /bin/bash app \
-    && chown -R app:app /app
+# Create directories for static and media files
+RUN mkdir -p /app/staticfiles /app/media
+
+COPY docker-entrypoint-web.sh /docker-entrypoint-web.sh
+RUN chmod +x /docker-entrypoint-web.sh
+
+# Create non-root user and set permissions
+RUN useradd --create-home --shell /bin/bash app && \
+    chown -R app:app /app /docker-entrypoint-web.sh
+
+# Switch to non-root user
 USER app
+
+# Set entrypoint
+ENTRYPOINT ["/docker-entrypoint-web.sh"]
 
 # Expose port
 EXPOSE 8000
 
-# Run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Run the application with gunicorn for production
+CMD ["gunicorn", "django_pos.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--log-level", "info"]

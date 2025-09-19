@@ -100,7 +100,7 @@ def daily_cash_close_report_view(request):
     }
     return render(request, "sales/daily_cash_close_report.html", context)
 
-@admin_required
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def pending_sales_list_view(request):
     pending_sales = Sale.objects.filter(is_credit=True, grand_total__gt=F('amount_paid')).order_by('-date_added')

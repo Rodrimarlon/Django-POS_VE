@@ -25,4 +25,5 @@ webencodings==0.5.1
 zopfli==0.2.2
 psycopg2-binary==2.9.7
 dj-database-url==2.1.0
+gunicorn==21.2.0
 

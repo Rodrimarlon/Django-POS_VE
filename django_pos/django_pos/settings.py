@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-shfzstshi=+%g-@_=nc4_x=9xdpt1thdo=^k#($km%htb-se)(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.110', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -71,6 +71,7 @@ LOGOUT_REDIRECT_URL = "authentication:login"
 
 # ROOT dir for templates
 TEMPLATE_DIR = os.path.join(CORE_DIR, "templates")
+print(f"TEMPLATE_DIR: {TEMPLATE_DIR}")
 
 TEMPLATES = [
     {

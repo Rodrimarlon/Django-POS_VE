@@ -5,6 +5,8 @@ from .forms import LoginForm, SignUpForm
 from .models import Profile # Import Profile model
 
 
+from django.conf import settings
+
 def login_view(request):
     form = LoginForm(request.POST or None)
 
@@ -18,7 +20,7 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect("/")
+                return redirect(settings.LOGIN_REDIRECT_URL)
             else:
                 msg = 'Invalid username or password!'
         else:

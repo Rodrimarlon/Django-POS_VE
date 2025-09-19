@@ -43,6 +43,11 @@ def role_required(allowed_roles=[], function=None, redirect_field_name=None, log
             if not request.user.is_authenticated:
                 messages.error(request, _("You must be logged in to access this page."), extra_tags="danger")
                 return redirect(login_url)
+            
+            # Allow superusers to access any page
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+
             if not hasattr(request.user, 'profile') or request.user.profile.role not in allowed_roles:
                 messages.error(request, _("Access denied. You do not have the required role to access this page."), extra_tags="danger")
                 return redirect('pos:index')
