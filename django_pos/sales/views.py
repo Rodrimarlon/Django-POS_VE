@@ -72,7 +72,6 @@ def receipt_pdf_view(request, sale_id):
     return HttpResponse(pdf, content_type="application/pdf")
 
 
-@admin_required
 @login_required(login_url="/accounts/login/")
 def daily_cash_close_report_view(request):
     today = date.today()
@@ -111,7 +110,7 @@ def pending_sales_list_view(request):
     return render(request, "sales/pending_sales.html", context=context)
 
 
-@admin_required
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def pay_credit_sale_view(request, sale_id):
     try:

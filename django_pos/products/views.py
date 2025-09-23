@@ -2,13 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Product, Category, InventoryMovement
+from django.core.paginator import Paginator
 
 from authentication.decorators import admin_required
 from django.db import IntegrityError, models
 from django.http import JsonResponse
 
 
-@admin_required
 @login_required(login_url="/accounts/login/")
 def products_list_view(request):
     """
@@ -23,7 +23,7 @@ def products_list_view(request):
     }
     return render(request, "products/products.html", context=context)
 
-@admin_required
+
 @login_required(login_url="/accounts/login/")
 def inventory_report_view(request):
     """
@@ -41,8 +41,6 @@ def inventory_report_view(request):
     }
     return render(request, "products/inventory_report.html", context)
 
-
-from django.core.paginator import Paginator
 
 def product_list_api(request):
     product_list = Product.objects.select_related('category').all().order_by('name')
