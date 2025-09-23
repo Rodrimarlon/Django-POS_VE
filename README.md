@@ -63,6 +63,9 @@ chmod +x deploy.sh update.sh
 # Ejecutar despliegue
 ./deploy.sh
 ```
+Nota: Los scripts usan Docker Compose V2 (docker compose sin guión).
+Si tienes problemas, verifica con: `docker compose version`
+```
 
 ### Paso 4: Acceder a la Aplicación
 
@@ -180,13 +183,13 @@ django_point_of_sale/
 
 ```bash
 # Todos los servicios
-docker-compose logs -f
+docker compose logs -f
 
 # Solo aplicación web
-docker-compose logs -f web
+docker compose logs -f web
 
 # Solo base de datos
-docker-compose logs -f db
+docker compose logs -f db
 ```
 
 ### Health Checks
@@ -200,32 +203,32 @@ docker-compose logs -f db
 
 ```bash
 # Detener servicios
-docker-compose down
+docker compose down
 
 # Reiniciar servicios
-docker-compose restart
+docker compose restart
 
 # Ver estado de servicios
-docker-compose ps
+docker compose ps
 
 # Acceder al shell del contenedor web
-docker-compose exec web bash
+docker compose exec web bash
 
 # Acceder a PostgreSQL
-docker-compose exec db psql -U pos_user -d django_pos
+docker compose exec db psql -U pos_user -d django_pos
 ```
 
 ### Gestión de Django
 
 ```bash
 # Crear superusuario
-docker-compose exec web python manage.py createsuperuser
+docker compose exec web python manage.py createsuperuser
 
 # Ejecutar migraciones
-docker-compose exec web python manage.py migrate
+docker compose exec web python manage.py migrate
 
 # Recopilar archivos estáticos
-docker-compose exec web python manage.py collectstatic
+docker compose exec web python manage.py collectstatic
 
 # Compilar traducciones
 docker-compose exec web python manage.py compilemessages
@@ -235,10 +238,10 @@ docker-compose exec web python manage.py compilemessages
 
 ```bash
 # Backup de base de datos
-docker-compose exec db pg_dump -U pos_user django_pos > backup.sql
+docker compose exec db pg_dump -U pos_user django_pos > backup.sql
 
 # Restaurar backup
-docker-compose exec -T db psql -U pos_user -d django_pos < backup.sql
+docker compose exec -T db psql -U pos_user -d django_pos < backup.sql
 ```
 
 ## 🌐 Despliegue en Producción
@@ -295,29 +298,29 @@ ports:
 
 ```bash
 # Verificar estado de PostgreSQL
-docker-compose logs db
+docker compose logs db
 
 # Reiniciar base de datos
-docker-compose restart db
+docker compose restart db
 ```
 
 ### Problema: Archivos estáticos no cargan
 
 ```bash
 # Recopilar archivos estáticos
-docker-compose exec web python manage.py collectstatic --noinput
+docker compose exec web python manage.py collectstatic --noinput
 
 # Reiniciar Nginx
-docker-compose restart nginx
+docker compose restart nginx
 ```
 
 ## 📞 Soporte
 
 Para soporte técnico o reportar problemas:
 
-1. **Revisar logs**: `docker-compose logs -f`
+1. **Revisar logs**: `docker compose logs -f`
 2. **Verificar configuración**: Archivo `.env`
-3. **Comprobar servicios**: `docker-compose ps`
+3. **Comprobar servicios**: `docker compose ps`
 4. **Documentación**: Este README
 
 ## 📝 Licencia

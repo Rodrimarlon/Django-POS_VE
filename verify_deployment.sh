@@ -32,10 +32,10 @@ echo "============================================" | tee -a "$OUTPUT_FILE"
 # 1. Verificar estado de contenedores
 print_status "1. VERIFICANDO ESTADO DE CONTENEDORES"
 print_normal "Contenedores corriendo:"
-docker-compose ps | tee -a "$OUTPUT_FILE"
+docker compose ps | tee -a "$OUTPUT_FILE"
 
 # Verificar que todos los servicios estén UP
-if docker-compose ps | grep -q "Up"; then
+if docker compose ps | grep -q "Up"; then
     print_success "Contenedores están ejecutándose"
 else
     print_error "Algunos contenedores no están ejecutándose"
@@ -45,21 +45,21 @@ fi
 print_status "2. VERIFICANDO CONFIGURACIÓN DJANGO"
 
 echo "Ejecutando 'python manage.py check'..."
-if docker-compose exec -T web python manage.py check --deploy > /dev/null 2>&1; then
+if docker compose exec -T web python manage.py check --deploy > /dev/null 2>&1; then
     print_success "Configuración de Django es válida"
 else
     print_error "Errores en configuración de Django"
-    docker-compose exec -T web python manage.py check --deploy
+    docker compose exec -T web python manage.py check --deploy
 fi
 
 # 3. Verificar base de datos
 print_status "3. VERIFICANDO CONEXIÓN A BASE DE DATOS"
 
-if docker-compose exec -T db pg_isready -U pos_user -d django_pos > /dev/null 2>&1; then
+if docker compose exec -T db pg_isready -U pos_user -d django_pos > /dev/null 2>&1; then
     print_success "PostgreSQL está respondiendo"
 
     # Verificar que las tablas existen
-    TABLES_COUNT=$(docker-compose exec -T db psql -U pos_user -d django_pos -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';" -t)
+    TABLES_COUNT=$(docker compose exec -T db psql -U pos_user -d django_pos -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';" -t)
     if [ "$TABLES_COUNT" -gt 0 ]; then
         print_success "Base de datos tiene $TABLES_COUNT tablas"
     else
@@ -101,7 +101,7 @@ fi
 # 6. Verificar workers de Gunicorn
 print_status "6. VERIFICANDO CONFIGURACIÓN GUNICORN"
 
-WORKERS=$(docker-compose exec -T web ps aux | grep gunicorn | grep -v grep | wc -l)
+WORKERS=$(docker compose exec -T web ps aux | grep gunicorn | grep -v grep | wc -l)
 if [ "$WORKERS" -eq 1 ]; then
     print_success "Gunicorn ejecutándose con 1 worker (optimizado)"
 else
@@ -111,14 +111,14 @@ fi
 # 7. Verificar configuración PostgreSQL
 print_status "7. VERIFICANDO CONFIGURACIÓN POSTGRESQL"
 
-SHARED_BUFFERS=$(docker-compose exec -T db psql -U pos_user -d django_pos -c "SHOW shared_buffers;" -t 2>/dev/null | tr -d ' ')
+SHARED_BUFFERS=$(docker compose exec -T db psql -U pos_user -d django_pos -c "SHOW shared_buffers;" -t 2>/dev/null | tr -d ' ')
 if [ "$SHARED_BUFFERS" = "128MB" ]; then
     print_success "PostgreSQL shared_buffers optimizado: $SHARED_BUFFERS"
 else
     print_warning "PostgreSQL shared_buffers: $SHARED_BUFFERS (esperado: 128MB)"
 fi
 
-WORK_MEM=$(docker-compose exec -T db psql -U pos_user -d django_pos -c "SHOW work_mem;" -t 2>/dev/null | tr -d ' ')
+WORK_MEM=$(docker compose exec -T db psql -U pos_user -d django_pos -c "SHOW work_mem;" -t 2>/dev/null | tr -d ' ')
 if [ "$WORK_MEM" = "4MB" ]; then
     print_success "PostgreSQL work_mem optimizado: $WORK_MEM"
 else
@@ -129,11 +129,11 @@ fi
 print_status "8. VERIFICANDO LOGS RECIENTES"
 
 print_normal "Últimas 10 líneas de logs de web:"
-docker-compose logs --tail=10 web 2>/dev/null | head -10 | tee -a "$OUTPUT_FILE"
+docker compose logs --tail=10 web 2>/dev/null | head -10 | tee -a "$OUTPUT_FILE"
 
 print_normal ""
 print_normal "Últimas 10 líneas de logs de db:"
-docker-compose logs --tail=10 db 2>/dev/null | head -10 | tee -a "$OUTPUT_FILE"
+docker compose logs --tail=10 db 2>/dev/null | head -10 | tee -a "$OUTPUT_FILE"
 
 # 9. Verificar uso de recursos
 print_status "9. VERIFICANDO USO DE RECURSOS"
