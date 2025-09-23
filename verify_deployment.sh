@@ -1,30 +1,38 @@
 #!/bin/bash
 
-echo "=== VERIFICACIÓN COMPLETA DEL SISTEMA POS ==="
-echo "Fecha: $(date)"
-echo "============================================"
+# Crear archivo temporal para capturar salida
+OUTPUT_FILE=$(mktemp)
 
-# Función para imprimir con colores
+# Función para imprimir con colores y capturar salida
 print_status() {
-    echo -e "\n\e[1;34m$1\e[0m"
+    echo -e "\n\e[1;34m$1\e[0m" | tee -a "$OUTPUT_FILE"
 }
 
 print_success() {
-    echo -e "\e[1;32m✅ $1\e[0m"
+    echo -e "\e[1;32m✅ $1\e[0m" | tee -a "$OUTPUT_FILE"
 }
 
 print_error() {
-    echo -e "\e[1;31m❌ $1\e[0m"
+    echo -e "\e[1;31m❌ $1\e[0m" | tee -a "$OUTPUT_FILE"
 }
 
 print_warning() {
-    echo -e "\e[1;33m⚠️  $1\e[0m"
+    echo -e "\e[1;33m⚠️  $1\e[0m" | tee -a "$OUTPUT_FILE"
 }
+
+# Función para imprimir normal (sin colores en archivo)
+print_normal() {
+    echo "$1" | tee -a "$OUTPUT_FILE"
+}
+
+echo "=== VERIFICACIÓN COMPLETA DEL SISTEMA POS ===" | tee "$OUTPUT_FILE"
+echo "Fecha: $(date)" | tee -a "$OUTPUT_FILE"
+echo "============================================" | tee -a "$OUTPUT_FILE"
 
 # 1. Verificar estado de contenedores
 print_status "1. VERIFICANDO ESTADO DE CONTENEDORES"
-echo "Contenedores corriendo:"
-docker-compose ps
+print_normal "Contenedores corriendo:"
+docker-compose ps | tee -a "$OUTPUT_FILE"
 
 # Verificar que todos los servicios estén UP
 if docker-compose ps | grep -q "Up"; then
@@ -120,28 +128,29 @@ fi
 # 8. Verificar logs recientes
 print_status "8. VERIFICANDO LOGS RECIENTES"
 
-echo "Últimas 10 líneas de logs de web:"
-docker-compose logs --tail=10 web 2>/dev/null | head -10
+print_normal "Últimas 10 líneas de logs de web:"
+docker-compose logs --tail=10 web 2>/dev/null | head -10 | tee -a "$OUTPUT_FILE"
 
-echo -e "\nÚltimas 10 líneas de logs de db:"
-docker-compose logs --tail=10 db 2>/dev/null | head -10
+print_normal ""
+print_normal "Últimas 10 líneas de logs de db:"
+docker-compose logs --tail=10 db 2>/dev/null | head -10 | tee -a "$OUTPUT_FILE"
 
 # 9. Verificar uso de recursos
 print_status "9. VERIFICANDO USO DE RECURSOS"
 
-echo "Uso de memoria de contenedores:"
-docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" 2>/dev/null || print_warning "No se puede obtener estadísticas de Docker"
+print_normal "Uso de memoria de contenedores:"
+docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" 2>/dev/null | tee -a "$OUTPUT_FILE" || print_warning "No se puede obtener estadísticas de Docker"
 
 # 10. Resumen final
 print_status "10. RESUMEN FINAL"
 
-echo "============================================"
-echo "Verificación completada: $(date)"
-echo ""
+print_normal "============================================"
+print_normal "Verificación completada: $(date)"
+print_normal ""
 
-# Contar errores y warnings
-ERRORS=$(grep -c "❌" <<< "$output" 2>/dev/null || echo "0")
-WARNINGS=$(grep -c "⚠️" <<< "$output" 2>/dev/null || echo "0")
+# Contar errores y warnings del archivo de salida
+ERRORS=$(grep "❌" "$OUTPUT_FILE" | wc -l | tr -d ' ' || echo "0")
+WARNINGS=$(grep "⚠️" "$OUTPUT_FILE" | wc -l | tr -d ' ' || echo "0")
 
 if [ "$ERRORS" -eq 0 ] && [ "$WARNINGS" -eq 0 ]; then
     print_success "🎉 TODAS LAS VERIFICACIONES PASARON EXITOSAMENTE"
@@ -152,11 +161,14 @@ else
     print_error "Se encontraron errores que requieren atención"
 fi
 
-echo ""
+print_normal ""
 print_status "Próximos pasos recomendados:"
-echo "1. Acceder a http://localhost para probar la interfaz"
-echo "2. Crear usuario admin si no existe"
-echo "3. Probar funcionalidades básicas (productos, ventas)"
-echo "4. Monitorear logs durante uso normal"
+print_normal "1. Acceder a http://localhost para probar la interfaz"
+print_normal "2. Crear usuario admin si no existe"
+print_normal "3. Probar funcionalidades básicas (productos, ventas)"
+print_normal "4. Monitorear logs durante uso normal"
 
-echo "============================================"
+print_normal "============================================"
+
+# Limpiar archivo temporal
+rm -f "$OUTPUT_FILE"
