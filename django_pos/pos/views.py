@@ -1,4 +1,5 @@
 import json
+import logging
 from decimal import Decimal
 from django.utils import timezone
 from django.contrib import messages
@@ -16,6 +17,8 @@ from customers.models import Customer
 from core.models import PaymentMethod, ExchangeRate, Company
 from authentication.decorators import role_required
 from .models import Order, OrderDetail
+
+logger = logging.getLogger(__name__)
 
 @role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
@@ -73,8 +76,26 @@ def _process_sale_data(request, data, sale_id=None):
     Helper function to process the business logic of creating or updating a sale.
     This function is designed to be called from within the main pos_view.
     """
+    logger.info(f"Processing sale data for user {request.user}. Sale ID: {sale_id}")
+    logger.info(f"Data received: {data}")
+
+    try:
+        customer_id = int(data['customer'])
+        logger.info(f"Getting customer with ID: {customer_id}")
+        customer = Customer.objects.get(id=customer_id)
+    except (ValueError, Customer.DoesNotExist) as e:
+        logger.error(f"Error getting customer: {e}")
+        raise
+
+    try:
+        logger.info("Getting latest exchange rate")
+        exchange_rate = ExchangeRate.objects.latest('date')
+    except ExchangeRate.DoesNotExist as e:
+        logger.error(f"No exchange rate found: {e}")
+        raise
+
     sale_attributes = {
-        "customer": Customer.objects.get(id=int(data['customer'])),
+        "customer": customer,
         "sub_total": Decimal(data["sub_total"]),
         "grand_total": Decimal(data["grand_total"]),
         "tax_amount": Decimal(data["tax_amount"]),
@@ -84,7 +105,7 @@ def _process_sale_data(request, data, sale_id=None):
         "total_ves": Decimal(data.get("total_ves", 0)),
         "igtf_amount": Decimal(data.get("igtf_amount", 0)),
         "is_credit": data.get("is_credit", False),
-        "exchange_rate": ExchangeRate.objects.latest('date'),
+        "exchange_rate": exchange_rate,
     }
 
     # Determine sale status
@@ -95,6 +116,7 @@ def _process_sale_data(request, data, sale_id=None):
         sale_attributes["status"] = 'completed'
 
     if sale_id:
+        logger.info(f"Updating existing sale ID: {sale_id}")
         # Note: Updating customer balance for edited credit sales is not handled here.
         # This would require a more complex logic to calculate the difference.
         Sale.objects.filter(id=sale_id).update(**sale_attributes)
@@ -103,6 +125,7 @@ def _process_sale_data(request, data, sale_id=None):
         Payment.objects.filter(sale=current_sale).delete() # Clear old payments
         message = 'Sale updated successfully!'
     else:
+        logger.info("Creating new sale")
         current_sale = Sale.objects.create(**sale_attributes)
         # Update customer outstanding balance on new credit sale
         if current_sale.is_credit:
@@ -114,51 +137,75 @@ def _process_sale_data(request, data, sale_id=None):
     # Create Payment objects
     if not sale_attributes["is_credit"]:
         payments = data.get("payments", [])
+        logger.info(f"Processing {len(payments)} payments")
         for payment_data in payments:
-            Payment.objects.create(
-                sale=current_sale,
-                payment_method=PaymentMethod.objects.get(id=int(payment_data["payment_method_id"])),
-                amount=Decimal(payment_data["amount"]),
-                reference=payment_data.get("reference", "")
-            )
+            try:
+                payment_method_id = int(payment_data["payment_method_id"])
+                logger.info(f"Creating payment with method ID: {payment_method_id}")
+                Payment.objects.create(
+                    sale=current_sale,
+                    payment_method=PaymentMethod.objects.get(id=payment_method_id),
+                    amount=Decimal(payment_data["amount"]),
+                    reference=payment_data.get("reference", "")
+                )
+            except (ValueError, PaymentMethod.DoesNotExist) as e:
+                logger.error(f"Error creating payment: {e}")
+                raise
 
     products = data["products"]
+    logger.info(f"Processing {len(products)} products")
     for product_data in products:
-        detail_attributes = {
-            "sale": current_sale,
-            "product": Product.objects.get(id=int(product_data["id"])),
-            "price": Decimal(product_data["price"]),
-            "quantity": product_data["quantity"],
-            "total_detail": Decimal(product_data["total_product"])
-        }
-        SaleDetail.objects.create(**detail_attributes)
+        try:
+            product_id = int(product_data["id"])
+            logger.info(f"Creating sale detail for product ID: {product_id}")
+            detail_attributes = {
+                "sale": current_sale,
+                "product": Product.objects.get(id=product_id),
+                "price": Decimal(product_data["price"]),
+                "quantity": product_data["quantity"],
+                "total_detail": Decimal(product_data["total_product"])
+            }
+            SaleDetail.objects.create(**detail_attributes)
+        except (ValueError, Product.DoesNotExist) as e:
+            logger.error(f"Error creating sale detail: {e}")
+            raise
 
     # Stock deduction and InventoryMovement for completed or credit sales
     if current_sale.status in ['completed', 'pending_credit']:
+        logger.info("Updating stock and creating inventory movements")
         for product_data in products:
-            product_obj = Product.objects.get(id=int(product_data["id"]))
-            product_obj.stock = F('stock') - product_data["quantity"]
-            product_obj.save()
+            try:
+                product_id = int(product_data["id"])
+                product_obj = Product.objects.get(id=product_id)
+                quantity = product_data["quantity"]
+                logger.info(f"Updating stock for product {product_id}: subtracting {quantity}")
+                product_obj.stock = F('stock') - quantity
+                product_obj.save()
 
-            InventoryMovement.objects.create(
-                product=product_obj,
-                movement_type='out',
-                quantity=product_data["quantity"],
-                user=request.user,
-                reason=f'Sale {current_sale.id}'
-            )
+                InventoryMovement.objects.create(
+                    product=product_obj,
+                    movement_type='out',
+                    quantity=quantity,
+                    user=request.user,
+                    reason=f'Sale {current_sale.id}'
+                )
+            except (ValueError, Product.DoesNotExist) as e:
+                logger.error(f"Error updating stock: {e}")
+                raise
         message = 'Sale finalized and stock updated successfully!'
 
     # If the sale was created from a saved order, delete the order
     loaded_order_id = data.get('loaded_order_id')
     if loaded_order_id:
         try:
+            logger.info(f"Deleting order ID: {loaded_order_id}")
             Order.objects.get(id=int(loaded_order_id)).delete()
         except Order.DoesNotExist:
             # This case is not critical, so we can just log it or ignore it
-            print(f"Warning: Tried to delete order ID {loaded_order_id} after sale, but it was not found.")
+            logger.warning(f"Warning: Tried to delete order ID {loaded_order_id} after sale, but it was not found.")
             pass
-    
+
+    logger.info(f"Sale processing completed successfully: {message}")
     return message
 
 

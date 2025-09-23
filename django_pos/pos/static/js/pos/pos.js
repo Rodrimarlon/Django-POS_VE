@@ -228,7 +228,7 @@ const PosApp = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCookie('csrftoken'),
+                    'X-CSRFToken': this.getCSRFToken(),
                 },
                 body: JSON.stringify(customerData),
             });
@@ -282,7 +282,7 @@ const PosApp = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCookie('csrftoken'),
+                    'X-CSRFToken': this.getCSRFToken(),
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify(orderData),
@@ -352,7 +352,7 @@ const PosApp = {
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': this.getCookie('csrftoken'),
+                        'X-CSRFToken': this.getCSRFToken(),
                         'X-Requested-With': 'XMLHttpRequest',
                     }
                 });
@@ -849,7 +849,7 @@ const PosApp = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCookie('csrftoken'),
+                    'X-CSRFToken': this.getCSRFToken(),
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify(saleData),
@@ -922,6 +922,25 @@ const PosApp = {
             }
         }
         return cookieValue;
+    },
+
+    getCSRFToken: function() {
+        // Try to get from meta tag first
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken && metaToken.getAttribute('content')) {
+            console.log('CSRF token from meta:', metaToken.getAttribute('content'));
+            return metaToken.getAttribute('content');
+        }
+        // Try to get from hidden input
+        const tokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (tokenInput && tokenInput.value) {
+            console.log('CSRF token from input:', tokenInput.value);
+            return tokenInput.value;
+        }
+        // Fallback to cookie
+        const cookieToken = this.getCookie('csrftoken');
+        console.log('CSRF token from cookie:', cookieToken);
+        return cookieToken;
     }
 };
 

@@ -1,144 +1,162 @@
 #!/bin/bash
 
-# Script de verificación de despliegue Django con Docker
-# Colores para output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+echo "=== VERIFICACIÓN COMPLETA DEL SISTEMA POS ==="
+echo "Fecha: $(date)"
+echo "============================================"
 
-echo "======================================"
-echo "🔍 Verificación de Despliegue Django"
-echo "======================================"
-echo ""
-
-# Función para verificar servicios
-check_service() {
-    local service=$1
-    local port=$2
-    echo -n "Verificando $service en puerto $port... "
-    
-    if nc -z localhost $port 2>/dev/null; then
-        echo -e "${GREEN}✓ OK${NC}"
-        return 0
-    else
-        echo -e "${RED}✗ FALLO${NC}"
-        return 1
-    fi
+# Función para imprimir con colores
+print_status() {
+    echo -e "\n\e[1;34m$1\e[0m"
 }
 
-# 1. Verificar que los contenedores estén corriendo
-echo "1. Estado de los contenedores:"
-echo "------------------------------"
+print_success() {
+    echo -e "\e[1;32m✅ $1\e[0m"
+}
+
+print_error() {
+    echo -e "\e[1;31m❌ $1\e[0m"
+}
+
+print_warning() {
+    echo -e "\e[1;33m⚠️  $1\e[0m"
+}
+
+# 1. Verificar estado de contenedores
+print_status "1. VERIFICANDO ESTADO DE CONTENEDORES"
+echo "Contenedores corriendo:"
 docker-compose ps
-echo ""
 
-# 2. Verificar conectividad de servicios
-echo "2. Conectividad de servicios:"
-echo "------------------------------"
-check_service "PostgreSQL" 5432
-check_service "Django/Gunicorn" 8000
-check_service "Nginx" 80
-echo ""
-
-# 3. Verificar migraciones
-echo "3. Estado de las migraciones:"
-echo "------------------------------"
-docker-compose exec -T web python manage.py showmigrations --plan | head -20
-echo ""
-
-# 4. Verificar archivos estáticos
-echo "4. Archivos estáticos:"
-echo "------------------------------"
-echo -n "Verificando directorio de archivos estáticos... "
-if docker-compose exec -T web ls /app/staticfiles/ > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ Existe${NC}"
-    echo "Cantidad de archivos estáticos:"
-    docker-compose exec -T web find /app/staticfiles -type f | wc -l
+# Verificar que todos los servicios estén UP
+if docker-compose ps | grep -q "Up"; then
+    print_success "Contenedores están ejecutándose"
 else
-    echo -e "${RED}✗ No existe${NC}"
+    print_error "Algunos contenedores no están ejecutándose"
 fi
-echo ""
 
-# 5. Verificar templates
-echo "5. Templates:"
-echo "------------------------------"
-echo -n "Verificando directorio de templates... "
-if docker-compose exec -T web ls /app/templates/ > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ Existe${NC}"
-    echo "Templates disponibles:"
-    docker-compose exec -T web find /app/templates -name "*.html" -type f | head -10
+# 2. Verificar configuración de Django
+print_status "2. VERIFICANDO CONFIGURACIÓN DJANGO"
+
+echo "Ejecutando 'python manage.py check'..."
+if docker-compose exec -T web python manage.py check --deploy > /dev/null 2>&1; then
+    print_success "Configuración de Django es válida"
 else
-    echo -e "${RED}✗ No existe${NC}"
+    print_error "Errores en configuración de Django"
+    docker-compose exec -T web python manage.py check --deploy
 fi
-echo ""
 
-# 6. Probar endpoints
-echo "6. Prueba de endpoints:"
-echo "------------------------------"
-endpoints=(
-    "http://localhost/"
-    "http://localhost/admin/"
-    "http://localhost/static/admin/css/base.css"
-    "http://localhost/health/"
-)
+# 3. Verificar base de datos
+print_status "3. VERIFICANDO CONEXIÓN A BASE DE DATOS"
 
-for endpoint in "${endpoints[@]}"; do
-    echo -n "Probando $endpoint... "
-    response=$(curl -s -o /dev/null -w "%{http_code}" $endpoint)
-    
-    if [[ $response == "200" ]] || [[ $response == "302" ]] || [[ $response == "301" ]]; then
-        echo -e "${GREEN}✓ HTTP $response${NC}"
-    elif [[ $response == "404" ]]; then
-        echo -e "${YELLOW}⚠ HTTP 404 (No encontrado)${NC}"
+if docker-compose exec -T db pg_isready -U pos_user -d django_pos > /dev/null 2>&1; then
+    print_success "PostgreSQL está respondiendo"
+
+    # Verificar que las tablas existen
+    TABLES_COUNT=$(docker-compose exec -T db psql -U pos_user -d django_pos -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';" -t)
+    if [ "$TABLES_COUNT" -gt 0 ]; then
+        print_success "Base de datos tiene $TABLES_COUNT tablas"
     else
-        echo -e "${RED}✗ HTTP $response${NC}"
+        print_warning "Base de datos parece vacía (sin tablas)"
     fi
-done
-echo ""
-
-# 7. Verificar logs de errores recientes
-echo "7. Errores recientes (últimos 10):"
-echo "------------------------------"
-docker-compose logs web --tail=50 2>&1 | grep -i "error\|exception\|traceback" | tail -10 || echo "No se encontraron errores recientes"
-echo ""
-
-# 8. Información de configuración
-echo "8. Configuración actual:"
-echo "------------------------------"
-docker-compose exec -T web python -c "
-from django.conf import settings
-print(f'DEBUG: {settings.DEBUG}')
-print(f'ALLOWED_HOSTS: {settings.ALLOWED_HOSTS}')
-print(f'STATIC_ROOT: {settings.STATIC_ROOT}')
-print(f'MEDIA_ROOT: {settings.MEDIA_ROOT}')
-print(f'DATABASE: {settings.DATABASES[\"default\"][\"ENGINE\"]}')"
-echo ""
-
-# 9. Uso de recursos
-echo "9. Uso de recursos:"
-echo "------------------------------"
-docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
-echo ""
-
-# Resumen final
-echo "======================================"
-echo "📊 RESUMEN"
-echo "======================================"
-
-if check_service "Nginx" 80 > /dev/null 2>&1 && \
-   docker-compose exec -T web ls /app/templates/ > /dev/null 2>&1 && \
-   docker-compose exec -T web ls /app/staticfiles/ > /dev/null 2>&1; then
-    echo -e "${GREEN}✅ El despliegue parece estar funcionando correctamente${NC}"
-    echo ""
-    echo "🌐 Puedes acceder a la aplicación en:"
-    echo "   - Aplicación: http://localhost/"
-    echo "   - Admin: http://localhost/admin/"
 else
-    echo -e "${RED}❌ Se detectaron problemas en el despliegue${NC}"
-    echo ""
-    echo "Sugerencias:"
-    echo "1. Revisa los logs: docker-compose logs -f"
-    echo "2. Reinicia los servicios: docker-compose restart"
-    echo "3. Reconstruye si es necesario: docker-compose build --no-cache"
+    print_error "No se puede conectar a PostgreSQL"
 fi
+
+# 4. Verificar conectividad web
+print_status "4. VERIFICANDO CONECTIVIDAD WEB"
+
+# Probar Nginx
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null || echo "000")
+if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
+    print_success "Nginx responde correctamente (HTTP $HTTP_CODE)"
+else
+    print_error "Nginx no responde (HTTP $HTTP_CODE)"
+fi
+
+# Probar Django admin
+ADMIN_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/admin/ 2>/dev/null || echo "000")
+if [ "$ADMIN_CODE" = "200" ] || [ "$ADMIN_CODE" = "302" ]; then
+    print_success "Django admin responde (HTTP $ADMIN_CODE)"
+else
+    print_warning "Django admin no responde correctamente (HTTP $ADMIN_CODE)"
+fi
+
+# 5. Verificar archivos estáticos
+print_status "5. VERIFICANDO ARCHIVOS ESTÁTICOS"
+
+STATIC_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/static/admin/css/base.css 2>/dev/null || echo "000")
+if [ "$STATIC_CODE" = "200" ]; then
+    print_success "Archivos estáticos se sirven correctamente"
+else
+    print_error "Archivos estáticos no se sirven (HTTP $STATIC_CODE)"
+fi
+
+# 6. Verificar workers de Gunicorn
+print_status "6. VERIFICANDO CONFIGURACIÓN GUNICORN"
+
+WORKERS=$(docker-compose exec -T web ps aux | grep gunicorn | grep -v grep | wc -l)
+if [ "$WORKERS" -eq 1 ]; then
+    print_success "Gunicorn ejecutándose con 1 worker (optimizado)"
+else
+    print_warning "Gunicorn tiene $WORKERS workers (esperado: 1)"
+fi
+
+# 7. Verificar configuración PostgreSQL
+print_status "7. VERIFICANDO CONFIGURACIÓN POSTGRESQL"
+
+SHARED_BUFFERS=$(docker-compose exec -T db psql -U pos_user -d django_pos -c "SHOW shared_buffers;" -t 2>/dev/null | tr -d ' ')
+if [ "$SHARED_BUFFERS" = "128MB" ]; then
+    print_success "PostgreSQL shared_buffers optimizado: $SHARED_BUFFERS"
+else
+    print_warning "PostgreSQL shared_buffers: $SHARED_BUFFERS (esperado: 128MB)"
+fi
+
+WORK_MEM=$(docker-compose exec -T db psql -U pos_user -d django_pos -c "SHOW work_mem;" -t 2>/dev/null | tr -d ' ')
+if [ "$WORK_MEM" = "4MB" ]; then
+    print_success "PostgreSQL work_mem optimizado: $WORK_MEM"
+else
+    print_warning "PostgreSQL work_mem: $WORK_MEM (esperado: 4MB)"
+fi
+
+# 8. Verificar logs recientes
+print_status "8. VERIFICANDO LOGS RECIENTES"
+
+echo "Últimas 10 líneas de logs de web:"
+docker-compose logs --tail=10 web 2>/dev/null | head -10
+
+echo -e "\nÚltimas 10 líneas de logs de db:"
+docker-compose logs --tail=10 db 2>/dev/null | head -10
+
+# 9. Verificar uso de recursos
+print_status "9. VERIFICANDO USO DE RECURSOS"
+
+echo "Uso de memoria de contenedores:"
+docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" 2>/dev/null || print_warning "No se puede obtener estadísticas de Docker"
+
+# 10. Resumen final
+print_status "10. RESUMEN FINAL"
+
+echo "============================================"
+echo "Verificación completada: $(date)"
+echo ""
+
+# Contar errores y warnings
+ERRORS=$(grep -c "❌" <<< "$output" 2>/dev/null || echo "0")
+WARNINGS=$(grep -c "⚠️" <<< "$output" 2>/dev/null || echo "0")
+
+if [ "$ERRORS" -eq 0 ] && [ "$WARNINGS" -eq 0 ]; then
+    print_success "🎉 TODAS LAS VERIFICACIONES PASARON EXITOSAMENTE"
+    print_success "El sistema está listo para producción"
+elif [ "$ERRORS" -eq 0 ]; then
+    print_warning "Sistema funcional pero con algunas advertencias"
+else
+    print_error "Se encontraron errores que requieren atención"
+fi
+
+echo ""
+print_status "Próximos pasos recomendados:"
+echo "1. Acceder a http://localhost para probar la interfaz"
+echo "2. Crear usuario admin si no existe"
+echo "3. Probar funcionalidades básicas (productos, ventas)"
+echo "4. Monitorear logs durante uso normal"
+
+echo "============================================"

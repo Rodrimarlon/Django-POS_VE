@@ -50,5 +50,5 @@ ENTRYPOINT ["/docker-entrypoint-web.sh"]
 # Expose port
 EXPOSE 8000
 
-# Run the application with gunicorn for production
-CMD ["gunicorn", "django_pos.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--log-level", "info"]
+# Run the application with gunicorn optimized for limited hardware
+CMD ["gunicorn", "django_pos.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "1", "--worker-class", "gthread", "--max-requests", "500", "--max-requests-jitter", "50", "--timeout", "120", "--log-level", "info", "--access-logfile", "-", "--error-logfile", "-"]
