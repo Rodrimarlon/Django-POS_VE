@@ -511,14 +511,18 @@ const PosApp = {
     renderProducts: function(productsToRender) {
         this.dom.productListEl.innerHTML = '';
         productsToRender.forEach(product => {
-            const card = document.createElement('div');
-            card.className = 'product-card';
-            card.addEventListener('click', () => this.addToCart(product.id));
-            card.innerHTML = `
-                <img src="${product.image_url || '/static/img/undraw_posting_photo.svg'}" alt="${product.name}">
-                <div class="product-card-details"><h5>${product.name}</h5></div>
+            const listItem = document.createElement('div');
+            listItem.className = 'product-list-item';
+            listItem.addEventListener('click', () => this.addToCart(product.id));
+            listItem.innerHTML = `
+                <div class="col-image">
+                    <img src="${product.image_url || '/static/img/undraw_posting_photo.svg'}" alt="${product.name}">
+                </div>
+                <div class="col-name">${product.name}</div>
+                <div class="col-price">$ ${parseFloat(product.price_usd).toFixed(2)}</div>
+                <div class="col-stock">${product.stock}</div>
             `;
-            this.dom.productListEl.appendChild(card);
+            this.dom.productListEl.appendChild(listItem);
         });
     },
 
