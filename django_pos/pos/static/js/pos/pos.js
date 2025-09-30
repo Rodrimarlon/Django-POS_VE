@@ -14,8 +14,6 @@ const PosApp = {
     // --- DOM ELEMENTS ---
     dom: {
         productListEl: null,
-        categoryButtonsEl: null,
-        categoryDropdownEl: null,
         searchInput: null,
         orderlinesBodyEl: null,
         totalUsdEl: null,
@@ -51,8 +49,6 @@ const PosApp = {
     init: function() {
         // Bind DOM elements
         this.dom.productListEl = document.getElementById('product-list');
-        this.dom.categoryButtonsEl = document.getElementById('category-buttons');
-        this.dom.categoryDropdownEl = document.getElementById('category-dropdown');
         this.dom.searchInput = document.getElementById('product-search');
         this.dom.orderlinesBodyEl = document.getElementById('orderlines-body');
         this.dom.totalUsdEl = document.getElementById('total-usd');
@@ -88,7 +84,6 @@ const PosApp = {
 
         // Fetch initial data
         this.fetchProducts();
-        this.fetchCategories();
         this.fetchPaymentMethods();
 
         // Initial render
@@ -120,14 +115,10 @@ const PosApp = {
             }
         });
 
-        this.dom.searchInput.addEventListener('input', (e) => this.fetchProducts(e.target.value, ''));
+        this.dom.searchInput.addEventListener('input', (e) => this.fetchProducts(e.target.value));
 
         if (this.dom.panelSwitcherBtn) {
             this.dom.panelSwitcherBtn.addEventListener('click', () => this.togglePanels());
-        }
-
-        if (this.dom.categoryDropdownEl) {
-            this.dom.categoryDropdownEl.addEventListener('change', (e) => this.handleCategoryFilterChange(e.target.value));
         }
 
         this.dom.customerBtn.addEventListener('click', () => {
@@ -187,10 +178,10 @@ const PosApp = {
     },
 
     // --- API FUNCTIONS ---
-    fetchProducts: async function(search = '', category = '') {
+    fetchProducts: async function(search = '') {
         try {
             const url = JSON.parse(document.getElementById('product_list_api_url').textContent);
-            const response = await fetch(`${url}?search=${search}&category=${category}`);
+            const response = await fetch(`${url}?search=${search}`);
             const data = await response.json();
             this.state.products = data.products;
             this.renderProducts(this.state.products);
@@ -199,16 +190,6 @@ const PosApp = {
         }
     },
 
-    fetchCategories: async function() {
-        try {
-            const url = JSON.parse(document.getElementById('categories_list_api_url').textContent);
-            const response = await fetch(url);
-            const categories = await response.json();
-            this.renderCategories(categories);
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-        }
-    },
 
     fetchCustomers: async function(search = '') {
         try {
@@ -541,24 +522,6 @@ const PosApp = {
         });
     },
 
-    renderCategories: function(categoriesToRender) {
-        this.dom.categoryButtonsEl.innerHTML = '';
-        const allButton = document.createElement('button');
-        allButton.className = 'btn btn-info active';
-        allButton.textContent = 'All';
-        allButton.dataset.categoryId = '';
-        allButton.addEventListener('click', () => this.handleCategoryFilterChange(''));
-        this.dom.categoryButtonsEl.appendChild(allButton);
-
-        categoriesToRender.forEach(category => {
-            const button = document.createElement('button');
-            button.className = 'btn btn-info';
-            button.textContent = category.name;
-            button.dataset.categoryId = category.id;
-            button.addEventListener('click', () => this.handleCategoryFilterChange(category.id));
-            this.dom.categoryButtonsEl.appendChild(button);
-        });
-    },
 
     renderCustomers: function(customersToRender) {
         this.dom.customerListEl.innerHTML = '';
@@ -678,10 +641,6 @@ const PosApp = {
         });
     },
 
-    // --- EVENT HANDLERS ---
-    handleCategoryFilterChange: function(categoryId) {
-        this.fetchProducts(this.dom.searchInput.value, categoryId);
-    },
 
     handleCustomerSelect: function(customer) {
         this.state.selectedCustomer = customer;

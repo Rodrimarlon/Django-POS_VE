@@ -62,21 +62,6 @@
     object-fit: cover;
 }
 
-/* Right Pane components */
-.category-filters {
-    padding: 16px;
-    border-bottom: 1px solid #dcdcdc;
-}
-
-.category-buttons {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.category-dropdown {
-    display: none; /* Hidden by default */
-}
 
 .product-list {
     flex-grow: 1;
@@ -360,29 +345,8 @@
         justify-content: center;
     }
 
-    .category-buttons {
-        display: none; /* Hide buttons on mobile */
-    }
-
-    .category-dropdown {
-        display: block; /* Show dropdown on mobile */
-    }
 }
 
-/* Refined Right Pane Styles */
-
-.category-filters .btn {
-    background-color: #e9ecef;
-    border: 1px solid #dcdcdc;
-    color: #5a5c69;
-    font-weight: 500;
-}
-
-.category-filters .btn.active {
-    background-color: #4e73df;
-    color: white;
-    border-color: #4e73df;
-}
 
 .product-card {
     background-color: #ffffff;

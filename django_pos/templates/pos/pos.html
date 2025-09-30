@@ -89,14 +89,6 @@
             </div>
         </div>
         <div class="right-pane">
-            <div class="category-filters">
-                <div id="category-buttons" class="category-buttons">
-                    <!-- Category buttons will be injected by JS -->
-                </div>
-                <select id="category-dropdown" class="category-dropdown form-control">
-                    <!-- Category options will be injected by JS -->
-                </select>
-            </div>
             <div id="product-list" class="product-list">
                 <!-- Product cards will be injected by JS -->
             </div>
@@ -319,7 +311,6 @@ aria-hidden="true">
 
 {% block javascripts %}
     {{ product_list_api_url|json_script:"product_list_api_url" }}
-    {{ categories_list_api_url|json_script:"categories_list_api_url" }}
     {{ get_customers_api_url|json_script:"get_customers_api_url" }}
     {{ create_customer_api_url|json_script:"create_customer_api_url" }}
     {{ payment_methods_list_api_url|json_script:"payment_methods_list_api_url" }}

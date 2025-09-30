@@ -47,7 +47,11 @@ def product_list_api(request):
 
     if 'search' in request.GET:
         search_term = request.GET['search']
-        product_list = product_list.filter(models.Q(name__icontains=search_term) | models.Q(sku__icontains=search_term))
+        product_list = product_list.filter(
+            models.Q(name__icontains=search_term) |
+            models.Q(sku__icontains=search_term) |
+            models.Q(category__name__icontains=search_term)
+        )
 
     if 'category' in request.GET:
         category_id = request.GET['category']
