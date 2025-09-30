@@ -574,6 +574,12 @@
     margin-bottom: 10px;
 }
 
+#payment-methods-buttons .btn.active {
+    background-color: #cce5ff;
+    border-color: #4e73df;
+    color: #4e73df;
+}
+
 .payment-inputs {
     padding: 1rem;
     background-color: #f8f9fa;

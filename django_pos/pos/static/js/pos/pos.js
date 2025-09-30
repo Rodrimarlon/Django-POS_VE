@@ -560,7 +560,16 @@ const PosApp = {
             button.className = 'btn btn-outline-secondary';
             button.textContent = pm.name;
             button.dataset.id = pm.id;
-            button.addEventListener('click', () => this.handlePaymentMethodSelect(pm));
+            button.addEventListener('click', (e) => {
+                // Remove active class from all buttons
+                this.dom.paymentMethodsButtonsEl.querySelectorAll('.btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Add active class to clicked button
+                e.target.classList.add('active');
+                // Handle payment method selection
+                this.handlePaymentMethodSelect(pm);
+            });
             this.dom.paymentMethodsButtonsEl.appendChild(button);
         });
     },
@@ -691,7 +700,14 @@ const PosApp = {
         // Prefill amount if it's the first payment
         if (this.state.currentPayments.length === 0) {
             const totalUsd = this.state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
-            this.dom.paymentAmountInput.value = totalUsd.toFixed(2);
+            if (paymentMethod.is_foreign_currency) {
+                // Payment method uses USD, fill with USD amount
+                this.dom.paymentAmountInput.value = totalUsd.toFixed(2);
+            } else {
+                // Payment method uses VES, convert and fill with VES amount
+                const totalVes = totalUsd * this.state.exchangeRate;
+                this.dom.paymentAmountInput.value = totalVes.toFixed(2);
+            }
         }
         if (paymentMethod.requires_reference) {
             this.dom.paymentReferenceInput.style.display = 'block';
