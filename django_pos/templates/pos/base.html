@@ -1,7 +1,7 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
 
@@ -10,17 +10,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
+    <meta name="csrf-token" content="{{ csrf_token }}">
 
     <title>{% block title %}{% endblock %}</title>
 
     <!-- Custom fonts for this template-->
     <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <link href="{% static 'vendor/google-fonts/nunito.css' %}" rel="stylesheet">
 
     <!-- Custom styles for this template-->
     <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/sweetalert2/sweetalert2.min.css' %}">
     <!--Favicon-->
     <link rel="icon" type="image/png" href="{% static 'favicon.png' %}"/>
 
@@ -29,12 +29,15 @@
 </head>
 
 <body id="page-top">
+    {% csrf_token %}
 
     <!-- Page Wrapper -->
     <div id="wrapper">
 
         <!-- Sidebar -->
+        {% if not clean_view %}
         {% include 'pos/sidebar.html' %}
+        {% endif %}
         <!-- End of Sidebar -->
 
         <!-- Content Wrapper -->
@@ -44,9 +47,12 @@
             <div id="content">
 
                 <!-- Topbar -->
+                {% if not clean_view %}
                 {% include 'pos/navbar.html' %}
+                {% endif %}
                 <!-- End of Topbar -->
 
+                {% block page_content_wrapper %}
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
@@ -64,12 +70,15 @@
 
                 </div>
                 <!-- /.container-fluid -->
+                {% endblock page_content_wrapper %}
 
             </div>
             <!-- End of Main Content -->
 
             <!-- Footer -->
+            {% if not clean_view %}
             {% include 'pos/footer.html' %}
+            {% endif %}
             <!-- End of Footer -->
 
         </div>
@@ -82,6 +91,10 @@
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
+
+    <!-- Exchange Rate Modal-->
+    {% include 'core/exchange_rate_modal.html' %}
+    <!-- End of Exchange Rate Modal-->
 
     <!-- Logout Modal-->
     {% include 'pos/logout_modal.html' %}
@@ -101,9 +114,24 @@
     <!--JavaScript to dissapear messagess automatically-->
     {% comment %} <script type='text/javascript' src="{% static 'js/dissapear_messages.js' %}"></script> {% endcomment %}
 
+    <script src="{% static 'vendor/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
     <!-- Page level custom scripts -->
     <!-- Specific Page JS goes HERE  -->
     {% block javascripts %}{% endblock javascripts %}
+
+    <script>
+        $(document).ready(function() {
+            // Check if exchange_rate_exists is false and show the modal
+            if ("{{ exchange_rate_exists }}" === "False") {
+                $('#exchangeRateModal').modal({
+                    backdrop: 'static', // Prevent closing by clicking outside
+                    keyboard: false // Prevent closing by pressing escape key
+                });
+                $('#exchangeRateModal').modal('show');
+            }
+        });
+    </script>
 
 </body>
 

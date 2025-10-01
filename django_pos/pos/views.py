@@ -1,16 +1,29 @@
 import json
-from datetime import date
+import logging
+from decimal import Decimal
+from django.utils import timezone
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, FloatField, F
+from django.db.models import Sum, FloatField, F, Count, DecimalField
 from django.db.models.functions import Coalesce
-from django.shortcuts import render
-from products.models import Product, Category
-from sales.models import Sale
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.decorators.http import require_POST
 
+from products.models import Product, Category, InventoryMovement
+from sales.models import Sale, SaleDetail, Payment
+from customers.models import Customer
+from core.models import PaymentMethod, ExchangeRate, Company
+from authentication.decorators import role_required
+from .models import Order, OrderDetail
 
+logger = logging.getLogger(__name__)
+
+@role_required(allowed_roles=['admin', 'cashier'])
 @login_required(login_url="/accounts/login/")
 def index(request):
-    today = date.today()
+    today = timezone.now().date()
 
     year = today.year
     monthly_earnings = []
@@ -40,9 +53,6 @@ def index(request):
         top_products_names.append(p.name)
         top_products_quantity.append(p.quantity_sum)
 
-    print(top_products_names)
-    print(top_products_quantity)
-
     context = {
         "active_icon": "dashboard",
         "products": Product.objects.all().count(),
@@ -55,3 +65,335 @@ def index(request):
         "top_products_quantity": json.dumps(top_products_quantity),
     }
     return render(request, "pos/index.html", context)
+
+
+def is_ajax(request):
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+
+
+def _process_sale_data(request, data, sale_id=None):
+    """
+    Helper function to process the business logic of creating or updating a sale.
+    This function is designed to be called from within the main pos_view.
+    """
+    logger.info(f"Processing sale data for user {request.user}. Sale ID: {sale_id}")
+    logger.info(f"Data received: {data}")
+
+    try:
+        customer_id = int(data['customer'])
+        logger.info(f"Getting customer with ID: {customer_id}")
+        customer = Customer.objects.get(id=customer_id)
+    except (ValueError, Customer.DoesNotExist) as e:
+        logger.error(f"Error getting customer: {e}")
+        raise
+
+    try:
+        logger.info("Getting latest exchange rate")
+        exchange_rate = ExchangeRate.objects.latest('date')
+    except ExchangeRate.DoesNotExist as e:
+        logger.error(f"No exchange rate found: {e}")
+        raise
+
+    sale_attributes = {
+        "customer": customer,
+        "sub_total": Decimal(data["sub_total"]),
+        "grand_total": Decimal(data["grand_total"]),
+        "tax_amount": Decimal(data["tax_amount"]),
+        "tax_percentage": Decimal(data["tax_percentage"]),
+        "amount_change": Decimal(data["amount_change"]),
+        "user": request.user,
+        "total_ves": Decimal(data.get("total_ves", 0)),
+        "igtf_amount": Decimal(data.get("igtf_amount", 0)),
+        "is_credit": data.get("is_credit", False),
+        "exchange_rate": exchange_rate,
+    }
+
+    # Determine sale status
+    action_type = data.get("action_type", "finalize")
+    if sale_attributes["is_credit"]:
+        sale_attributes["status"] = 'pending_credit'
+    else:
+        sale_attributes["status"] = 'completed'
+
+    if sale_id:
+        logger.info(f"Updating existing sale ID: {sale_id}")
+        # Note: Updating customer balance for edited credit sales is not handled here.
+        # This would require a more complex logic to calculate the difference.
+        Sale.objects.filter(id=sale_id).update(**sale_attributes)
+        current_sale = Sale.objects.get(id=sale_id)
+        SaleDetail.objects.filter(sale=current_sale).delete()  # Clear old details
+        Payment.objects.filter(sale=current_sale).delete() # Clear old payments
+        message = 'Sale updated successfully!'
+    else:
+        logger.info("Creating new sale")
+        current_sale = Sale.objects.create(**sale_attributes)
+        # Update customer outstanding balance on new credit sale
+        if current_sale.is_credit:
+            customer = current_sale.customer
+            customer.outstanding_balance = F('outstanding_balance') + current_sale.grand_total
+            customer.save()
+        message = 'Sale created successfully!'
+
+    # Create Payment objects
+    if not sale_attributes["is_credit"]:
+        payments = data.get("payments", [])
+        logger.info(f"Processing {len(payments)} payments")
+        for payment_data in payments:
+            try:
+                payment_method_id = int(payment_data["payment_method_id"])
+                logger.info(f"Creating payment with method ID: {payment_method_id}")
+                Payment.objects.create(
+                    sale=current_sale,
+                    payment_method=PaymentMethod.objects.get(id=payment_method_id),
+                    amount=Decimal(payment_data["amount"]),
+                    reference=payment_data.get("reference", "")
+                )
+            except (ValueError, PaymentMethod.DoesNotExist) as e:
+                logger.error(f"Error creating payment: {e}")
+                raise
+
+    products = data["products"]
+    logger.info(f"Processing {len(products)} products")
+    for product_data in products:
+        try:
+            product_id = int(product_data["id"])
+            logger.info(f"Creating sale detail for product ID: {product_id}")
+            detail_attributes = {
+                "sale": current_sale,
+                "product": Product.objects.get(id=product_id),
+                "price": Decimal(product_data["price"]),
+                "quantity": product_data["quantity"],
+                "total_detail": Decimal(product_data["total_product"])
+            }
+            SaleDetail.objects.create(**detail_attributes)
+        except (ValueError, Product.DoesNotExist) as e:
+            logger.error(f"Error creating sale detail: {e}")
+            raise
+
+    # Stock deduction and InventoryMovement for completed or credit sales
+    if current_sale.status in ['completed', 'pending_credit']:
+        logger.info("Updating stock and creating inventory movements")
+        for product_data in products:
+            try:
+                product_id = int(product_data["id"])
+                product_obj = Product.objects.get(id=product_id)
+                quantity = product_data["quantity"]
+                logger.info(f"Updating stock for product {product_id}: subtracting {quantity}")
+                product_obj.stock = F('stock') - quantity
+                product_obj.save()
+
+                InventoryMovement.objects.create(
+                    product=product_obj,
+                    movement_type='out',
+                    quantity=quantity,
+                    user=request.user,
+                    reason=f'Sale {current_sale.id}'
+                )
+            except (ValueError, Product.DoesNotExist) as e:
+                logger.error(f"Error updating stock: {e}")
+                raise
+        message = 'Sale finalized and stock updated successfully!'
+
+    # If the sale was created from a saved order, delete the order
+    loaded_order_id = data.get('loaded_order_id')
+    if loaded_order_id:
+        try:
+            logger.info(f"Deleting order ID: {loaded_order_id}")
+            Order.objects.get(id=int(loaded_order_id)).delete()
+        except Order.DoesNotExist:
+            # This case is not critical, so we can just log it or ignore it
+            logger.warning(f"Warning: Tried to delete order ID {loaded_order_id} after sale, but it was not found.")
+            pass
+
+    logger.info(f"Sale processing completed successfully: {message}")
+    return message
+
+
+@role_required(allowed_roles=['admin', 'cashier'])
+@login_required(login_url="/accounts/login/")
+def pos_view(request, sale_id=None):
+    sale = None
+    sale_details_json = "[]"
+    if sale_id:
+        try:
+            sale = Sale.objects.get(id=sale_id)
+            # Prepare sale details for frontend
+            sale_details = SaleDetail.objects.filter(sale=sale)
+            sale_details_list = []
+            for detail in sale_details:
+                sale_details_list.append({
+                    'id': detail.product.id,
+                    'name': detail.product.name,
+                    'price': str(detail.price),  # Convert Decimal to string
+                    'quantity': detail.quantity,
+                    'total_product': str(detail.total_detail),  # Convert Decimal to string
+                    'sku': detail.product.sku,
+                })
+            sale_details_json = json.dumps(sale_details_list)
+
+        except Sale.DoesNotExist:
+            messages.error(request, 'Sale not found!', extra_tags="danger")
+            return redirect('pos:pos')  # Redirect to new sale if not found
+
+    # Fetch IGTF percentage from Company model
+    igtf_percentage = 0.00
+    try:
+        company = Company.objects.first() # Assuming there's only one company or you want the first one
+        if company:
+            igtf_percentage = float(company.igtf_percentage)
+    except Company.DoesNotExist:
+        pass # Handle case where no company is configured
+
+    # Fetch latest exchange rate
+    exchange_rate = 0
+    try:
+        latest_rate = ExchangeRate.objects.latest('date')
+        exchange_rate = latest_rate.rate_usd_ves
+    except ExchangeRate.DoesNotExist:
+        pass # Handle case where no exchange rate is configured
+
+    context = {
+        "active_icon": "pos",
+        "sale": sale,
+        "sale_details_json": sale_details_json,
+        "igtf_percentage": igtf_percentage, # Pass IGTF percentage to context
+        "product_list_api_url": reverse('products:product_list_api'),
+        "categories_list_api_url": reverse('products:category_list_api'),
+        "get_customers_api_url": reverse('customers:get_customers_api'),
+        "create_customer_api_url": reverse('customers:create_customer_api'),
+        "payment_methods_list_api_url": reverse('core:payment_method_list_api'),
+        "save_order_url": reverse('pos:save_order'),
+        "order_list_api_url": reverse('pos:order_list'),
+        "exchange_rate": exchange_rate,
+        "clean_view": True,
+    }
+
+    if request.method == 'POST':
+        if is_ajax(request=request):
+            try:
+                data = json.load(request)
+                message = _process_sale_data(request, data, sale_id)
+                return JsonResponse({'status': 'success', 'message': message})
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+        return redirect('sales:sales_list')  # Redirect to sales list after operation
+
+    return render(request, "pos/pos.html", context=context)
+
+
+@login_required
+@require_POST
+def save_order_view(request):
+    if not is_ajax(request):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    try:
+        data = json.load(request)
+        cart_products = data.get('products', [])
+        customer_id = data.get('customer')
+
+        if not cart_products:
+            return JsonResponse({'status': 'error', 'message': 'Cannot save an empty order.'}, status=400)
+
+        customer = Customer.objects.get(id=customer_id) if customer_id else None
+
+        # Create the main Order
+        new_order = Order.objects.create(
+            user=request.user,
+            customer=customer
+        )
+
+        # Create the OrderDetail items
+        for product_data in cart_products:
+            OrderDetail.objects.create(
+                order=new_order,
+                product=Product.objects.get(id=int(product_data["id"])),
+                quantity=int(product_data["quantity"]),
+                price_usd=Decimal(product_data["price"]),
+                discount_percent=Decimal(product_data.get("discount_percent", 0))
+            )
+        
+        return JsonResponse({'status': 'success', 'message': 'Order saved successfully!'})
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@role_required(allowed_roles=['admin', 'cashier'])
+@login_required
+def order_list_view(request):
+    if not is_ajax(request):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    orders = Order.objects.annotate(
+        total=Coalesce(Sum(F('details__price_usd') * F('details__quantity'), output_field=DecimalField()), Decimal('0.00'))
+    ).order_by('-created_at')
+
+    order_list = []
+    for order in orders:
+        order_list.append({
+            'id': order.id,
+            'customer_name': order.customer.get_full_name() if order.customer else 'Walk-in Customer',
+            'total': order.total or 0,
+            'created_at': order.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    
+    return JsonResponse(order_list, safe=False)
+
+
+@login_required
+@require_POST
+def delete_order_view(request, order_id):
+    if not is_ajax(request):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    try:
+        order = Order.objects.get(id=order_id)
+        order.delete()
+        return JsonResponse({'status': 'success', 'message': f'Order #{order_id} has been deleted.'})
+    except Order.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Order not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+def order_detail_view(request, order_id):
+    if not is_ajax(request):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+    try:
+        order = Order.objects.get(id=order_id)
+        details = order.details.all()
+
+        product_list = []
+        for detail in details:
+            product_list.append({
+                'id': detail.product.id,
+                'name': detail.product.name,
+                'quantity': detail.quantity,
+                'price_usd': str(detail.price_usd),
+                'discount_percent': str(detail.discount_percent),
+                'category_name': detail.product.category.name,
+                'original_price_usd': str(detail.product.price_usd) # Assuming you want to load the original price too
+            })
+
+        customer_data = None
+        if order.customer:
+            customer_data = {
+                'id': order.customer.id,
+                'text': order.customer.get_full_name() # Match the format from customer search
+            }
+
+        response_data = {
+            'status': 'success',
+            'customer': customer_data,
+            'products': product_list
+        }
+        return JsonResponse(response_data)
+
+    except Order.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Order not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

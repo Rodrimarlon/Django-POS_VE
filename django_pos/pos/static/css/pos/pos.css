@@ -1,0 +1,666 @@
+            /* New POS Stylesheet */
+
+/* Basic Layout */
+.pos-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f0f0f0;
+    position: relative; /* For floating button positioning */
+}
+
+.pos-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 0 1em;
+    background-color: #ffffff;
+    border-bottom: 1px solid #dcdcdc;
+}
+
+.pos-content {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.left-pane {
+    width: 40%;
+    background-color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #dcdcdc;
+}
+
+.right-pane {
+    width: 60%;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header components */
+.pos-header-left {
+    display: flex;
+    align-items: center;
+}
+
+.pos-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.search-bar {
+    width: 15rem;
+}
+
+.exchange-rate-display {
+    display: flex;
+    align-items: center;
+    margin: 0 1rem;
+}
+
+.exchange-rate-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem;
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.exchange-rate-unavailable {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border-color: #ffcc02;
+}
+
+.pos-header .img-profile {
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+
+.product-table {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.product-table-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 100px 80px;
+    gap: 12px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e0e0e0;
+    font-weight: bold;
+    color: #5a5c69;
+    font-size: 0.9rem;
+}
+
+.product-list {
+    /* Container for product items */
+}
+
+/* Left Pane Styles */
+.order {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+
+.order-body {
+    flex-grow: 1; /* This makes the body take up available space, pushing footer down */
+    overflow-y: auto;
+    overflow-x: auto; /* Allow horizontal scroll if content is too wide */
+    padding: 0 8px;
+}
+
+.orderlines-table {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.orderlines-header {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1.5fr 0.8fr 1.5fr 0.5fr;
+    gap: 10px;
+    padding: 12px 8px;
+    font-weight: bold;
+    border-bottom: 1px solid #dcdcdc;
+    color: #5a5c69;
+    font-size: 0.9rem;
+}
+
+.orderlines-body {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.orderline {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1.5fr 0.8fr 1.5fr 0.5fr;
+    gap: 10px;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.line-input {
+    width: 100%;
+    border: 1px solid transparent;
+    background-color: transparent;
+    border-radius: 3px;
+    padding: 4px;
+    text-align: right;
+}
+
+.line-input:focus {
+    border: 1px solid #4e73df;
+    background-color: white;
+    outline: none;
+}
+
+.btn-remove {
+    border: none;
+    background-color: transparent;
+    color: #c9302c;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.orderline.selected {
+    background-color: #aed2ff;
+}
+
+.col-product {
+    font-weight: 600;
+}
+
+.col-qty, .col-price, .col-total {
+    text-align: right;
+}
+
+.col-price span, .col-total span {
+    display: block;
+}
+
+.col-discount {
+    text-align: right;
+}
+
+.col-remove {
+    text-align: center;
+}
+
+.price-usd {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.price-ves {
+    font-size: 0.8rem;
+    color: #007bff;
+}
+
+.order-footer {
+    background-color: #e0e0e0;
+    padding: 16px;
+    border-top: 1px solid #dcdcdc;
+}
+
+.totals {
+    display: grid;
+    grid-template-columns: 1fr max-content auto max-content;
+    gap: 0 10px;
+    row-gap: 8px;
+    margin-bottom: 16px;
+}
+
+/* Default style for all cells in the totals grid */
+.totals > span {
+    align-self: center;
+    font-size: 1rem; /* Default size for USD amounts */
+    color: #5a5c69; /* Default neutral color */
+}
+
+/* --- Column-specific alignments --- */
+
+/* Col 1: Labels */
+.totals > span:nth-child(4n+1) {
+    justify-self: start;
+}
+
+/* Col 2: VES Amounts */
+.totals > span:nth-child(4n+2) {
+    justify-self: end;
+    font-size: 0.9rem; /* Slightly smaller than USD */
+}
+
+/* Col 3: Separators */
+.totals > span:nth-child(4n+3) {
+    justify-self: center;
+    color: #dcdcdc;
+}
+
+/* Col 4: USD Amounts */
+.totals > span:nth-child(4n+4) {
+    justify-self: end;
+}
+
+
+/* --- Special styles for the 'Total' row --- */
+
+.total-row {
+    font-size: 1.1rem; /* Base size for the total row (secondary) */
+}
+
+.total-row-label {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.total-row-primary {
+    font-size: 1.2rem; /* Larger size for the primary currency */
+    font-weight: bold;
+    color: #c9302c; /* Strong Red */
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.actions button {
+    padding: 16px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.actions button i {
+    margin-right: 8px;
+}
+
+.btn-action-icon {
+    flex: 0 0 60px; /* Does not grow, does not shrink, base width 60px */
+    background-color: #5a5c69;
+    color: white;
+}
+
+.btn-action-icon i {
+    margin-right: 0; /* No margin for icon-only button */
+}
+
+.btn-customer {
+    flex: 1 1 0; /* Grow and shrink as needed */
+    background-color: #e9ecef;
+    border: 1px solid #dcdcdc;
+    color: #5a5c69;
+}
+
+.btn-payment {
+    flex: 2 1 0; /* Grow twice as much as customer button */
+    background-color: #4e73df;
+    color: white;
+}
+
+/* Floating Panel Switcher Button */
+.panel-switcher-btn {
+    display: none; /* Hidden by default on desktop */
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #4e73df; /* Primary color */
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .pos-content {
+        position: relative;
+        overflow-x: hidden; /* Prevent horizontal scroll */
+    }
+
+    .left-pane, .right-pane {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        height: 100%;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .left-pane {
+        transform: translateX(-100%);
+        z-index: 20;
+    }
+
+    .right-pane {
+        transform: translateX(0);
+        z-index: 10;
+    }
+
+    .panel-hidden-on-mobile {
+        display: block; /* Override display:none if it was there */
+    }
+
+    .left-pane.is-active {
+        transform: translateX(0);
+    }
+
+    .right-pane.is-hidden {
+        transform: translateX(100%);
+    }
+
+    .panel-switcher-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-table-header {
+        display: none; /* Hide header on mobile for space */
+    }
+
+    .product-list-item {
+        grid-template-columns: 60px 1fr; /* Stack image and info on mobile */
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .col-image, .col-price, .col-stock {
+        grid-column: 1; /* All go to first column */
+    }
+
+    .col-name {
+        grid-column: 2; /* Name goes to second column */
+        grid-row: 1; /* First row */
+    }
+
+    .col-price {
+        grid-column: 2;
+        grid-row: 2; /* Second row */
+    }
+
+    .col-stock {
+        grid-column: 2;
+        grid-row: 3; /* Third row */
+    }
+
+    .col-image img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .col-name {
+        font-size: 0.9rem;
+    }
+
+    .col-price {
+        font-size: 0.9rem;
+        text-align: left;
+    }
+
+    .col-stock {
+        font-size: 0.9rem;
+        text-align: left;
+    }
+}
+
+
+.product-list-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 100px 80px;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    margin-bottom: 4px;
+}
+
+.product-list-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #4e73df;
+}
+
+.col-image {
+    display: flex;
+    justify-content: center;
+}
+
+.col-image img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.col-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #5a5c69;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.col-price {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #4e73df;
+    text-align: center;
+}
+
+.col-stock {
+    font-size: 0.95rem;
+    color: #6c757d;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Left Pane View Switching */
+.left-panel-content {
+    flex-grow: 1; /* Allow it to take available space */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Hide overflow when switching views */
+}
+
+.order-summary-container,
+.numpad-container {
+    width: 100%;
+    height: 100%;
+    flex-shrink: 0; /* Prevent shrinking */
+    transition: transform 0.3s ease-in-out;
+}
+
+.order-view-hidden {
+    transform: translateX(100%); /* Move off-screen to the right */
+    position: absolute; /* Take out of flow for smooth transition */
+    top: 0;
+    left: 0;
+}
+
+.numpad-view-active {
+    transform: translateX(0); /* Keep on-screen */
+    position: relative; /* Keep in flow */
+}
+
+/* When order view is active, numpad view should be hidden */
+.order-view-active {
+    transform: translateX(0); /* Keep on-screen */
+    position: relative;
+}
+
+.numpad-view-hidden {
+    transform: translateX(-100%); /* Move off-screen to the left */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Reduce size of profile image in the POS header */
+.pos-header .img-profile {
+    height: 2rem;
+    width: 2rem;
+}
+
+/* Hide arrows from number inputs */
+.line-input::-webkit-outer-spin-button,
+.line-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.line-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Customer Bar */
+.order-customer-bar {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background-color: #f8f9fa;
+}
+
+.order-customer-bar .btn {
+    padding: 12px;
+    font-size: 1.1rem;
+}
+
+/* Save button is just an icon, so it shouldn't grow */
+#btn-save-order {
+    flex-grow: 0;
+    flex-basis: 60px;
+}
+
+/* Customer button should take the remaining space */
+#btn-customer {
+    flex-grow: 1;
+}
+
+.order-customer-bar .btn i {
+    margin-right: 8px;
+}
+
+/* Icon-only button shouldn't have a right margin on its icon */
+#btn-save-order i {
+    margin-right: 0;
+}
+
+/* Actions */
+.actions .btn-payment {
+    width: 100%;
+    flex-grow: 1;
+}
+
+/* Payment Modal Styles */
+.payment-summary {
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+.payment-methods h6 {
+    margin-bottom: 1rem;
+}
+
+#payment-methods-buttons .btn {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+#payment-methods-buttons .btn.active {
+    background-color: #cce5ff;
+    border-color: #4e73df;
+    color: #4e73df;
+}
+
+.payment-inputs {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.payment-lines {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.payment-change {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: right;
+}
+
+.btn-payment.disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+}
+
+/* Two-column layout for payment modal */
+.modal-body .row {
+    display: flex;
+}
+
+.modal-body .col-md-6 {
+    flex: 1;
+    padding: 0 15px;
+}
+
+.payment-methods {
+    margin-bottom: 1.5rem;
+}
+
+.payment-summary-total {
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+.category-summary-table {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.category-summary-table th,
+.category-summary-table td {
+    padding: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.category-summary-table th {
+    font-weight: bold;
+    text-align: left;
+}

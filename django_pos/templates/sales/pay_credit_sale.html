@@ -1,0 +1,132 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Pay Credit Sale" %}{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">{% trans "Pay Credit Sale" %} #{{ sale.id }}</h4>
+            <a href="{% url 'sales:pending_sales_list' %}" class="btn btn-secondary">{% trans "Back" %}</a>
+        </div>
+        <div class="card-body">
+            <!-- Sale Summary -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <h5><strong>{% trans "Customer" %}:</strong> {{ sale.customer.get_full_name }}</h5>
+                </div>
+                <div class="col-md-8">
+                    <div class="row text-right">
+                        <div class="col">
+                            <p class="h5">{% trans "Total" %}: <span id="sale-total-usd">{{ sale.grand_total|stringformat:".2f" }}</span> USD</p>
+                        </div>
+                        <div class="col">
+                            <p class="h5">{% trans "Paid" %}: <span id="sale-paid-usd">{{ sale.amount_paid|stringformat:".2f" }}</span> USD</p>
+                        </div>
+                        <div class="col">
+                            <p class="h5 text-danger"><strong>{% trans "Balance" %}: <span id="sale-balance-usd">{{ sale.get_balance|stringformat:".2f" }}</span> USD</strong></p>
+                            <p class="h6 text-danger"><strong><span id="sale-balance-ves"></span></strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Existing Payments -->
+            {% if credit_payments %}
+            <div class="mb-4">
+                <h5>{% trans "Previous Payments" %}</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "Payment Method" %}</th>
+                                <th class="text-right">{% trans "Amount (USD)" %}</th>
+                                <th class="text-right">{% trans "Amount (VES)" %}</th>
+                                <th class="text-right">{% trans "Exchange Rate" %}</th>
+                                <th>{% trans "Reference" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in credit_payments %}
+                            <tr>
+                                <td>{{ payment.payment_date|date:"Y-m-d H:i" }}</td>
+                                <td>{{ payment.payment_method.name }}</td>
+                                <td class="text-right">{{ payment.amount_usd|stringformat:".2f" }}</td>
+                                <td class="text-right">{{ payment.amount_ves|stringformat:".2f" }}</td>
+                                <td class="text-right">{{ payment.exchange_rate.rate_usd_ves|stringformat:".2f" }}</td>
+                                <td>{{ payment.reference }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Payment Form -->
+            <form id="payment-form" method="post" data-exchange-rate="{{ exchange_rate|stringformat:".2f" }}" data-igtf-percentage="{{ igtf_percentage }}">
+                {% csrf_token %}
+                <input type="hidden" name="payments_json" id="payments-json-input">
+
+                <!-- Payment Methods Section -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>{% trans "Register Payment" %}</h5>
+                        <div id="payment-lines-container">
+                            <!-- Payment lines will be injected here by JavaScript -->
+                        </div>
+                        <button type="button" id="add-payment-btn" class="btn btn-sm btn-success mt-2">
+                            <i class="fas fa-plus"></i> {% trans "Add Payment" %}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> {% trans "Save Payment" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Line Template -->
+<template id="payment-line-template">
+    <div class="payment-line row align-items-center mb-2">
+        <div class="col-md-2">
+            <input type="date" class="form-control payment-date" name="payment_date">
+        </div>
+        <div class="col-md-3">
+            <select class="form-control payment-method-select" name="payment_method">
+                {% for method in payment_methods %}
+                    <option value="{{ method.id }}" data-is-foreign="{{ method.is_foreign_currency|yesno:'true,false' }}">{{ method.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="number" class="form-control payment-amount" name="amount" placeholder="0.00" step="0.01">
+        </div>
+        <div class="col-md-2">
+            <input type="number" class="form-control payment-exchange-rate" name="exchange_rate" placeholder="Rate" step="0.01">
+        </div>
+        <div class="col-md-2">
+            <input type="text" class="form-control payment-reference" name="reference" placeholder="{% trans "Reference" %}">
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-sm btn-danger remove-payment-btn">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</template>
+{% endblock content %}
+
+{% block javascripts %}
+<script src="{% static 'js/pay_credit_sale.js' %}"></script>
+{% endblock javascripts %}

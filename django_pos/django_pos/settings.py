@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-shfzstshi=+%g-@_=nc4_x=9xdpt1thdo=^k#($km%htb-se)(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,6 +44,9 @@ LOCAL_APPS = [
     "pos",
     "products",
     "sales",
+    "suppliers",
+    "core",
+    "authentication",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
@@ -51,6 +54,7 @@ INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -61,12 +65,13 @@ MIDDLEWARE = [
 ROOT_URLCONF = "django_pos.urls"
 LOGIN_URL = '/accounts/login/'
 # Route defined in authentication/urls.py
-LOGIN_REDIRECT_URL = "authentication:home"
+LOGIN_REDIRECT_URL = "pos:index"
 # Route defined in authentication/urls.py
 LOGOUT_REDIRECT_URL = "authentication:login"
 
 # ROOT dir for templates
 TEMPLATE_DIR = os.path.join(CORE_DIR, "templates")
+print(f"TEMPLATE_DIR: {TEMPLATE_DIR}")
 
 TEMPLATES = [
     {
@@ -79,6 +84,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django_pos.context_processors.exchange_rate_context",
             ],
         },
     },
@@ -120,25 +126,29 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Caracas"
 
 USE_I18N = True
 
 USE_TZ = True
 
+LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_ROOT = os.path.join(CORE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
 # Extra places for collectstatic to find static files.
-STATICFILES_DIRS = (
-    os.path.join(CORE_DIR, 'static'),
-)
+STATICFILES_DIRS = ()
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

@@ -1,143 +1,22 @@
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from .models import Category, Product
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Product, Category, InventoryMovement
+from django.core.paginator import Paginator
 
-
-@login_required(login_url="/accounts/login/")
-def categories_list_view(request):
-    context = {
-        "active_icon": "products_categories",
-        "categories": Category.objects.all()
-    }
-    return render(request, "products/categories.html", context=context)
-
-
-@login_required(login_url="/accounts/login/")
-def categories_add_view(request):
-    context = {
-        "active_icon": "products_categories",
-        "category_status": Category.status.field.choices
-    }
-
-    if request.method == 'POST':
-        # Save the POST arguments
-        data = request.POST
-
-        attributes = {
-            "name": data['name'],
-            "status": data['state'],
-            "description": data['description']
-        }
-
-        # Check if a category with the same attributes exists
-        if Category.objects.filter(**attributes).exists():
-            messages.error(request, 'Category already exists!',
-                           extra_tags="warning")
-            return redirect('products:categories_add')
-
-        try:
-            # Create the category
-            new_category = Category.objects.create(**attributes)
-
-            # If it doesn't exist, save it
-            new_category.save()
-
-            messages.success(request, 'Category: ' +
-                             attributes["name"] + ' created successfully!', extra_tags="success")
-            return redirect('products:categories_list')
-        except Exception as e:
-            messages.success(
-                request, 'There was an error during the creation!', extra_tags="danger")
-            print(e)
-            return redirect('products:categories_add')
-
-    return render(request, "products/categories_add.html", context=context)
-
-
-@login_required(login_url="/accounts/login/")
-def categories_update_view(request, category_id):
-    """
-    Args:
-        request:
-        category_id : The category's ID that will be updated
-    """
-
-    # Get the category
-    try:
-        # Get the category to update
-        category = Category.objects.get(id=category_id)
-    except Exception as e:
-        messages.success(
-            request, 'There was an error trying to get the category!', extra_tags="danger")
-        print(e)
-        return redirect('products:categories_list')
-
-    context = {
-        "active_icon": "products_categories",
-        "category_status": Category.status.field.choices,
-        "category": category
-    }
-
-    if request.method == 'POST':
-        try:
-            # Save the POST arguments
-            data = request.POST
-
-            attributes = {
-                "name": data['name'],
-                "status": data['state'],
-                "description": data['description']
-            }
-
-            # Check if a category with the same attributes exists
-            if Category.objects.filter(**attributes).exists():
-                messages.error(request, 'Category already exists!',
-                               extra_tags="warning")
-                return redirect('products:categories_add')
-
-            # Get the category to update
-            category = Category.objects.filter(
-                id=category_id).update(**attributes)
-
-            category = Category.objects.get(id=category_id)
-
-            messages.success(request, '¡Category: ' + category.name +
-                             ' updated successfully!', extra_tags="success")
-            return redirect('products:categories_list')
-        except Exception as e:
-            messages.success(
-                request, 'There was an error during the elimination!', extra_tags="danger")
-            print(e)
-            return redirect('products:categories_list')
-
-    return render(request, "products/categories_update.html", context=context)
-
-
-@login_required(login_url="/accounts/login/")
-def categories_delete_view(request, category_id):
-    """
-    Args:
-        request:
-        category_id : The category's ID that will be deleted
-    """
-    try:
-        # Get the category to delete
-        category = Category.objects.get(id=category_id)
-        category.delete()
-        messages.success(request, '¡Category: ' + category.name +
-                         ' deleted!', extra_tags="success")
-        return redirect('products:categories_list')
-    except Exception as e:
-        messages.success(
-            request, 'There was an error during the elimination!', extra_tags="danger")
-        print(e)
-        return redirect('products:categories_list')
+from authentication.decorators import admin_required
+from django.db import IntegrityError, models
+from django.http import JsonResponse
 
 
 @login_required(login_url="/accounts/login/")
 def products_list_view(request):
+    """
+    View that returns a list of all products.
+    The products can be filtered by category.
+    """
+    # The product and category management is now done in the admin panel.
+    # This view will now be the "Inventory" view.
     context = {
         "active_icon": "products",
         "products": Product.objects.all()
@@ -146,147 +25,63 @@ def products_list_view(request):
 
 
 @login_required(login_url="/accounts/login/")
-def products_add_view(request):
-    context = {
-        "active_icon": "products_categories",
-        "product_status": Product.status.field.choices,
-        "categories": Category.objects.all().filter(status="ACTIVE")
-    }
-
-    if request.method == 'POST':
-        # Save the POST arguments
-        data = request.POST
-
-        attributes = {
-            "name": data['name'],
-            "status": data['state'],
-            "description": data['description'],
-            "category": Category.objects.get(id=data['category']),
-            "price": data['price']
-        }
-
-        # Check if a product with the same attributes exists
-        if Product.objects.filter(**attributes).exists():
-            messages.error(request, 'Product already exists!',
-                           extra_tags="warning")
-            return redirect('products:products_add')
-
-        try:
-            # Create the product
-            new_product = Product.objects.create(**attributes)
-
-            # If it doesn't exist, save it
-            new_product.save()
-
-            messages.success(request, 'Product: ' +
-                             attributes["name"] + ' created successfully!', extra_tags="success")
-            return redirect('products:products_list')
-        except Exception as e:
-            messages.success(
-                request, 'There was an error during the creation!', extra_tags="danger")
-            print(e)
-            return redirect('products:products_add')
-
-    return render(request, "products/products_add.html", context=context)
-
-
-@login_required(login_url="/accounts/login/")
-def products_update_view(request, product_id):
+def inventory_report_view(request):
     """
-    Args:
-        request:
-        product_id : The product's ID that will be updated
+    View to generate an inventory report.
+    - Shows products with stock below the minimum.
+    - Shows a history of inventory movements.
     """
-
-    # Get the product
-    try:
-        # Get the product to update
-        product = Product.objects.get(id=product_id)
-    except Exception as e:
-        messages.success(
-            request, 'There was an error trying to get the product!', extra_tags="danger")
-        print(e)
-        return redirect('products:products_list')
+    low_stock_products = Product.objects.filter(stock__lt=models.F('min_stock'))
+    inventory_movements = InventoryMovement.objects.all().order_by('-created_at')
 
     context = {
-        "active_icon": "products",
-        "product_status": Product.status.field.choices,
-        "product": product,
-        "categories": Category.objects.all()
+        "active_icon": "reports", # Or a new icon for reports
+        "low_stock_products": low_stock_products,
+        "inventory_movements": inventory_movements,
     }
-
-    if request.method == 'POST':
-        try:
-            # Save the POST arguments
-            data = request.POST
-
-            attributes = {
-                "name": data['name'],
-                "status": data['state'],
-                "description": data['description'],
-                "category": Category.objects.get(id=data['category']),
-                "price": data['price']
-            }
-
-            # Check if a product with the same attributes exists
-            if Product.objects.filter(**attributes).exists():
-                messages.error(request, 'Product already exists!',
-                               extra_tags="warning")
-                return redirect('products:products_add')
-
-            # Get the product to update
-            product = Product.objects.filter(
-                id=product_id).update(**attributes)
-
-            product = Product.objects.get(id=product_id)
-
-            messages.success(request, '¡Product: ' + product.name +
-                             ' updated successfully!', extra_tags="success")
-            return redirect('products:products_list')
-        except Exception as e:
-            messages.success(
-                request, 'There was an error during the update!', extra_tags="danger")
-            print(e)
-            return redirect('products:products_list')
-
-    return render(request, "products/products_update.html", context=context)
+    return render(request, "products/inventory_report.html", context)
 
 
-@login_required(login_url="/accounts/login/")
-def products_delete_view(request, product_id):
-    """
-    Args:
-        request:
-        product_id : The product's ID that will be deleted
-    """
-    try:
-        # Get the product to delete
-        product = Product.objects.get(id=product_id)
-        product.delete()
-        messages.success(request, '¡Product: ' + product.name +
-                         ' deleted!', extra_tags="success")
-        return redirect('products:products_list')
-    except Exception as e:
-        messages.success(
-            request, 'There was an error during the elimination!', extra_tags="danger")
-        print(e)
-        return redirect('products:products_list')
+def product_list_api(request):
+    product_list = Product.objects.select_related('category').all().order_by('name')
 
+    if 'search' in request.GET:
+        search_term = request.GET['search']
+        product_list = product_list.filter(
+            models.Q(name__icontains=search_term) |
+            models.Q(sku__icontains=search_term) |
+            models.Q(category__name__icontains=search_term)
+        )
 
-def is_ajax(request):
-    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+    if 'category' in request.GET:
+        category_id = request.GET['category']
+        if category_id.isdigit():
+            product_list = product_list.filter(category_id=category_id)
 
+    # Paginate the results
+    paginator = Paginator(product_list, 30) # Show 30 products per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
-@login_required(login_url="/accounts/login/")
-def get_products_ajax_view(request):
-    if request.method == 'POST':
-        if is_ajax(request=request):
-            data = []
+    data = [{
+        'id': product.id,
+        'name': product.name,
+        'sku': product.sku,
+        'price_usd': product.price_usd,
+        'stock': product.stock,
+        'image_url': product.photo.url if product.photo else '',
+        'category_name': product.category.name if product.category else 'Uncategorized'
+    } for product in page_obj.object_list]
 
-            products = Product.objects.filter(
-                name__icontains=request.POST['term'])
-            for product in products[0:10]:
-                item = product.to_json()
-                data.append(item)
+    return JsonResponse({
+        'products': data,
+        'has_next': page_obj.has_next()
+    })
 
-            return JsonResponse(data, safe=False)
+def category_list_api(request):
+    categories = Category.objects.all().order_by('name')
+    data = [{
+        'id': category.id,
+        'name': category.name,
+    } for category in categories]
+    return JsonResponse(data, safe=False)

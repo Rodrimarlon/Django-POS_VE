@@ -1,7 +1,8 @@
 {% extends "pos/base.html" %}
 {% load static %}
+{% load i18n %}
 <!-- Page title  -->
-{% block title %}Sale details{% endblock title %}
+{% block title %}{% trans "Sale details" %}{% endblock title %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -15,7 +16,7 @@
 {% endblock stylesheets %}
 
 <!-- Page Heading -->
-{% block heading %}Sale ID: {{sale.id}}, details{% endblock heading %}
+{% block heading %}Sale ID: {{sale.id}}, {% trans "details" %}{% endblock heading %}
 
 <!-- Page content  -->
 {% block content %}
@@ -24,108 +25,130 @@
     <a href="{% url 'sales:sales_list' %}">
         <button type="button" class="btn btn-info font-weight-bold">
             <i class="fas fa-long-arrow-alt-left mr-2"></i>
-            Go back
+            {% trans "Go back" %}
         </button>
     </a>
 </div>
 
 <!--Sale products and details-->
-<form action="{% url 'sales:sales_add' %}" class="saleForm" method="post">
-    <div class="row mt-3">
-        <div class="card col-md-12">
-            <div class="card-body ml-0">
-                <div class="row">
-                    <!--Left column-->
-                    <div class="col-md-9 pl-0">
-                        <div class="card card-secondary">
-                            <div class="card-header">Sale products</div>
-                            
-                            <div class="card-body">
-                                <!--Products table-->
-                                <div class="card-body table-responsive p-0">
-                                    <table class="table table-hover text-nowrap" id="table_products">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Price</th>
-                                                <th>Quantity</th>
-                                                <th>Total</th>
-                                                </tr>
-                                            </thead>
-                                        <tbody>
-                                            {% for detail in details %}
-                                            <tr>
-                                                <td>{{forloop.counter}}</td>
-                                                <td>{{detail.product.name}}</td>
-                                                <td>{{detail.price}}</td>
-                                                <td class="text-center">{{detail.quantity}}</td>
-                                                <td>{{detail.total_detail}}</td>
+<div class="row mt-3">
+    <div class="card col-md-12">
+        <div class="card-body ml-0">
+            <div class="row">
+                <!--Left column-->
+                <div class="col-md-9 pl-0">
+                    <div class="card card-secondary">
+                        <div class="card-header">{% trans "Sale products" %}</div>
+                        
+                        <div class="card-body">
+                            <!--Products table-->
+                            <div class="card-body table-responsive p-0">
+                                <table class="table table-hover text-nowrap" id="table_products">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>{% trans "Name" %}</th>
+                                            <th>{% trans "Price" %}</th>
+                                            <th>{% trans "Quantity" %}</th>
+                                            <th>{% trans "Total" %}</th>
                                             </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <!--End Products table-->
+                                        </thead>
+                                    <tbody>
+                                        {% for detail in details %}
+                                        <tr>
+                                            <td>{{forloop.counter}}</td>
+                                            <td>{{detail.product.name}}</td>
+                                            <td>{{detail.price}}</td>
+                                            <td class="text-center">{{detail.quantity}}</td>
+                                            <td>{{detail.total_detail}}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
+                            <!--End Products table-->
                         </div>
                     </div>
-                    <!--End Left column-->
-
-                    <!--Righ column-->
-                    <div class="col-md-3 pr-0">
-                        <div class="card card-secondary">
-                            <div class="card-header">Sale details</div>
-                            <div class="card-body">
-                                {% csrf_token %}
-                                <div class="form-group">
-                                    <label for="customer">Customer</label>
-                                    <select name="customer" class="form-control" id="searchbox_customers" disabled readonly>
-                                        <option value="{{sale.customer.id}}">{{sale.customer.get_full_name}}</option>
-                                    </select>
-                                <div class="form-group mt-4">
-                                    <label>Subtotal</label>
-                                    <div class="input-group">
-                                        <input name="sub_total" class="form-control" value="{{sale.sub_total}}" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Tax Inclusive (%)</label>
-                                    <div class="input-group">
-                                        <input name="tax_percentage" class="form-control" value="{{sale.tax_percentage}}" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Tax Amount</label>
-                                    <div class="input-group">
-                                        <input name="tax_amount" class="form-control" value="{{sale.tax_amount}}" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Grand Total</label>
-                                    <div class="input-group">
-                                        <input name="grand_total" class="form-control" value="{{sale.grand_total}}" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Amount payed</label>
-                                    <div class="input-group">
-                                        <input name="amount_payed" class="form-control" value="{{sale.amount_payed}}" readonly>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <!--End card-body-->
-                    </div>
-                    <!--End Right column-->
                 </div>
-                <!--End row-->
-            </div>
-            <!--End card-body-->
-        </div>
+                <!--End Left column-->
 
+                <!--Righ column-->
+                <div class="col-md-3 pr-0">
+                    <div class="card card-secondary">
+                        <div class="card-header">{% trans "Sale details" %}</div>
+                        <div class="card-body">
+
+                            {% if sale.status == 'pending_credit' %}
+                            <div class="mb-3">
+                                <a href="{% url 'sales:pay_credit_sale' sale.id %}" class="btn btn-primary btn-block font-weight-bold">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    {% trans "Add Payment" %}
+                                </a>
+                            </div>
+                            <hr>
+                            {% endif %}
+
+                            <div class="form-group">
+                                <label for="customer">{% trans "Customer" %}</label>
+                                <p>{{sale.customer.get_full_name}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Status" %}</label>
+                                <p>
+                                    {% if sale.status == 'completed' %}
+                                        <span class="badge badge-success">{{ sale.get_status_display }}</span>
+                                    {% elif sale.status == 'pending_credit' %}
+                                        <span class="badge badge-warning">{{ sale.get_status_display }}</span>
+                                    {% elif sale.status == 'partially_paid' %}
+                                        <span class="badge badge-info">{{ sale.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ sale.get_status_display }}</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="form-group mt-4">
+                                <label>{% trans "Subtotal" %}</label>
+                                <p>{{sale.sub_total}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Tax Inclusive (%)" %}</label>
+                                <p>{{sale.tax_percentage}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Tax Amount" %}</label>
+                                <p>{{sale.tax_amount}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "IGTF Amount" %}</label>
+                                <p>{{sale.igtf_amount}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Grand Total" %}</label>
+                                <p>{{sale.grand_total}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Amount paid" %}</label>
+                                <p>{{sale.amount_paid}}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>{% trans "Balance" %}</label>
+                                <p>{{sale.get_balance}}</p>
+                            </div>
+
+                        </div>
+                        <!--End card-body-->
+                </div>
+                <!--End Right column-->
+            </div>
+            <!--End row-->
+        </div>
+        <!--End card-body-->
     </div>
-</form>
+
+</div>
+
+
+
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
@@ -145,6 +168,8 @@
 // Products datatable
 
 tblProducts = $('#table_products').DataTable({
+    "dom": 't',
+    "paging": false
 });
                     
 </script>

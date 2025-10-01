@@ -1,0 +1,336 @@
+{% extends "pos/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "POS" %}{% endblock title %}
+
+{% block stylesheets %}
+    <link href="{% static 'css/pos/pos.css' %}?v=fresh-start" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block page_content_wrapper %}
+<div class="pos-container">
+    <header class="pos-header">
+        <div class="pos-header-left">
+            <button class="btn btn-light" id="btn-orders" data-toggle="modal" data-target="#orders-modal">
+                {% trans "Orders" %}
+            </button>
+        </div>
+        <div class="pos-header-right">
+            <!-- Header right content will go here -->
+            <div class="search-bar">
+                <input type="text" id="product-search" class="form-control" placeholder="{% trans 'Search products...' %}">
+            </div>
+            <div class="exchange-rate-display">
+                {% if exchange_rate %}
+                    <span class="exchange-rate-badge">Tasa: Bs. {{ exchange_rate|floatformat:2 }} / $</span>
+                {% else %}
+                    <span class="exchange-rate-badge exchange-rate-unavailable">Tasa no disponible</span>
+                {% endif %}
+            </div>
+            <div class="user-menu dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{request.user.username}}</span>
+                    <img class="img-profile rounded-circle"
+                        src="{% static 'img/undraw_profile.svg' %}">
+                </a>
+                <!-- Dropdown - User Information -->
+                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                    aria-labelledby="userDropdown">
+                    <a class="dropdown-item" href="{% url 'pos:index' %}">
+                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        {% trans "Dashboard" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        {% trans "Logout" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="pos-content">
+        <div class="left-pane">
+            <div class="order">
+                <div class="order-customer-bar">
+                    <button class="btn btn-light" id="btn-save-order" title="Guardar Orden">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <button class="btn btn-light" id="btn-customer">
+                        <i class="fas fa-user"></i>
+                        <span>{% trans "Customer" %}</span>
+                    </button>
+                </div>
+                <div class="order-body">
+                    <div class="orderlines-table">
+                        <div class="orderlines-header">
+                            <div class="col-product">Producto</div>
+                            <div class="col-qty">Cant.</div>
+                            <div class="col-price">Precio</div>
+                            <div class="col-discount">%</div>
+                            <div class="col-total">Total</div>
+                            <div class="col-remove"></div>
+                        </div>
+                        <div class="orderlines-body" id="orderlines-body">
+                            <!-- JS will populate this list -->
+                        </div>
+                    </div>
+                </div>
+                <div class="order-footer">
+                    <div class="totals">
+                        <span class="total-row total-row-label">Total</span>
+                        <span class="total-ves total-row text-primary" id="total-ves">Bs. 0.00</span>
+                        <span class="separator total-row">|</span>
+                        <span class="total-usd total-row total-row-primary" id="total-usd">$ 0.00</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-payment">
+                            <i class="fas fa-money-bill-wave"></i>
+                            {% trans "Payment" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="right-pane">
+            <div class="product-table">
+                <div class="product-table-header">
+                    <div class="col-image">Imagen</div>
+                    <div class="col-name">Producto</div>
+                    <div class="col-price">Precio</div>
+                    <div class="col-stock">Stock</div>
+                </div>
+                <div id="product-list" class="product-list">
+                    <!-- Product items will be injected by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <button id="panel-switcher" class="panel-switcher-btn">
+        <i class="fas fa-list-alt"></i>
+    </button>
+</div>
+
+<!-- Modals will be here -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">{% trans "Ready to Leave?" %}</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">{% trans "Select \"Logout\" below if you are ready to end your current session." %}</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <a class="btn btn-primary" href="{% url 'authentication:logout' %}">{% trans "Logout" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Select Modal -->
+<div class="modal fade" id="customer-modal" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalLabel">{% trans "Select Customer" %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="customer-search-container">
+                    <input type="text" id="customer-search-input" class="form-control" placeholder="{% trans 'Search by name or tax ID...' %}">
+                </div>
+                <div id="customer-list" class="list-group mt-3">
+                    <!-- Customer list will be populated by JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Close" %}</button>
+                <button type="button" class="btn btn-primary" id="add-new-customer-btn">{% trans "Add New Customer" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Customer Modal -->
+<div class="modal fade" id="new-customer-modal" tabindex="-1" role="dialog" aria-labelledby="newCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newCustomerModalLabel">{% trans "Add New Customer" %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="new-customer-form">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="new-customer-first-name">{% trans "First Name" %}</label>
+                            <input type="text" class="form-control" id="new-customer-first-name" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="new-customer-last-name">{% trans "Last Name" %}</label>
+                            <input type="text" class="form-control" id="new-customer-last-name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="new-customer-tax-id">{% trans "Tax ID" %}</label>
+                            <input type="text" class="form-control" id="new-customer-tax-id">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="new-customer-phone">{% trans "Phone" %}</label>
+                            <input type="text" class="form-control" id="new-customer-phone">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-customer-email">{% trans "Email" %}</label>
+                        <input type="email" class="form-control" id="new-customer-email">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-customer-address">{% trans "Address" %}</label>
+                        <textarea class="form-control" id="new-customer-address" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-primary" id="save-new-customer-btn">{% trans "Save Customer" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="payment-modal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">{% trans "Payment" %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Left Column: Sale Summary -->
+                    <div class="col-md-6">
+                        <div id="payment-summary-by-category">
+                            <!-- Category summary will be injected by JS -->
+                        </div>
+                        <div class="payment-summary-total mt-3">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Pago" %}</th>
+                                        <th class="text-right">$
+                                        <th class="text-right">VES
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Total:</strong></td>
+                                        <td class="text-right" id="payment-total-usd">0.00</td>
+                                        <td class="text-right text-primary" id="payment-total-ves">0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>{% trans "Remaining:" %}</strong></td>
+                                        <td class="text-right" id="payment-remaining-usd">0.00</td>
+                                        <td class="text-right text-primary" id="payment-remaining-ves">0.00</td>
+                                    </tr>
+                                    <tr class="text-success">
+                                        <td><strong>{% trans "Change:" %}</strong></td>
+                                        <td class="text-right" id="payment-change-usd">0.00</td>
+                                        <td class="text-right text-primary" id="payment-change-ves">0.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Right Column: Payment Methods -->
+                    <div class="col-md-6">
+                        <div class="payment-methods">
+                            <h6>{% trans "Payment Methods" %}</h6>
+                            <div id="payment-methods-buttons" class="btn-group-toggle" data-toggle="buttons">
+                                <!-- Payment method buttons will be injected by JS -->
+                            </div>
+                        </div>
+                        <div class="payment-inputs mt-3">
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="form-group">
+                                        <label for="payment-amount">{% trans "Amount" %}</label>
+                                        <input type="number" class="form-control" id="payment-amount" placeholder="{% trans 'Enter amount' %}">
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label for="payment-reference">{% trans "Reference" %}</label>
+                                        <input type="text" class="form-control" id="payment-reference" placeholder="{% trans 'Enter reference' %}" maxlength="8">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-block" id="add-payment-btn">{% trans "Add Payment" %}</button>
+                        </div>
+                        <div class="payment-lines mt-3">
+                            <h6>{% trans "Payments" %}</h6>
+                            <ul id="payment-lines-list" class="list-group">
+                                <!-- Payment lines will be populated by JS -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Close" %}</button>
+                <button type="button" class="btn btn-warning" id="credit-sale-btn">{% trans "Credit Sale" %}</button>
+                <button type="button" class="btn btn-success" id="finalize-payment-btn">{% trans "Finalize Payment" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Modal -->
+<div class="modal fade" id="orders-modal" tabindex="-1" role="dialog" aria-labelledby="ordersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ordersModalLabel">Órdenes en Espera</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group" id="orders-list-container">
+                    <!-- JS will populate this list -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cerrar" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock page_content_wrapper %}
+
+{% block javascripts %}
+    {{ product_list_api_url|json_script:"product_list_api_url" }}
+    {{ get_customers_api_url|json_script:"get_customers_api_url" }}
+    {{ create_customer_api_url|json_script:"create_customer_api_url" }}
+    {{ payment_methods_list_api_url|json_script:"payment_methods_list_api_url" }}
+    {{ save_order_url|json_script:"save_order_url" }}
+    {{ order_list_api_url|json_script:"order_list_api_url" }}
+    {{ exchange_rate|json_script:"exchange_rate" }}
+    <script src="{% static 'js/pos/pos.js' %}?v=fresh-start"></script>
+{% endblock javascripts %}

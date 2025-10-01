@@ -1,0 +1,70 @@
+{% extends "pos/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Update Company" %}{% endblock title %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block heading %}{% trans "Update Company" %}{% endblock heading %}
+
+{% block content %}
+<div class="row ml-0 mb-3">
+    <a href="{% url 'core:company_view' %}">
+        <button type="button" class="btn btn-info font-weight-bold">
+            <i class="fas fa-long-arrow-alt-left mr-2"></i>
+            {% trans "Go back" %}
+        </button>
+    </a>
+</div>
+
+<div class="row">
+    <div class="card col-md-8">
+        <div class="card-body">
+            <form action="{% url 'core:company_update' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">{% trans "Name" %}</label>
+                    {{ form.name.errors }}
+                    {{ form.name }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.tax_id.id_for_label }}">{% trans "Tax ID" %}</label>
+                    {{ form.tax_id.errors }}
+                    {{ form.tax_id }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.address.id_for_label }}">{% trans "Address" %}</label>
+                    {{ form.address.errors }}
+                    {{ form.address }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.igtf_percentage.id_for_label }}">{% trans "IGTF Percentage" %}</label>
+                    {{ form.igtf_percentage.errors }}
+                    {{ form.igtf_percentage }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.logo.id_for_label }}">{% trans "Logo" %}</label>
+                    {{ form.logo.errors }}
+                    {{ form.logo }}
+                    {% if form.instance and form.instance.logo %}
+                        <div class="mt-2">
+                            <img src="{{ form.instance.logo.url }}" alt="Current Logo" style="max-width: 100px;">
+                            <br>
+                            <small class="text-muted">{% trans "Current Logo" %}</small>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn btn-success font-weight-bold">{% trans "Save Company" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}
