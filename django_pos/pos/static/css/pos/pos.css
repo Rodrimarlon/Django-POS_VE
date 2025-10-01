@@ -1,4 +1,4 @@
-/* New POS Stylesheet */
+            /* New POS Stylesheet */
 
 /* Basic Layout */
 .pos-container {
@@ -53,6 +53,33 @@
 
 .search-bar {
     width: 15rem;
+}
+
+.exchange-rate-display {
+    display: flex;
+    align-items: center;
+    margin: 0 1rem;
+}
+
+.exchange-rate-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem;
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.exchange-rate-unavailable {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border-color: #ffcc02;
 }
 
 .pos-header .img-profile {
