@@ -9,6 +9,7 @@ const PosApp = {
         paymentMethods: [],
         currentPayments: [],
         loadedOrderId: null,
+        selectedPaymentMethod: null,
     },
 
     // --- DOM ELEMENTS ---
@@ -558,16 +559,14 @@ const PosApp = {
         this.state.paymentMethods.forEach(pm => {
             const button = document.createElement('button');
             button.className = 'btn btn-outline-secondary';
+            if (this.state.selectedPaymentMethod && this.state.selectedPaymentMethod.id === pm.id) {
+                button.classList.add('active');
+            }
             button.textContent = pm.name;
             button.dataset.id = pm.id;
             button.addEventListener('click', (e) => {
-                // Remove active class from all buttons
-                this.dom.paymentMethodsButtonsEl.querySelectorAll('.btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                // Add active class to clicked button
-                e.target.classList.add('active');
-                // Handle payment method selection
+                this.state.selectedPaymentMethod = pm;
+                this.renderPaymentMethods(); // Re-render to update active states
                 this.handlePaymentMethodSelect(pm);
             });
             this.dom.paymentMethodsButtonsEl.appendChild(button);
@@ -689,6 +688,9 @@ const PosApp = {
     },
 
     openPaymentModal: function() {
+        // Clear any previous payment method selection
+        this.state.selectedPaymentMethod = null;
+        this.renderPaymentMethods(); // Re-render to clear visual selection
         this.renderCategorySummary();
         const totalUsd = this.state.cart.reduce((acc, item) => acc + item.quantity * item.price_usd, 0);
         this.dom.paymentTotalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
@@ -718,13 +720,11 @@ const PosApp = {
 
     handleAddPayment: function() {
         const amount = parseFloat(this.dom.paymentAmountInput.value);
-        const selectedPmEl = this.dom.paymentMethodsButtonsEl.querySelector('.active');
-        if (!selectedPmEl || !amount || amount <= 0) {
+        if (!this.state.selectedPaymentMethod || !amount || amount <= 0) {
             alert('Please select a payment method and enter a valid amount.');
             return;
         }
-        const paymentMethodId = parseInt(selectedPmEl.dataset.id);
-        const paymentMethod = this.state.paymentMethods.find(pm => pm.id === paymentMethodId);
+        const paymentMethod = this.state.selectedPaymentMethod;
         const reference = this.dom.paymentReferenceInput.value;
 
         if (paymentMethod.requires_reference && !reference) {
@@ -738,9 +738,11 @@ const PosApp = {
         }
 
         this.state.currentPayments.push({
-            payment_method_id: paymentMethodId,
+            payment_method_id: paymentMethod.id,
             payment_method_name: paymentMethod.name,
             amount: amountInUsd,
+            original_amount: amount,
+            is_foreign_currency: paymentMethod.is_foreign_currency,
             reference: reference,
         });
 
@@ -748,7 +750,7 @@ const PosApp = {
         this.dom.paymentReferenceInput.value = '';
         this.updatePaymentTotals();
         this.renderPaymentLines();
-        selectedPmEl.classList.remove('active');
+        // Keep the payment method selected for convenience (don't remove active class)
     },
 
     updatePaymentTotals: function() {
@@ -779,10 +781,16 @@ const PosApp = {
     renderPaymentLines: function() {
         this.dom.paymentLinesListEl.innerHTML = '';
         this.state.currentPayments.forEach((p, index) => {
+            let amountDisplay = `$${p.amount.toFixed(2)}`;
+            if (!p.is_foreign_currency) {
+                // Payment was made in VES, show both VES and USD equivalent
+                amountDisplay = `Bs. ${p.original_amount.toFixed(2)} ($${p.amount.toFixed(2)})`;
+            }
+
             const line = document.createElement('li');
             line.className = 'list-group-item d-flex justify-content-between align-items-center';
             line.innerHTML = `
-                <span>${p.payment_method_name}: ${p.amount.toFixed(2)} ${p.reference ? `(${p.reference})` : ''}</span>
+                <span>${p.payment_method_name}: ${amountDisplay} ${p.reference ? `(${p.reference})` : ''}</span>
                 <button class="btn btn-danger btn-sm" data-index="${index}">&times;</button>
             `;
             this.dom.paymentLinesListEl.appendChild(line);
@@ -868,6 +876,7 @@ const PosApp = {
         this.state.currentPayments = [];
         this.state.selectedCustomer = null;
         this.state.loadedOrderId = null;
+        this.state.selectedPaymentMethod = null;
         this.dom.customerBtnText.textContent = 'Customer';
         this.renderCart();
         this.renderPaymentLines();
